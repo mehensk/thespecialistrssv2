@@ -5,6 +5,8 @@ import { Home, FileText, CheckCircle, Clock, Activity } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
+export const dynamic = 'force-dynamic';
+
 // Fast user ID retrieval from JWT token (much faster than auth())
 async function getDashboardStats(userId: string) {
   const [listings, blogs, activities] = await Promise.all([
