@@ -38,11 +38,11 @@ export async function logActivity(params: LogActivityParams) {
 // Helper functions for common activity types
 export async function logAuthActivity(
   userId: string,
-  action: ActivityAction.LOGIN | ActivityAction.LOGOUT
+  action: 'LOGIN' | 'LOGOUT'
 ) {
   return logActivity({
     userId,
-    action,
+    action: action as ActivityAction,
     itemType: ActivityItemType.AUTH,
   });
 }

@@ -82,7 +82,10 @@ export default async function DashboardActivityPage() {
                       {activity.itemId || 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-sm text-[#111111]/70">
-                      {activity.metadata && typeof activity.metadata === 'object' && activity.metadata.title
+                      {activity.metadata && 
+                       typeof activity.metadata === 'object' && 
+                       !Array.isArray(activity.metadata) &&
+                       'title' in activity.metadata
                         ? (activity.metadata.title as string)
                         : 'N/A'}
                     </td>

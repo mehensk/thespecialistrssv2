@@ -1,12 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { Phone, Mail, MapPin, Clock, Home as HomeIcon, TrendingUp, Key, FileCheck, Calculator, Lightbulb } from 'lucide-react';
+import { useState, FormEvent } from 'react';
+import { Phone, Mail, MapPin, Clock, Home as HomeIcon, TrendingUp, Key, FileCheck, Calculator, Lightbulb, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { ScrollAnimation } from '@/components/ui/scroll-animation';
+import { executeRecaptcha } from '@/lib/recaptcha';
+import { sendContactEmail, type ContactFormData } from '@/lib/emailjs';
 
 export default function ContactPage() {
   const [message, setMessage] = useState('');
   const [interest, setInterest] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleServiceClick = (serviceName: string, interestValue: string) => {
     setMessage(`I need help with ${serviceName}. Please contact me.`);
@@ -19,6 +24,78 @@ export default function ContactPage() {
         messageField.focus();
       }
     }, 100);
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(false);
+
+    // Store form reference before async operations (e.currentTarget can become null in async)
+    const form = e.currentTarget as HTMLFormElement;
+    
+    // Get form values immediately before async operations
+    const formDataObj = new FormData(form);
+    const fullNameInput = form.querySelector<HTMLInputElement>('input[name="fullName"]');
+    const emailInput = form.querySelector<HTMLInputElement>('input[name="email"]');
+    const phoneInput = form.querySelector<HTMLInputElement>('input[name="phone"]');
+    const interestSelect = form.querySelector<HTMLSelectElement>('select[name="interest"]');
+    const messageTextarea = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
+
+    try {
+      // Execute reCAPTCHA to get token
+      const recaptchaToken = await executeRecaptcha('contact_form');
+
+      // Verify token with our API
+      const verifyResponse = await fetch('/api/verify-recaptcha', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token: recaptchaToken }),
+      });
+
+      const verifyData = await verifyResponse.json();
+
+      if (!verifyData.success) {
+        throw new Error(verifyData.error || 'reCAPTCHA verification failed');
+      }
+
+      // reCAPTCHA verified successfully - now send email via EmailJS
+      const formData: ContactFormData = {
+        fullName: fullNameInput?.value || formDataObj.get('fullName')?.toString() || '',
+        email: emailInput?.value || formDataObj.get('email')?.toString() || '',
+        phone: phoneInput?.value || formDataObj.get('phone')?.toString() || '',
+        interest: interest || interestSelect?.value || formDataObj.get('interest')?.toString() || '',
+        message: message || messageTextarea?.value || formDataObj.get('message')?.toString() || '',
+      };
+
+      // Send email via EmailJS
+      await sendContactEmail(formData);
+
+      // Show success message
+      setSubmitSuccess(true);
+      
+      // Reset form after 3 seconds
+      setTimeout(() => {
+        const form = e.currentTarget;
+        form.reset();
+        setMessage('');
+        setInterest('');
+        setSubmitSuccess(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setSubmitError(
+        error instanceof Error 
+          ? error.message 
+          : 'An error occurred. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   return (
     <div className="min-h-screen bg-white pt-[84px]">
@@ -189,7 +266,25 @@ export default function ContactPage() {
                     Send us a Message
                   </h2>
                   
-                  <form className="space-y-6">
+                  {/* Success Message */}
+                  {submitSuccess && (
+                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
+                      <CheckCircle2 size={20} className="text-green-600 flex-shrink-0" />
+                      <p className="text-green-800 text-sm">
+                        Thank you! Your message has been sent successfully. We'll get back to you soon.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Error Message */}
+                  {submitError && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+                      <AlertCircle size={20} className="text-red-600 flex-shrink-0" />
+                      <p className="text-red-800 text-sm">{submitError}</p>
+                    </div>
+                  )}
+
+                  <form className="space-y-6" onSubmit={handleSubmit}>
                     {/* Full Name */}
                     <div>
                       <label htmlFor="fullName" className="block text-sm font-medium text-[#111111] mb-2">
@@ -294,10 +389,20 @@ export default function ContactPage() {
                     <div className="pt-4">
                       <button
                         type="submit"
-                        className="w-full bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-8 py-4 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 relative overflow-hidden group"
+                        disabled={isSubmitting}
+                        className="w-full bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-8 py-4 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 relative overflow-hidden group disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
                       >
-                        <span className="relative z-10">Send Inquiry</span>
-                        <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                        {isSubmitting ? (
+                          <span className="relative z-10 flex items-center justify-center gap-2">
+                            <Loader2 size={20} className="animate-spin" />
+                            Verifying...
+                          </span>
+                        ) : (
+                          <>
+                            <span className="relative z-10">Send Inquiry</span>
+                            <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </form>

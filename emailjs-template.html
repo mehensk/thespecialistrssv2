@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Contact Form Inquiry</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f5f5f5; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #1F2937 0%, #111111 100%); padding: 30px 20px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">New Contact Form Inquiry</h1>
+                            <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 14px; opacity: 0.9;">The Specialist Realty</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 30px 20px;">
+                            <p style="margin: 0 0 20px 0; color: #111111; font-size: 16px; line-height: 1.6;">
+                                You have received a new inquiry from your website contact form.
+                            </p>
+                            
+                            <!-- Contact Information Card -->
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #F9FAFB; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                                <tr>
+                                    <td>
+                                        <h2 style="margin: 0 0 15px 0; color: #1F2937; font-size: 18px; font-weight: 600; border-bottom: 2px solid #E5E7EB; padding-bottom: 10px;">
+                                            Contact Information
+                                        </h2>
+                                        
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #111111; font-size: 14px;">
+                                                    <strong style="color: #1F2937; display: inline-block; min-width: 100px;">Full Name:</strong>
+                                                    <span>{{from_name}}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #111111; font-size: 14px;">
+                                                    <strong style="color: #1F2937; display: inline-block; min-width: 100px;">Email:</strong>
+                                                    <a href="mailto:{{from_email}}" style="color: #1F2937; text-decoration: none;">{{from_email}}</a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #111111; font-size: 14px;">
+                                                    <strong style="color: #1F2937; display: inline-block; min-width: 100px;">Phone:</strong>
+                                                    <a href="tel:{{phone}}" style="color: #1F2937; text-decoration: none;">{{phone}}</a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #111111; font-size: 14px;">
+                                                    <strong style="color: #1F2937; display: inline-block; min-width: 100px;">Interest:</strong>
+                                                    <span style="background-color: #1F2937; color: #ffffff; padding: 4px 12px; border-radius: 4px; font-size: 12px; display: inline-block; margin-left: 5px;">{{interest}}</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Message Section -->
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #ffffff; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px;">
+                                <tr>
+                                    <td>
+                                        <h2 style="margin: 0 0 15px 0; color: #1F2937; font-size: 18px; font-weight: 600; border-bottom: 2px solid #E5E7EB; padding-bottom: 10px;">
+                                            Message
+                                        </h2>
+                                        <p style="margin: 0; color: #111111; font-size: 14px; line-height: 1.8; white-space: pre-wrap;">{{message}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Action Button -->
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; margin-top: 25px;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="mailto:{{from_email}}?subject=Re: Your Inquiry - {{interest}}" style="display: inline-block; background: linear-gradient(135deg, #1F2937 0%, #111111 100%); color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-size: 14px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                            Reply to {{from_name}}
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #F9FAFB; padding: 20px; text-align: center; border-top: 1px solid #E5E7EB;">
+                            <p style="margin: 0; color: #111111; font-size: 12px; opacity: 0.7;">
+                                This email was sent from your website contact form.<br>
+                                The Specialist - Realty Solutions & Services<br>
+                                REBL PRC License # 33422
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+

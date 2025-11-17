@@ -1,0 +1,26 @@
+Subject: New Contact Form Inquiry - {{interest}}
+
+===========================================
+NEW CONTACT FORM INQUIRY
+The Specialist Realty
+===========================================
+
+You have received a new inquiry from your website contact form.
+
+CONTACT INFORMATION
+-------------------
+Full Name: {{from_name}}
+Email: {{from_email}}
+Phone: {{phone}}
+Interest: {{interest}}
+
+MESSAGE
+-------
+{{message}}
+
+===========================================
+This email was sent from your website contact form.
+The Specialist - Realty Solutions & Services
+REBL PRC License # 33422
+===========================================
+

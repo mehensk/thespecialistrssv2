@@ -202,7 +202,10 @@ async function DashboardContent() {
                           <span className="text-sm text-[#111111]/50">ID: {activity.itemId}</span>
                         )}
                       </div>
-                      {activity.metadata && typeof activity.metadata === 'object' && activity.metadata.title && (
+                      {activity.metadata && 
+                       typeof activity.metadata === 'object' && 
+                       !Array.isArray(activity.metadata) &&
+                       'title' in activity.metadata && (
                         <p className="text-sm text-[#111111] font-medium mt-1">
                           {activity.metadata.title as string}
                         </p>

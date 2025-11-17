@@ -286,12 +286,15 @@ const mockProperties = [
   },
 ];
 
-// Get unique cities from properties
-const cities = Array.from(new Set(mockProperties.map(p => p.city))).sort();
+// Cities will be dynamically generated from fetched listings
 
 function ListingsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  
+  // State for fetched listings
+  const [listings, setListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Filter states
   const listingTypeParam = searchParams.get('listingType');
@@ -314,9 +317,50 @@ function ListingsPageContent() {
   
   const propertiesPerPage = 12;
 
+  // Fetch listings from API
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/listings?published=true');
+        const data = await response.json();
+        
+        if (response.ok && data.listings) {
+          // Transform API listings to match expected format
+          const transformedListings = data.listings.map((listing: any) => ({
+            id: listing.id,
+            price: listing.price || 0,
+            bedrooms: listing.bedrooms || 0,
+            bathrooms: listing.bathrooms || 0,
+            size: listing.size || 0,
+            city: listing.city || listing.location || '',
+            type: listing.propertyType || '',
+            listingType: listing.listingType || 'sale',
+            image: listing.images && listing.images.length > 0 ? listing.images[0] : '/images/hero-condo.jpg',
+            location: listing.location,
+            title: listing.title,
+            address: listing.address,
+          }));
+          setListings(transformedListings);
+        }
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchListings();
+  }, []);
+
+  // Get unique cities from fetched listings
+  const cities = useMemo(() => {
+    return Array.from(new Set(listings.map(p => p.city).filter(Boolean))).sort();
+  }, [listings]);
+
   // Filter and sort properties
   const filteredAndSortedProperties = useMemo(() => {
-    let filtered = [...mockProperties];
+    let filtered = [...listings];
 
     // Apply filters
     if (listingType) {
@@ -369,7 +413,7 @@ function ListingsPageContent() {
     }
 
     return filtered;
-  }, [listingType, selectedCity, minPrice, maxPrice, propertyType, bedrooms, bathrooms, minSize, maxSize, sortBy]);
+  }, [listings, listingType, selectedCity, minPrice, maxPrice, propertyType, bedrooms, bathrooms, minSize, maxSize, sortBy]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedProperties.length / propertiesPerPage);
@@ -429,6 +473,18 @@ function ListingsPageContent() {
   };
 
   const hasActiveFilters = listingType || selectedCity || minPrice || maxPrice || propertyType || bedrooms || bathrooms || minSize || maxSize;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white pt-[84px]">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 pb-16">
+          <div className="text-center py-16">
+            <p className="text-lg text-[#111111]/70">Loading properties...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white pt-[84px]">
@@ -715,14 +771,18 @@ function ListingsPageContent() {
                               <span>{property.bathrooms} {property.bathrooms === 1 ? 'Toilet' : 'Toilets'}</span>
                             </div>
                           )}
-                          <div className="flex items-center gap-2">
-                            <Square size={18} className="text-[#1F2937]" />
-                            <span>{property.size} sqm</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin size={18} className="text-[#1F2937]" />
-                            <span>{property.city}</span>
-                          </div>
+                          {property.size > 0 && (
+                            <div className="flex items-center gap-2">
+                              <Square size={18} className="text-[#1F2937]" />
+                              <span>{property.size} sqm</span>
+                            </div>
+                          )}
+                          {property.city && (
+                            <div className="flex items-center gap-2">
+                              <MapPin size={18} className="text-[#1F2937]" />
+                              <span>{property.city}</span>
+                            </div>
+                          )}
                         </div>
                         <div className="flex justify-center">
                           <span className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-4 py-2 rounded-md text-sm uppercase tracking-wide shadow-md">

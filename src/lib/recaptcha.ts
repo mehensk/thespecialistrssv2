@@ -24,7 +24,7 @@ if (!RECAPTCHA_SITE_KEY) {
 export function loadRecaptchaScript(): Promise<void> {
   return new Promise((resolve, reject) => {
     // Check if script is already loaded
-    if (window.grecaptcha && window.grecaptcha.ready) {
+    if (window.grecaptcha) {
       resolve();
       return;
     }
@@ -34,7 +34,7 @@ export function loadRecaptchaScript(): Promise<void> {
     if (existingScript) {
       // Wait for grecaptcha to be available
       const checkInterval = setInterval(() => {
-        if (window.grecaptcha && window.grecaptcha.ready) {
+        if (window.grecaptcha) {
           clearInterval(checkInterval);
           resolve();
         }
@@ -57,7 +57,7 @@ export function loadRecaptchaScript(): Promise<void> {
     script.defer = true;
 
     script.onload = () => {
-      if (window.grecaptcha && window.grecaptcha.ready) {
+      if (window.grecaptcha) {
         resolve();
       } else {
         reject(new Error('reCAPTCHA script loaded but grecaptcha is not available'));
