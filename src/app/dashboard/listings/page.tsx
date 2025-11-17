@@ -3,11 +3,11 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import { UserRole } from '@prisma/client';
 import Link from 'next/link';
-
-export const dynamic = 'force-dynamic';
 import { Plus } from 'lucide-react';
 import { Suspense } from 'react';
 import { ListingCard } from './listing-card';
+
+export const dynamic = 'force-dynamic';
 
 // Fast user ID retrieval from JWT token (much faster than auth())
 async function getListings(userId: string) {
