@@ -4,16 +4,16 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   images: {
-    // Netlify plugin handles image optimization, but ensure remote images work
+    // Temporarily disable optimization to fix Netlify image loading
+    // Netlify's Next.js plugin should handle this, but if all images fail,
+    // disabling optimization will allow images to load directly
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
     ],
-    // For Netlify: ensure local images are optimized correctly
-    loader: 'default',
-    formats: ['image/avif', 'image/webp'],
   },
   // Ensure public folder is included in build
   experimental: {
