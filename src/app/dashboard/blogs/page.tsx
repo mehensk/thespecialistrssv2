@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { Plus, Edit, Trash2, Eye, CheckCircle, Clock } from 'lucide-react';
 import { Suspense } from 'react';
 
+export const dynamic = 'force-dynamic';
+
 // Fast user ID retrieval from JWT token (much faster than auth())
 async function getBlogs(userId: string) {
   return prisma.blogPost.findMany({

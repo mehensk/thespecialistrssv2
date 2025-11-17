@@ -2,6 +2,8 @@ import { getUserFromToken } from '@/lib/get-user-from-token';
 import { prisma } from '@/lib/prisma';
 import { Activity } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardActivityPage() {
   const user = await getUserFromToken();
   
