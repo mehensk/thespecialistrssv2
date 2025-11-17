@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed": "tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "node ./scripts/postinstall.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
