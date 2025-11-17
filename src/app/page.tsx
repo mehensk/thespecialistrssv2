@@ -15,7 +15,7 @@ export default function Home() {
             src="/images/hero-condo.jpg"
             alt="Luxury Condo Facade"
             fill
-          priority
+            priority
             className="object-cover"
             sizes="100vw"
           />

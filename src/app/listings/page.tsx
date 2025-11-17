@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -310,6 +310,7 @@ function ListingsPageContent() {
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const isInitialMount = useRef(true);
   
   const propertiesPerPage = 12;
 
@@ -375,8 +376,14 @@ function ListingsPageContent() {
   const startIndex = (currentPage - 1) * propertiesPerPage;
   const paginatedProperties = filteredAndSortedProperties.slice(startIndex, startIndex + propertiesPerPage);
 
-  // Update URL when filters change
+  // Update URL when filters change (but not on initial mount)
   useEffect(() => {
+    // Skip URL update on initial mount to prevent refresh loop
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     const params = new URLSearchParams();
     if (listingType) params.set('listingType', listingType);
     if (selectedCity) params.set('location', selectedCity);
@@ -389,8 +396,13 @@ function ListingsPageContent() {
     if (maxSize) params.set('maxSize', maxSize);
     
     const newUrl = params.toString() ? `/listings?${params.toString()}` : '/listings';
-    router.replace(newUrl, { scroll: false });
-  }, [listingType, selectedCity, minPrice, maxPrice, propertyType, bedrooms, bathrooms, minSize, maxSize, router]);
+    const currentUrl = window.location.pathname + window.location.search;
+    
+    // Only update URL if it's different to prevent infinite loop
+    if (newUrl !== currentUrl) {
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [listingType, selectedCity, minPrice, maxPrice, propertyType, bedrooms, bathrooms, minSize, maxSize]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
