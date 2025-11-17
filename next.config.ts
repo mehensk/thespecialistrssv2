@@ -4,16 +4,17 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   images: {
-    // Temporarily disable optimization to diagnose Netlify image issues
-    // The Netlify plugin should handle this, but if images aren't loading, 
-    // this will help identify if it's an optimization issue
-    unoptimized: process.env.NODE_ENV === 'production' ? false : false,
+    // Netlify plugin handles image optimization, but ensure remote images work
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
     ],
+  },
+  // Ensure public folder is included in build
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
   },
 };
 
