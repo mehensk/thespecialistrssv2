@@ -3,15 +3,25 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
+  const { data: session } = useSession();
+  const router = useRouter();
 
   const closeMenu = () => setIsOpen(false);
+
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    router.push('/');
+    router.refresh();
+  };
 
   useEffect(() => {
     // Only track scroll on homepage
@@ -39,6 +49,25 @@ export function Navbar() {
           : 'bg-white/95 backdrop-blur-sm shadow-lg'
       }`}
     >
+      {/* Username (very left edge) - only for logged in users */}
+      {session?.user && (
+        <Link
+          href="/dashboard"
+          className={`absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pl-4 pr-3 py-1.5 rounded-full transition-all max-w-fit hover:scale-105 active:scale-95 ${
+            shouldBeTransparent
+              ? 'bg-white/20 backdrop-blur-sm border border-white/30 text-white shadow-lg hover:bg-white/30' 
+              : 'bg-gradient-to-r from-[#1F2937] to-[#111111] text-white shadow-md hover:from-[#1A232E] hover:to-[#0F1419]'
+          }`}
+        >
+          <div className={`w-2 h-2 rounded-full ${
+            shouldBeTransparent ? 'bg-white' : 'bg-[#D4AF37]'
+          } animate-pulse`}></div>
+          <span className="text-sm font-medium whitespace-nowrap">
+            Welcome, <span className="font-semibold">{session.user.name || session.user.email}</span>
+          </span>
+        </Link>
+      )}
+      
       <div className="mx-auto max-w-7xl h-[84px] px-4 md:px-6 flex items-center">
         {/* Logo — Sora 600 (Left-aligned) */}
         <Link
@@ -59,17 +88,38 @@ export function Navbar() {
           <NavLink href="/listings" shouldBeTransparent={shouldBeTransparent}>Listings</NavLink>
           <NavLink href="/blog" shouldBeTransparent={shouldBeTransparent}>Blog</NavLink>
           <NavLink href="/contact" shouldBeTransparent={shouldBeTransparent}>Contact</NavLink>
+          {session && (
+            <NavLink href="/dashboard" shouldBeTransparent={shouldBeTransparent}>
+              <span className="flex items-center gap-1.5">
+                <LayoutDashboard size={16} />
+                Dashboard
+              </span>
+            </NavLink>
+          )}
         </nav>
 
-        {/* Desktop CTA Button — Right-aligned */}
-        <div className="hidden lg:flex items-center flex-shrink-0 ml-12">
-        <Link
-          href="/contact"
-          className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-5 py-2 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 relative overflow-hidden group"
-        >
-          <span className="relative z-10">Contact Us</span>
-          <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-        </Link>
+        {/* Desktop CTA Buttons — Right-aligned */}
+        <div className="hidden lg:flex items-center gap-3 flex-shrink-0 ml-12">
+          <Link
+            href="/contact"
+            className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-5 py-2 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 relative overflow-hidden group"
+          >
+            <span className="relative z-10">Contact Us</span>
+            <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+          </Link>
+          {session && (
+            <button
+              onClick={handleLogout}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-300 ${
+                shouldBeTransparent
+                  ? 'bg-white/20 hover:bg-white/30 text-white border border-white/30'
+                  : 'bg-white border border-[#E5E7EB] text-[#111111] hover:border-[#1F2937] hover:bg-[#F9FAFB]'
+              }`}
+            >
+              <LogOut size={16} />
+              <span>Logout</span>
+            </button>
+          )}
         </div>
 
         {/* Mobile Buttons Container */}
@@ -80,6 +130,19 @@ export function Navbar() {
           >
             Contact Us
           </Link>
+          {session && (
+            <button
+              onClick={handleLogout}
+              className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all ${
+                shouldBeTransparent
+                  ? 'bg-white/20 hover:bg-white/30 text-white'
+                  : 'bg-white border border-[#E5E7EB] text-[#111111] hover:border-[#1F2937]'
+              }`}
+            >
+              <LogOut size={14} />
+              <span>Logout</span>
+            </button>
+          )}
           <button
             className={`transition-colors ${
               shouldBeTransparent ? 'text-white drop-shadow-lg' : 'text-[#111111]'
@@ -99,6 +162,14 @@ export function Navbar() {
           <MobileLink href="/listings" onClose={closeMenu}>Listings</MobileLink>
           <MobileLink href="/blog" onClose={closeMenu}>Blog</MobileLink>
           <MobileLink href="/contact" onClose={closeMenu}>Contact</MobileLink>
+          {session && (
+            <MobileLink href="/dashboard" onClose={closeMenu}>
+              <span className="flex items-center gap-2">
+                <LayoutDashboard size={18} />
+                Dashboard
+              </span>
+            </MobileLink>
+          )}
           <Link
             href="/contact"
             className="block text-center bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-4 py-2.5 rounded-md mt-2 shadow-md"
@@ -106,6 +177,18 @@ export function Navbar() {
           >
             Contact Us
           </Link>
+          {session && (
+            <button
+              onClick={() => {
+                closeMenu();
+                handleLogout();
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-white border-2 border-[#E5E7EB] text-[#111111] px-4 py-2.5 rounded-md mt-2 hover:bg-[#F9FAFB] transition-colors"
+            >
+              <LogOut size={18} />
+              <span>Logout</span>
+            </button>
+          )}
         </div>
       )}
     </header>
