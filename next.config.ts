@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
       },
     ],
+    // For Netlify: ensure local images are optimized correctly
+    loader: 'default',
+    formats: ['image/avif', 'image/webp'],
   },
   // Ensure public folder is included in build
   experimental: {
