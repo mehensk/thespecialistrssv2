@@ -28,8 +28,6 @@ const nextConfig: NextConfig = {
   },
   // Compress responses
   compress: true,
-  // Optimize production builds
-  swcMinify: true,
 };
 
 export default nextConfig;
