@@ -17,28 +17,43 @@ export async function GET(request: NextRequest) {
     const origin = request.nextUrl.origin;
     
     // Retry logic for production where cookies might take a moment to be available
+    // NextAuth v5 uses 'authjs.session-token' or '__Secure-authjs.session-token' cookie names
     let token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    // If token not found, retry once after a short delay (for production cookie timing)
+    // If token not found, retry multiple times with increasing delays (for production cookie timing)
+    // This handles cases where the cookie is set but not immediately available to the server
     if (!token || !token.id) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      token = await getToken({
-        req: request,
-        secret: process.env.NEXTAUTH_SECRET,
-      });
+      const maxRetries = 5;
+      let retryCount = 0;
+      
+      while ((!token || !token.id) && retryCount < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 200 * (retryCount + 1))); // Increasing delay
+        token = await getToken({
+          req: request,
+          secret: process.env.NEXTAUTH_SECRET,
+        });
+        retryCount++;
+      }
     }
 
     if (!token || !token.id) {
       // Log in both dev and prod for debugging production issues
+      // Check what cookies are actually present in the request
+      const cookieHeader = request.headers.get('cookie') || '';
+      const cookies = cookieHeader.split(';').map(c => c.trim());
+      
       console.log('Auth callback: No token found after retry, redirecting to login', {
         hasToken: !!token,
         hasTokenId: token?.id ? true : false,
         tokenKeys: token ? Object.keys(token) : [],
         origin,
         url: request.url,
+        cookieCount: cookies.length,
+        cookieNames: cookies.map(c => c.split('=')[0]).filter(Boolean),
+        hasAuthCookie: cookieHeader.includes('authjs') || cookieHeader.includes('next-auth'),
       });
       const loginUrl = new URL('/login?error=no-token', origin);
       return NextResponse.redirect(loginUrl);

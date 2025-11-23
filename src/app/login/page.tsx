@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
+import { UserRole } from '@prisma/client';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -32,19 +33,63 @@ function LoginForm() {
       }
 
       if (result?.ok) {
-        // Session is established - redirect to callback route which handles redirect server-side
-        // This is more reliable in production (Netlify) where client-side session reading can be delayed
-        // The callback route reads the token server-side and redirects based on role
+        // Session is established - wait for cookie to be set, then redirect
+        // Use a delay to ensure cookies are set before redirect
         const delay = typeof window !== 'undefined' && window.location.hostname.includes('netlify') 
-          ? 500 
-          : 250;
+          ? 1200 
+          : 500;
         await new Promise(resolve => setTimeout(resolve, delay));
         
-        // Always use callback route for reliable server-side redirect
-        const callbackUrl = `${window.location.origin}/auth/callback`;
-        console.log('Login successful, redirecting to callback:', callbackUrl);
-        // Use replace to ensure redirect completes and prevent back navigation
-        window.location.replace(callbackUrl);
+        // Try to get session with retries - use both getSession() and API fetch
+        let session = await getSession();
+        let retries = 0;
+        const maxRetries = 12; // More retries for Netlify
+        
+        while ((!session?.user?.role) && retries < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 250));
+          
+          // Try getSession first
+          session = await getSession();
+          
+          // If getSession doesn't work, try fetching from API directly
+          if (!session?.user?.role) {
+            try {
+              const response = await fetch('/api/auth/session', {
+                credentials: 'include',
+                cache: 'no-store'
+              });
+              if (response.ok) {
+                const sessionData = await response.json();
+                if (sessionData?.user?.role) {
+                  session = sessionData;
+                  break; // Found session, exit loop
+                }
+              }
+            } catch (err) {
+              // Ignore API errors, continue retrying
+            }
+          } else {
+            break; // Found session, exit loop
+          }
+          
+          retries++;
+        }
+        
+        if (session?.user?.role) {
+          // Redirect directly based on role - client-side redirect is more reliable
+          const redirectPath = session.user.role === UserRole.ADMIN 
+            ? '/admin/dashboard' 
+            : '/dashboard';
+          const redirectUrl = `${window.location.origin}${redirectPath}`;
+          console.log('✅ Login successful, redirecting to:', redirectUrl, 'Role:', session.user.role);
+          // Use replace to ensure redirect completes and prevent back navigation
+          window.location.replace(redirectUrl);
+        } else {
+          // If session still not available, redirect to home and let user navigate manually
+          // The navbar will show they're logged in, so they can click the dashboard link
+          console.warn('⚠️ Session not available after retries, redirecting to home');
+          window.location.replace(window.location.origin);
+        }
       } else {
         setError('An error occurred. Please try again.');
         setLoading(false);
