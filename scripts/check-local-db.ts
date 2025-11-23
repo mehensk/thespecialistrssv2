@@ -142,7 +142,30 @@ async function checkLocalDatabase() {
       console.log('   💡 Add listings/blogs locally first, then migrate');
     }
 
-  } catch (error) {
+  } catch (error: any) {
+    // Check for missing table error (P2021)
+    if (error?.code === 'P2021' || (error?.message && error.message.includes('does not exist'))) {
+      console.error('\n❌ Database Schema Not Found!');
+      console.error('   The database tables have not been created yet.\n');
+      console.error('💡 Solution: Run database migrations first:\n');
+      
+      if (isPrismaDev) {
+        console.error('   If using Prisma dev server:');
+        console.error('   1. Make sure Prisma dev server is running: npx prisma dev');
+        console.error('   2. The migrations should apply automatically\n');
+      } else {
+        console.error('   Run this command to create the tables:');
+        console.error('   npx prisma migrate dev\n');
+        console.error('   Or if you just want to push the schema:');
+        console.error('   npx prisma db push\n');
+      }
+      
+      console.error('   After migrations, you can seed the database with:');
+      console.error('   npm run db:seed\n');
+      
+      process.exit(1);
+    }
+    
     console.error('❌ Error checking database:', error);
     
     if (error instanceof Error) {

@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { UserRole, ActivityAction } from '@prisma/client';
 import { logBlogActivity } from '@/lib/activity-logger';
 import { logger } from '@/lib/logger';
+import { revalidateTag } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/cache';
 
 export async function GET(
   request: NextRequest,
@@ -175,6 +177,10 @@ export async function PUT(
     await logBlogActivity(user.id, ActivityAction.UPDATE, id, {
       title: updated.title,
     });
+
+    // Revalidate cache when blog post is updated
+    revalidateTag(CACHE_TAGS.BLOG_POST(updated.slug), '');
+    revalidateTag(CACHE_TAGS.BLOG_POSTS, '');
 
     return NextResponse.json({ success: true, blog: updated });
   } catch (error) {

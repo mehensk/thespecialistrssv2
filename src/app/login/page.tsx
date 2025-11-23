@@ -1,15 +1,11 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { signIn, getSession } from 'next-auth/react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
-import { UserRole } from '@prisma/client';
 
 function LoginForm() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -36,18 +32,19 @@ function LoginForm() {
       }
 
       if (result?.ok) {
-        // Session is established - get role and redirect directly
-        // This eliminates the extra /auth/callback route hop
-        const session = await getSession();
-        if (session?.user?.role) {
-          const redirectUrl = session.user.role === UserRole.ADMIN 
-            ? '/admin/dashboard' 
-            : '/dashboard';
-          router.push(redirectUrl);
-        } else {
-          // Fallback: redirect to dashboard if role not available
-          router.push('/dashboard');
-        }
+        // Session is established - redirect to callback route which handles redirect server-side
+        // This is more reliable in production (Netlify) where client-side session reading can be delayed
+        // The callback route reads the token server-side and redirects based on role
+        const delay = typeof window !== 'undefined' && window.location.hostname.includes('netlify') 
+          ? 500 
+          : 250;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        // Always use callback route for reliable server-side redirect
+        const callbackUrl = `${window.location.origin}/auth/callback`;
+        console.log('Login successful, redirecting to callback:', callbackUrl);
+        // Use replace to ensure redirect completes and prevent back navigation
+        window.location.replace(callbackUrl);
       } else {
         setError('An error occurred. Please try again.');
         setLoading(false);

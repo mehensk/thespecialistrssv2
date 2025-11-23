@@ -5,6 +5,8 @@ import { ActivityAction, Prisma } from '@prisma/client';
 import { logBlogActivity } from '@/lib/activity-logger';
 import { safeParseInt, validateBlogPostInput } from '@/lib/validation';
 import { logger } from '@/lib/logger';
+import { revalidateTag } from 'next/cache';
+import { CACHE_TAGS, getCachedBlogPosts } from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,21 +16,28 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit');
     const offset = searchParams.get('offset');
 
-    const where: Prisma.BlogPostWhereInput = {};
-    if (published === 'true') {
-      where.isPublished = true;
-    } else if (user && user.id) {
-      // Authenticated users can see their own unpublished blog posts
-      where.OR = [
-        { isPublished: true },
-        { userId: user.id },
-      ];
-    } else {
-      // Public users only see published blog posts
-      where.isPublished = true;
+    // Use cached data for published blog posts
+    if (published === 'true' || (!user || !user.id)) {
+      const take = limit ? safeParseInt(limit, 1, 100) ?? undefined : undefined;
+      const skip = offset ? safeParseInt(offset, 0) ?? undefined : undefined;
+      
+      const blogs = await getCachedBlogPosts({ limit: take, offset: skip });
+
+      // Add cache headers for public blog posts
+      const headers = new Headers();
+      headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+
+      return NextResponse.json({ blogs }, { headers });
     }
 
-    // Optimize query - only select needed fields
+    // For authenticated users viewing their own blog posts, use direct query
+    const where: Prisma.BlogPostWhereInput = {
+      OR: [
+        { isPublished: true },
+        { userId: user.id },
+      ],
+    };
+
     const selectFields = {
       id: true,
       title: true,
@@ -41,7 +50,6 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    // Add pagination if limit is provided
     const take = limit ? safeParseInt(limit, 1, 100) ?? undefined : undefined;
     const skip = offset ? safeParseInt(offset, 0) ?? undefined : undefined;
 
@@ -53,14 +61,7 @@ export async function GET(request: NextRequest) {
       skip,
     });
 
-    // Add cache headers for public blog posts
-    const headers = new Headers();
-    if (published === 'true') {
-      // Cache published blogs for 60 seconds, revalidate in background
-      headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-    }
-
-    return NextResponse.json({ blogs }, { headers });
+    return NextResponse.json({ blogs });
   } catch (error) {
     logger.error('Error fetching blog posts:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
@@ -201,6 +202,9 @@ export async function POST(request: NextRequest) {
     } catch (activityError) {
       logger.error('Failed to log activity (non-critical):', activityError);
     }
+
+    // Revalidate cache when new blog post is created
+    revalidateTag(CACHE_TAGS.BLOG_POSTS, '');
 
     return NextResponse.json({ success: true, blog }, { status: 201 });
   } catch (error) {

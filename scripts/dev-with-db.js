@@ -53,25 +53,49 @@ async function setupDatabase() {
     
   } else {
     console.log('📦 Using regular PostgreSQL connection');
-    console.log('   Ensuring database is up to date...\n');
+    console.log('   Checking database status...\n');
     
-    // For regular PostgreSQL, use migrate dev to apply migrations
-    // This will create the database if it doesn't exist and apply all migrations
-    const migrateResult = spawnSync('npx', ['prisma', 'migrate', 'dev', '--name', 'auto'], {
-      stdio: 'inherit',
-      shell: true
+    // First check if migrations are already applied
+    const statusResult = spawnSync('npx', ['prisma', 'migrate', 'status'], {
+      stdio: 'pipe',
+      shell: true,
+      encoding: 'utf8'
     });
 
-    if (migrateResult.status !== 0) {
-      console.error('\n❌ Database migration failed.');
-      console.error('   Please check:');
-      console.error('   1. Your DATABASE_URL in .env file is correct');
-      console.error('   2. Your database server is running');
-      console.error('   3. You have the necessary permissions\n');
-      process.exit(1);
+    const statusOutput = statusResult.stdout + statusResult.stderr;
+    const isUpToDate = statusOutput.includes('Database schema is up to date') || 
+                       statusOutput.includes('No pending migrations');
+
+    if (isUpToDate) {
+      console.log('✅ Database schema is already up to date!\n');
+    } else {
+      // Check if schema exists by trying db push first (safer for existing databases)
+      console.log('   Syncing database schema...\n');
+      const pushResult = spawnSync('npx', ['prisma', 'db', 'push', '--skip-generate'], {
+        stdio: 'inherit',
+        shell: true
+      });
+
+      if (pushResult.status !== 0) {
+        // If db push fails, try migrate deploy (for production databases)
+        console.log('   Trying to apply migrations...\n');
+        const deployResult = spawnSync('npx', ['prisma', 'migrate', 'deploy'], {
+          stdio: 'inherit',
+          shell: true
+        });
+
+        if (deployResult.status !== 0) {
+          console.error('\n❌ Database migration failed.');
+          console.error('   Please check:');
+          console.error('   1. Your DATABASE_URL in .env file is correct');
+          console.error('   2. Your database server is running');
+          console.error('   3. You have the necessary permissions\n');
+          process.exit(1);
+        }
+      }
+      
+      console.log('✅ Database is ready!\n');
     }
-    
-    console.log('✅ Database is ready!\n');
   }
 }
 

@@ -6,6 +6,8 @@ import { logListingActivity } from '@/lib/activity-logger';
 import { safeParseInt, safeParseFloat, validateListingInput } from '@/lib/validation';
 import { randomUUID } from 'crypto';
 import { logger } from '@/lib/logger';
+import { revalidateTag } from 'next/cache';
+import { CACHE_TAGS, getCachedListings } from '@/lib/cache';
 
 // Generate a unique property ID using timestamp and UUID
 function generatePropertyId(): string {
@@ -23,21 +25,28 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit');
     const offset = searchParams.get('offset');
 
-    const where: Prisma.ListingWhereInput = {};
-    if (published === 'true') {
-      where.isPublished = true;
-    } else if (user && user.id) {
-      // Authenticated users can see their own unpublished listings
-      where.OR = [
-        { isPublished: true },
-        { userId: user.id },
-      ];
-    } else {
-      // Public users only see published listings
-      where.isPublished = true;
+    // Use cached data for published listings
+    if (published === 'true' || (!user || !user.id)) {
+      const take = limit ? safeParseInt(limit, 1, 100) ?? undefined : undefined;
+      const skip = offset ? safeParseInt(offset, 0) ?? undefined : undefined;
+      
+      const listings = await getCachedListings({ limit: take, offset: skip });
+
+      // Add cache headers for public listings
+      const headers = new Headers();
+      headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+
+      return NextResponse.json({ listings }, { headers });
     }
 
-    // Optimize query - only select needed fields
+    // For authenticated users viewing their own listings, use direct query
+    const where: Prisma.ListingWhereInput = {
+      OR: [
+        { isPublished: true },
+        { userId: user.id },
+      ],
+    };
+
     const selectFields = {
       id: true,
       title: true,
@@ -61,7 +70,6 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    // Add pagination if limit is provided
     const take = limit ? safeParseInt(limit, 1, 100) ?? undefined : undefined;
     const skip = offset ? safeParseInt(offset, 0) ?? undefined : undefined;
 
@@ -73,14 +81,7 @@ export async function GET(request: NextRequest) {
       skip,
     });
 
-    // Add cache headers for public listings
-    const headers = new Headers();
-    if (published === 'true') {
-      // Cache published listings for 60 seconds, revalidate in background
-      headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-    }
-
-    return NextResponse.json({ listings }, { headers });
+    return NextResponse.json({ listings });
   } catch (error) {
     logger.error('Error fetching listings:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
@@ -187,6 +188,9 @@ export async function POST(request: NextRequest) {
     } catch (activityError) {
       logger.error('Failed to log activity (non-critical):', activityError);
     }
+
+    // Revalidate cache when new listing is created
+    revalidateTag(CACHE_TAGS.LISTINGS, '');
 
     return NextResponse.json({ success: true, listing }, { status: 201 });
   } catch (error) {

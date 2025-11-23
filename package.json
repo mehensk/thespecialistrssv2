@@ -16,7 +16,9 @@
     "migrate:to-neon": "tsx scripts/migrate-to-neon.ts",
     "check:neon-db": "tsx scripts/check-neon-db.ts",
     "check:local-db": "tsx scripts/check-local-db.ts",
+    "check:dev-branch": "tsx scripts/check-dev-branch.ts",
     "compare:databases": "tsx scripts/compare-databases.ts",
+    "migrate:to-dev": "tsx scripts/migrate-to-dev-branch.ts",
     "sync:to-production": "tsx scripts/sync-to-production.ts",
     "postinstall": "node ./scripts/postinstall.js",
     "build:netlify": "node ./scripts/simulate-netlify-build.js"

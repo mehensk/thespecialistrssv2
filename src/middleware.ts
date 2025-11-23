@@ -31,6 +31,10 @@ export async function middleware(request: NextRequest) {
   if (token.serverStartTime && hasServerRestarted(token.serverStartTime)) {
     // Server has restarted, clear session and redirect to home
     const response = NextResponse.redirect(new URL('/', request.url));
+    // NextAuth v5 uses authjs.session-token (not next-auth.session-token)
+    response.cookies.delete('authjs.session-token');
+    response.cookies.delete('__Secure-authjs.session-token');
+    // Also clear old cookie names for backward compatibility
     response.cookies.delete('next-auth.session-token');
     response.cookies.delete('__Secure-next-auth.session-token');
     return response;
@@ -43,6 +47,10 @@ export async function middleware(request: NextRequest) {
     if (timeSinceLastActivity > INACTIVITY_TIMEOUT) {
       // User has been inactive, clear session and redirect to home
       const response = NextResponse.redirect(new URL('/', request.url));
+      // NextAuth v5 uses authjs.session-token (not next-auth.session-token)
+      response.cookies.delete('authjs.session-token');
+      response.cookies.delete('__Secure-authjs.session-token');
+      // Also clear old cookie names for backward compatibility
       response.cookies.delete('next-auth.session-token');
       response.cookies.delete('__Secure-next-auth.session-token');
       return response;
@@ -57,6 +65,10 @@ export async function middleware(request: NextRequest) {
     if (!token || !token.id) {
       const response = NextResponse.redirect(new URL('/', request.url));
       // Clear any invalid session cookies
+      // NextAuth v5 uses authjs.session-token (not next-auth.session-token)
+      response.cookies.delete('authjs.session-token');
+      response.cookies.delete('__Secure-authjs.session-token');
+      // Also clear old cookie names for backward compatibility
       response.cookies.delete('next-auth.session-token');
       response.cookies.delete('__Secure-next-auth.session-token');
       return response;

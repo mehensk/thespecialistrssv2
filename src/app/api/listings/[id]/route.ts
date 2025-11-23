@@ -5,6 +5,8 @@ import { UserRole, ActivityAction } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
 import { safeParseInt, safeParseFloat } from '@/lib/validation';
 import { logger } from '@/lib/logger';
+import { revalidateTag } from 'next/cache';
+import { CACHE_TAGS, getCachedListing } from '@/lib/cache';
 
 export async function GET(
   request: NextRequest,
@@ -13,37 +15,44 @@ export async function GET(
   try {
     const user = await getUserFromToken();
     const { id } = await params;
-    const listing = await prisma.listing.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        price: true,
-        location: true,
-        city: true,
-        address: true,
-        bedrooms: true,
-        bathrooms: true,
-        size: true,
-        propertyType: true,
-        listingType: true,
-        images: true,
-        yearBuilt: true,
-        parking: true,
-        floor: true,
-        totalFloors: true,
-        amenities: true,
-        propertyId: true,
-        available: true,
-        isPublished: true,
-        userId: true,
-        createdAt: true,
-        user: {
-          select: { name: true, email: true },
+    
+    // Try to get from cache if published
+    let listing = await getCachedListing(id);
+    
+    // If not in cache or not published, fetch directly
+    if (!listing) {
+      listing = await prisma.listing.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          price: true,
+          location: true,
+          city: true,
+          address: true,
+          bedrooms: true,
+          bathrooms: true,
+          size: true,
+          propertyType: true,
+          listingType: true,
+          images: true,
+          yearBuilt: true,
+          parking: true,
+          floor: true,
+          totalFloors: true,
+          amenities: true,
+          propertyId: true,
+          available: true,
+          isPublished: true,
+          userId: true,
+          createdAt: true,
+          user: {
+            select: { name: true, email: true },
+          },
         },
-      },
-    });
+      });
+    }
 
     if (!listing) {
       return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
@@ -166,6 +175,10 @@ export async function PUT(
     } catch (activityError) {
       logger.error('Failed to log activity (non-critical):', activityError);
     }
+
+    // Revalidate cache when listing is updated
+    revalidateTag(CACHE_TAGS.LISTING(id), '');
+    revalidateTag(CACHE_TAGS.LISTINGS, '');
 
     return NextResponse.json({ success: true, listing: updated });
   } catch (error) {

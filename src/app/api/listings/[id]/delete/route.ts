@@ -3,6 +3,8 @@ import { getUserFromToken } from '@/lib/get-user-from-token';
 import { prisma } from '@/lib/prisma';
 import { ActivityAction } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
+import { revalidateTag } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/cache';
 
 export async function POST(
   request: NextRequest,
@@ -32,6 +34,10 @@ export async function POST(
     });
 
     await prisma.listing.delete({ where: { id } });
+
+    // Revalidate cache when listing is deleted
+    revalidateTag(CACHE_TAGS.LISTING(id), '');
+    revalidateTag(CACHE_TAGS.LISTINGS, '');
 
     return NextResponse.json({ success: true });
   } catch (error) {
