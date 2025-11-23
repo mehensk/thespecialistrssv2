@@ -14,6 +14,12 @@ interface User {
   role: UserRole;
 }
 
+interface UserFormData {
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
 export default function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -22,7 +28,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<UserFormData>({
     name: '',
     email: '',
     role: UserRole.AGENT,
