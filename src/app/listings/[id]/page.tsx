@@ -1,182 +1,159 @@
 'use client';
 
-import { use } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  Bed, 
-  Bath, 
-  Square, 
-  MapPin, 
-  Share2, 
-  Heart, 
-  Calendar, 
-  Phone, 
-  Mail, 
-  ArrowLeft, 
-  ChevronLeft, 
-  ChevronRight, 
-  Hash,
-  X as XIcon,
-  Maximize2,
-  Wind,
-  Sofa,
-  Wifi,
-  Car,
-  Waves,
-  Dumbbell,
-  Shield,
-  ArrowUpDown,
-  Home,
-  ChefHat,
-  Droplets,
-  Shirt,
-  Package,
-  Sparkles,
-  Heart as HeartIcon,
-  ShoppingBag,
-  GraduationCap,
-  Bus,
-  Building2,
-  Waves as WaterWaves,
-  Camera,
-  Flame,
-  ConciergeBell,
-  TreePine,
-  Briefcase,
-  Tv,
-  Wrench,
-  AlertCircle,
-  Building,
-} from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
-import { Edit } from 'lucide-react';
+import Image from 'next/image';
+import { Bed, Bath, Square, MapPin, Share2, Heart, Calendar, Phone, Mail, ArrowLeft, ChevronLeft, ChevronRight, Hash, X, Wind, Sofa, Wifi, Car, Waves, Dumbbell, Shield, ArrowUpDown, Home, ChefHat, Droplets, Shirt, Package, Sparkles, ShoppingBag, GraduationCap, Bus, Building2, Waves as WaterWaves, Camera, Flame, ConciergeBell, TreePine, Briefcase, Tv, Wrench, AlertCircle, Building } from 'lucide-react';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { formatLocationDisplay } from '@/lib/location-utils';
 
-export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const { data: session } = useSession();
-  const [property, setProperty] = useState<any>(null);
+const propertyTypeMap: { [key: string]: string } = {
+  'condominium': 'Condominium',
+  'house-and-lot': 'House and Lot',
+  'townhouse': 'Townhouse',
+  'apartment': 'Apartment',
+  'penthouse': 'Penthouse',
+  'lot': 'Lot',
+  'building': 'Building',
+  'commercial': 'Commercial Space',
+};
+
+// Essential amenities with icons (30 most important) - same as upload form
+const amenitiesList: { name: string; icon: any; category: string }[] = [
+  { name: 'Air Conditioning', icon: Wind, category: 'Interior' },
+  { name: 'Fully Furnished', icon: Sofa, category: 'Services' },
+  { name: 'Wi-Fi Included', icon: Wifi, category: 'Services' },
+  { name: 'Parking Space', icon: Car, category: 'Building' },
+  { name: 'Swimming Pool', icon: Waves, category: 'Building' },
+  { name: 'Fitness Center', icon: Dumbbell, category: 'Building' },
+  { name: '24/7 Security', icon: Shield, category: 'Building' },
+  { name: 'Elevator', icon: ArrowUpDown, category: 'Building' },
+  { name: 'Balcony', icon: Home, category: 'Interior' },
+  { name: 'Fully Equipped Kitchen', icon: ChefHat, category: 'Interior' },
+  { name: 'Ensuite Bathroom', icon: Droplets, category: 'Interior' },
+  { name: 'Walk-in Closet', icon: Shirt, category: 'Interior' },
+  { name: 'Storage Room', icon: Package, category: 'Interior' },
+  { name: 'Laundry Area', icon: Sparkles, category: 'Interior' },
+  { name: 'Pet-Friendly', icon: Heart, category: 'Services' },
+  { name: 'Near Shopping Malls', icon: ShoppingBag, category: 'Location' },
+  { name: 'Near Schools', icon: GraduationCap, category: 'Location' },
+  { name: 'Near Public Transport', icon: Bus, category: 'Location' },
+  { name: 'City View', icon: Building2, category: 'Location' },
+  { name: 'Waterfront', icon: WaterWaves, category: 'Location' },
+  { name: 'CCTV Surveillance', icon: Camera, category: 'Security' },
+  { name: 'Fire Alarm', icon: Flame, category: 'Security' },
+  { name: 'Concierge Service', icon: ConciergeBell, category: 'Building' },
+  { name: 'Rooftop Garden', icon: TreePine, category: 'Building' },
+  { name: 'Business Center', icon: Briefcase, category: 'Building' },
+  { name: 'Gated Community', icon: Shield, category: 'Building' },
+  { name: 'Near Hospitals', icon: Building, category: 'Location' },
+  { name: 'Cable TV Included', icon: Tv, category: 'Services' },
+  { name: 'Maintenance Included', icon: Wrench, category: 'Services' },
+  { name: 'Smoke Alarm', icon: AlertCircle, category: 'Security' },
+];
+
+interface Listing {
+  id: string;
+  title: string;
+  description: string;
+  price: number | null;
+  location: string;
+  city: string | null;
+  address: string | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  size: number | null;
+  propertyType: string | null;
+  listingType: string | null;
+  images: string[];
+  yearBuilt: number | null;
+  parking: number | null;
+  floor: number | null;
+  totalFloors: number | null;
+  amenities: any;
+  propertyId: string | null;
+  available: boolean;
+  createdAt: string;
+  user: {
+    name: string;
+    email: string;
+  };
+}
+
+export default function ListingDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params.id as string;
+  
+  const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
-  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [galleryImageIndex, setGalleryImageIndex] = useState(0);
-  const [canEdit, setCanEdit] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomImageIndex, setZoomImageIndex] = useState(0);
+  const [showRequestInfoModal, setShowRequestInfoModal] = useState(false);
 
   useEffect(() => {
-    const fetchListing = async () => {
+    async function fetchListing() {
       try {
-        setLoading(true);
         const response = await fetch(`/api/listings/${id}`);
         const data = await response.json();
         
-        if (response.ok && data.listing) {
-          // Transform API listing to match expected format
-          const transformed = {
-            id: data.listing.id,
-            title: data.listing.title || '',
-            price: data.listing.price || 0,
-            bedrooms: data.listing.bedrooms || 0,
-            bathrooms: data.listing.bathrooms || 0,
-            size: data.listing.size || 0,
-            city: data.listing.city || data.listing.location || '',
-            type: data.listing.propertyType || '',
-            listingType: data.listing.listingType || 'sale',
-            address: data.listing.address || data.listing.location || '',
-            yearBuilt: data.listing.yearBuilt,
-            parking: data.listing.parking,
-            floor: data.listing.floor,
-            totalFloors: data.listing.totalFloors,
-            images: data.listing.images && data.listing.images.length > 0 
-              ? data.listing.images 
-              : ['/images/hero-condo.jpg'],
-            description: data.listing.description || '',
-            amenities: data.listing.amenities || [],
-            propertyId: data.listing.propertyId || '',
-            available: data.listing.available !== undefined ? data.listing.available : true,
-            userId: data.listing.userId,
-          };
-          setProperty(transformed);
-          
-          // Check if user can edit (owner or admin)
-          if (session?.user) {
-            const isOwner = data.listing.userId === session.user.id;
-            const isAdmin = session.user.role === 'ADMIN';
-            setCanEdit(isOwner || isAdmin);
-          }
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch listing');
         }
-      } catch (error) {
-        console.error('Error fetching listing:', error);
+        
+        setListing(data.listing);
+      } catch (err: any) {
+        console.error('Error fetching listing:', err);
+        setError(err.message || 'Failed to load listing');
       } finally {
         setLoading(false);
       }
-    };
+    }
 
-    fetchListing();
-  }, [id, session]);
+    if (id) {
+      fetchListing();
+    }
+  }, [id]);
 
-  // All hooks must be called before any early returns
-  const openGallery = useCallback((index: number) => {
-    setGalleryImageIndex(index);
-    setIsGalleryOpen(true);
-  }, []);
-
-  const closeGallery = useCallback(() => {
-    setIsGalleryOpen(false);
-  }, []);
-
-  const nextGalleryImage = useCallback(() => {
-    if (!property) return;
-    setGalleryImageIndex((prev) => (prev + 1) % property.images.length);
-  }, [property]);
-
-  const prevGalleryImage = useCallback(() => {
-    if (!property) return;
-    setGalleryImageIndex((prev) => (prev - 1 + property.images.length) % property.images.length);
-  }, [property]);
-
-  // Handle keyboard navigation in gallery and prevent body scroll
+  // Keyboard navigation for zoom modal
   useEffect(() => {
-    if (!isGalleryOpen) return;
-
-    // Prevent body scroll when gallery is open
-    document.body.style.overflow = 'hidden';
+    if (!isZoomed || !listing?.images) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        closeGallery();
-      } else if (e.key === 'ArrowLeft') {
-        prevGalleryImage();
-      } else if (e.key === 'ArrowRight') {
-        nextGalleryImage();
+        setIsZoomed(false);
+        document.body.style.overflow = 'unset';
+      } else if (e.key === 'ArrowLeft' && listing.images && listing.images.length > 0) {
+        setZoomImageIndex((prev) => (prev - 1 + listing.images.length) % listing.images.length);
+      } else if (e.key === 'ArrowRight' && listing.images && listing.images.length > 0) {
+        setZoomImageIndex((prev) => (prev + 1) % listing.images.length);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isGalleryOpen, closeGallery, prevGalleryImage, nextGalleryImage]);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isZoomed, listing?.images]);
 
-  // Early returns after all hooks
   if (loading) {
     return (
       <div className="min-h-screen bg-white pt-[84px] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-lg text-[#111111]/70">Loading property details...</p>
+          <p className="text-[#111111]/70">Loading listing...</p>
         </div>
       </div>
     );
   }
 
-  if (!property) {
+  if (error || !listing) {
     return (
       <div className="min-h-screen bg-white pt-[84px] flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-4xl font-semibold text-[#111111] mb-4">Property Not Found</h1>
-          <p className="text-[#111111]/70 mb-8">The property you're looking for doesn't exist.</p>
+          <p className="text-[#111111]/70 mb-8">{error || 'The property you\'re looking for doesn\'t exist.'}</p>
           <Link
             href="/listings"
             className="inline-block bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-lg hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium"
@@ -188,18 +165,85 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
     );
   }
 
-  // Regular functions (not hooks) can be defined after early returns
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % property.images.length);
+    if (listing.images && listing.images.length > 0) {
+      setCurrentImageIndex((prev) => (prev + 1) % listing.images.length);
+    }
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + property.images.length) % property.images.length);
+    if (listing.images && listing.images.length > 0) {
+      setCurrentImageIndex((prev) => (prev - 1 + listing.images.length) % listing.images.length);
+    }
   };
 
   const goToImage = (index: number) => {
     setCurrentImageIndex(index);
   };
+
+  const openZoom = (index: number) => {
+    setZoomImageIndex(index);
+    setIsZoomed(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeZoom = () => {
+    setIsZoomed(false);
+    document.body.style.overflow = 'unset';
+  };
+
+  const nextZoomImage = () => {
+    if (listing.images && listing.images.length > 0) {
+      setZoomImageIndex((prev) => (prev + 1) % listing.images.length);
+    }
+  };
+
+  const prevZoomImage = () => {
+    if (listing.images && listing.images.length > 0) {
+      setZoomImageIndex((prev) => (prev - 1 + listing.images.length) % listing.images.length);
+    }
+  };
+
+  const goToZoomImage = (index: number) => {
+    setZoomImageIndex(index);
+  };
+
+  const handleRequestInfoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowRequestInfoModal(true);
+  };
+
+  const handleConfirmRequestInfo = () => {
+    if (!listing) return;
+    
+    // Build the property link
+    const propertyLink = typeof window !== 'undefined' 
+      ? `${window.location.origin}/listings/${listing.id}`
+      : `/listings/${listing.id}`;
+    
+    // Build the message according to user's format
+    const propertyTitle = listing.title || 'Property';
+    const propertyId = listing.propertyId || listing.id;
+    const inquiryText = `Inquiry: ${propertyTitle}, Property ID ${propertyId} Property Link ${propertyLink}`;
+    const messageText = 'I am interested in learning more about your property. Please contact me about it';
+    const fullMessage = `${inquiryText}\n\nMessage: ${messageText}`;
+    
+    // Determine interest value based on listing type
+    const interestValue = listing.listingType === 'rent' ? 'renting' : 'buying';
+    
+    // Build URL with query parameters
+    const params = new URLSearchParams();
+    params.set('interest', interestValue);
+    params.set('message', fullMessage);
+    
+    // Navigate to contact page
+    router.push(`/contact?${params.toString()}`);
+    setShowRequestInfoModal(false);
+  };
+
+  const defaultImage = listing.images && listing.images.length > 0 
+    ? listing.images[currentImageIndex] 
+    : '/images/hero-condo.jpg';
 
   return (
     <div className="min-h-screen bg-white pt-[84px]">
@@ -217,25 +261,14 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-        {/* Back Button and Edit Button */}
-        <div className="flex items-center justify-between mb-6">
-          <Link
-            href="/listings"
-            className="inline-flex items-center gap-2 text-[#111111]/70 hover:text-[#111111] transition-colors"
-          >
-            <ArrowLeft size={20} />
-            <span>Back to Listings</span>
-          </Link>
-          {canEdit && (
-            <Link
-              href={`/dashboard/listings/${id}/edit`}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-4 py-2 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium"
-            >
-              <Edit size={18} />
-              <span>Edit Listing</span>
-            </Link>
-          )}
-        </div>
+        {/* Back Button */}
+        <Link
+          href="/listings"
+          className="inline-flex items-center gap-2 text-[#111111]/70 hover:text-[#111111] mb-6 transition-colors"
+        >
+          <ArrowLeft size={20} />
+          <span>Back to Listings</span>
+        </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - Left Side (2/3) */}
@@ -244,38 +277,29 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             <div className="space-y-4">
               {/* Main Image */}
               <div 
-                className="relative h-[500px] md:h-[600px] rounded-xl overflow-hidden shadow-lg cursor-pointer group"
-                onClick={() => openGallery(currentImageIndex)}
+                className="relative h-[500px] md:h-[600px] rounded-xl overflow-hidden shadow-lg cursor-pointer"
+                onClick={() => openZoom(currentImageIndex)}
               >
                 <Image
-                  src={property.images[currentImageIndex]}
-                  alt={`${property.city} Property - Image ${currentImageIndex + 1}`}
+                  src={defaultImage}
+                  alt={listing.title || 'Property Image'}
                   fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="object-cover"
                   priority
                   sizes="(max-width: 1024px) 100vw, 66vw"
                 />
-                {/* Click to enlarge indicator */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 rounded-full p-3 shadow-lg">
-                    <Maximize2 size={24} className="text-[#1F2937]" />
-                  </div>
-                </div>
                 {/* Rent/Sale Badge - Top Right */}
-                <div 
-                  className="absolute top-4 right-4 z-10 pointer-events-none"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <div className="absolute top-4 right-4 z-10">
                   <span className={`px-4 py-2 rounded-md text-sm font-semibold uppercase tracking-wide shadow-lg ${
-                    property.listingType === 'rent'
+                    listing.listingType === 'rent'
                       ? 'bg-[#D4AF37] text-white'
                       : 'bg-gradient-to-r from-[#1F2937] to-[#111111] text-white'
                   }`}>
-                    {property.listingType === 'rent' ? 'Rent' : 'Sale'}
+                    {listing.listingType === 'rent' ? 'Rent' : 'Sale'}
                   </span>
                 </div>
                 {/* Navigation Arrows */}
-                {property.images.length > 1 && (
+                {listing.images && listing.images.length > 1 && (
                   <>
                     <button
                       onClick={(e) => {
@@ -300,28 +324,25 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                   </>
                 )}
                 {/* Image Counter */}
-                <div 
-                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm z-10 pointer-events-none"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {currentImageIndex + 1} / {property.images.length}
-                </div>
+                {listing.images && listing.images.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm z-10">
+                    {currentImageIndex + 1} / {listing.images.length}
+                  </div>
+                )}
               </div>
 
               {/* Thumbnail Gallery */}
-              {property.images.length > 1 && (
+              {listing.images && listing.images.length > 1 && (
                 <div className="grid grid-cols-5 gap-2">
-                  {property.images.map((image: string, index: number) => (
+                  {listing.images.map((image: string, index: number) => (
                     <button
                       key={index}
                       onClick={() => goToImage(index)}
-                      onDoubleClick={() => openGallery(index)}
                       className={`relative h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                         currentImageIndex === index
                           ? 'border-[#1F2937] shadow-md'
                           : 'border-transparent hover:border-[#1F2937]/50'
                       }`}
-                      title="Click to view, double-click to enlarge"
                     >
                       <Image
                         src={image}
@@ -339,22 +360,8 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             {/* Property Title */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h1 className="text-3xl md:text-4xl font-semibold text-[#111111] tracking-tight">
-                {property.title || (
-                  <>
-                    {property.bedrooms > 0 
-                      ? `${property.bedrooms} Bedroom `
-                      : ''}
-                    {property.type === 'condominium' ? 'Luxury Condominium' :
-                     property.type === 'house-and-lot' ? 'Luxury House' :
-                     property.type === 'townhouse' ? 'Luxury Townhouse' :
-                     property.type === 'apartment' ? 'Luxury Apartment' :
-                     property.type === 'penthouse' ? 'Luxury Penthouse' :
-                     property.type === 'lot' ? 'Prime Lot' :
-                     property.type === 'building' ? 'Commercial Building' :
-                     property.type === 'commercial' ? 'Commercial Space' :
-                     'Luxury Property'} for {property.listingType === 'rent' ? 'Rent' : 'Sale'} in {property.city}
-                  </>
-                )}
+                {listing.title || 
+                  `${listing.bedrooms && listing.bedrooms > 0 ? `${listing.bedrooms} Bedroom ` : ''}${propertyTypeMap[listing.propertyType || ''] || listing.propertyType || 'Luxury Property'} for ${listing.listingType === 'rent' ? 'Rent' : 'Sale'}${listing.city ? ` in ${formatLocationDisplay(listing.city, listing.location, listing.address)}` : ''}`}
               </h1>
             </div>
 
@@ -364,20 +371,20 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <p className="text-4xl font-semibold text-[#111111]">
-                      ₱{property.price.toLocaleString()}
-                      {property.listingType === 'rent' && <span className="text-xl font-normal text-[#111111]/70">/mo</span>}
+                      {listing.price ? `₱${listing.price.toLocaleString()}` : 'Price on Request'}
+                      {listing.price && listing.listingType === 'rent' && <span className="text-xl font-normal text-[#111111]/70">/mo</span>}
                     </p>
                     <span className={`px-3 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wide shadow-md ${
-                      property.listingType === 'rent'
+                      listing.listingType === 'rent'
                         ? 'bg-[#D4AF37] text-white'
                         : 'bg-gradient-to-r from-[#1F2937] to-[#111111] text-white'
                     }`}>
-                      {property.listingType === 'rent' ? 'Rent' : 'Sale'}
+                      {listing.listingType === 'rent' ? 'Rent' : 'Sale'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-[#111111]/70">
                     <MapPin size={18} className="text-[#1F2937]" />
-                    <span>{property.address}</span>
+                    <span>{formatLocationDisplay(listing.city, listing.location, listing.address)}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -402,233 +409,157 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
               </div>
 
               {/* Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-[#E5E7EB] auto-rows-fr">
-                {property.bedrooms > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-[#E5E7EB]">
+                {listing.bedrooms !== null && listing.bedrooms > 0 && (
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-[#F9FAFB] rounded-lg">
                       <Bed size={20} className="text-[#1F2937]" />
                     </div>
                     <div>
                       <p className="text-sm text-[#111111]/70">Bedrooms</p>
-                      <p className="text-lg font-semibold text-[#111111]">{property.bedrooms}</p>
+                      <p className="text-lg font-semibold text-[#111111]">{listing.bedrooms}</p>
                     </div>
                   </div>
                 )}
-                {property.bathrooms > 0 && (
+                {listing.bathrooms !== null && listing.bathrooms > 0 && (
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-[#F9FAFB] rounded-lg">
                       <Bath size={20} className="text-[#1F2937]" />
                     </div>
                     <div>
                       <p className="text-sm text-[#111111]/70">Bathrooms</p>
-                      <p className="text-lg font-semibold text-[#111111]">{property.bathrooms}</p>
+                      <p className="text-lg font-semibold text-[#111111]">{listing.bathrooms}</p>
                     </div>
                   </div>
                 )}
-                {property.size > 0 && (
+                {listing.size !== null && listing.size > 0 && (
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-[#F9FAFB] rounded-lg">
                       <Square size={20} className="text-[#1F2937]" />
                     </div>
                     <div>
                       <p className="text-sm text-[#111111]/70">Size</p>
-                      <p className="text-lg font-semibold text-[#111111]">{property.size} sqm</p>
+                      <p className="text-lg font-semibold text-[#111111]">{listing.size} sqm</p>
                     </div>
                   </div>
                 )}
-                {property.propertyId && (
+                {listing.propertyId && (
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-[#F9FAFB] rounded-lg">
                       <Hash size={20} className="text-[#1F2937]" />
                     </div>
                     <div>
                       <p className="text-sm text-[#111111]/70">Property ID</p>
-                      <p className="text-lg font-semibold text-[#111111]">{property.propertyId}</p>
+                      <p className="text-lg font-semibold text-[#111111]">{listing.propertyId}</p>
                     </div>
                   </div>
                 )}
               </div>
 
               {/* Property Type Badge */}
-              <div className="mt-6 pt-6 border-t border-[#E5E7EB]">
-                <span className="inline-block bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-4 py-2 rounded-md text-sm uppercase tracking-wide shadow-md">
-                  {property.type.charAt(0).toUpperCase() + property.type.slice(1).replace(/-/g, ' ')}
-                </span>
-              </div>
+              {listing.propertyType && (
+                <div className="mt-6 pt-6 border-t border-[#E5E7EB]">
+                  <span className="inline-block bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-4 py-2 rounded-md text-sm uppercase tracking-wide shadow-md">
+                    {propertyTypeMap[listing.propertyType] || listing.propertyType.charAt(0).toUpperCase() + listing.propertyType.slice(1).replace(/-/g, ' ')}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Description */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-2xl font-semibold text-[#111111] mb-4 tracking-tight">Description</h2>
-              <p className="text-[#111111]/80 leading-relaxed whitespace-pre-line">{property.description}</p>
-            </div>
+            {listing.description && (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h2 className="text-2xl font-semibold text-[#111111] mb-4 tracking-tight">Description</h2>
+                <p className="text-[#111111]/80 leading-relaxed whitespace-pre-line">{listing.description}</p>
+              </div>
+            )}
 
             {/* Property Details */}
-            {(property.yearBuilt || property.floor || property.parking || property.propertyId) && (
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-2xl font-semibold text-[#111111] mb-6 tracking-tight">Property Details</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                  {property.yearBuilt && (
-                    <div>
-                      <p className="text-sm text-[#111111]/70 mb-1">Year Built</p>
-                      <p className="text-lg font-semibold text-[#111111]">{property.yearBuilt}</p>
-                    </div>
-                  )}
-                  {property.floor && (
-                    <div>
-                      <p className="text-sm text-[#111111]/70 mb-1">Floor</p>
-                      <p className="text-lg font-semibold text-[#111111]">{property.floor}</p>
-                    </div>
-                  )}
-                  {property.parking && property.parking > 0 && (
-                    <div>
-                      <p className="text-sm text-[#111111]/70 mb-1">Parking</p>
-                      <p className="text-lg font-semibold text-[#111111]">{property.parking} space{property.parking !== 1 ? 's' : ''}</p>
-                    </div>
-                  )}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h2 className="text-2xl font-semibold text-[#111111] mb-6 tracking-tight">Property Details</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                {listing.yearBuilt !== null && (
                   <div>
-                    <p className="text-sm text-[#111111]/70 mb-1">Status</p>
-                    <p className="text-lg font-semibold text-[#111111]">{property.available ? 'Available' : 'Sold'}</p>
+                    <p className="text-sm text-[#111111]/70 mb-1">Year Built</p>
+                    <p className="text-lg font-semibold text-[#111111]">{listing.yearBuilt}</p>
                   </div>
-                  {property.propertyId && (
-                    <div>
-                      <p className="text-sm text-[#111111]/70 mb-1">Property ID</p>
-                      <p className="text-lg font-semibold text-[#111111]">{property.propertyId}</p>
-                    </div>
-                  )}
+                )}
+                {listing.floor !== null && (
+                  <div>
+                    <p className="text-sm text-[#111111]/70 mb-1">Floor</p>
+                    <p className="text-lg font-semibold text-[#111111]">
+                      {listing.floor}{listing.totalFloors ? ` of ${listing.totalFloors}` : ''}
+                    </p>
+                  </div>
+                )}
+                {listing.parking !== null && listing.parking > 0 && (
+                  <div>
+                    <p className="text-sm text-[#111111]/70 mb-1">Parking</p>
+                    <p className="text-lg font-semibold text-[#111111]">
+                      {listing.parking} space{listing.parking !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm text-[#111111]/70 mb-1">Status</p>
+                  <p className="text-lg font-semibold text-[#111111]">
+                    {listing.available ? 'Available' : 'Sold'}
+                  </p>
                 </div>
-              </div>
-            )}
-
-            {/* Amenities and Services */}
-            {property.amenities && (
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-2xl font-semibold text-[#111111] mb-6 tracking-tight">Amenities and Services</h2>
-                {Array.isArray(property.amenities) && property.amenities.length > 0 ? (
-                  <div className="space-y-6">
-                    {(() => {
-                      // Icon mapping for amenities
-                      const iconMap: { [key: string]: any } = {
-                        'Air Conditioning': Wind,
-                        'Fully Furnished': Sofa,
-                        'Wi-Fi Included': Wifi,
-                        'Parking Space': Car,
-                        'Swimming Pool': Waves,
-                        'Fitness Center': Dumbbell,
-                        '24/7 Security': Shield,
-                        'Elevator': ArrowUpDown,
-                        'Balcony': Home,
-                        'Fully Equipped Kitchen': ChefHat,
-                        'Ensuite Bathroom': Droplets,
-                        'Walk-in Closet': Shirt,
-                        'Storage Room': Package,
-                        'Laundry Area': Sparkles,
-                        'Pet-Friendly': HeartIcon,
-                        'Near Shopping Malls': ShoppingBag,
-                        'Near Schools': GraduationCap,
-                        'Near Public Transport': Bus,
-                        'City View': Building2,
-                        'Waterfront': WaterWaves,
-                        'CCTV Surveillance': Camera,
-                        'Fire Alarm': Flame,
-                        'Concierge Service': ConciergeBell,
-                        'Rooftop Garden': TreePine,
-                        'Business Center': Briefcase,
-                        'Gated Community': Shield,
-                        'Near Hospitals': Building,
-                        'Cable TV Included': Tv,
-                        'Maintenance Included': Wrench,
-                        'Smoke Alarm': AlertCircle,
-                      };
-
-                      // Group amenities by category
-                      const grouped: { [key: string]: string[] } = {};
-                      property.amenities.forEach((amenityKey: string) => {
-                        const [category, amenity] = amenityKey.split(':');
-                        if (!grouped[category]) {
-                          grouped[category] = [];
-                        }
-                        grouped[category].push(amenity);
-                      });
-
-                      return Object.entries(grouped).map(([category, amenities]) => (
-                        <div key={category}>
-                          <h3 className="text-lg font-semibold text-[#111111] mb-3">{category}</h3>
-                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            {amenities.map((amenity, index) => {
-                              const IconComponent = iconMap[amenity] || Package;
-                              return (
-                                <div
-                                  key={index}
-                                  className="flex items-center gap-2 p-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-md hover:border-[#1F2937]/50 transition-colors"
-                                >
-                                  <IconComponent size={18} className="text-[#1F2937] flex-shrink-0" />
-                                  <span className="text-sm text-[#111111]">{amenity}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ));
-                    })()}
+                {listing.propertyId && (
+                  <div>
+                    <p className="text-sm text-[#111111]/70 mb-1">Property ID</p>
+                    <p className="text-lg font-semibold text-[#111111]">{listing.propertyId}</p>
                   </div>
-                ) : typeof property.amenities === 'object' && property.amenities !== null ? (
-                  // Legacy format support (interior, building, nearby)
-                  <div className="space-y-6">
-                    {property.amenities.interior && property.amenities.interior.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-[#111111] mb-3">Interior Features</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                          {property.amenities.interior.map((amenity: string, index: number) => (
-                            <div
-                              key={index}
-                              className="flex items-center gap-2 p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-md"
-                            >
-                              <div className="w-2 h-2 bg-[#1F2937] rounded-full"></div>
-                              <span className="text-sm text-[#111111]">{amenity}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {property.amenities.building && property.amenities.building.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-[#111111] mb-3">Building & Community</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                          {property.amenities.building.map((amenity: string, index: number) => (
-                            <div
-                              key={index}
-                              className="flex items-center gap-2 p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-md"
-                            >
-                              <div className="w-2 h-2 bg-[#1F2937] rounded-full"></div>
-                              <span className="text-sm text-[#111111]">{amenity}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {property.amenities.nearby && property.amenities.nearby.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-[#111111] mb-3">Location & Nearby</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                          {property.amenities.nearby.map((amenity: string, index: number) => (
-                            <div
-                              key={index}
-                              className="flex items-center gap-2 p-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-md"
-                            >
-                              <div className="w-2 h-2 bg-[#1F2937] rounded-full"></div>
-                              <span className="text-sm text-[#111111]">{amenity}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-[#111111]/70">No amenities listed</p>
                 )}
               </div>
-            )}
+            </div>
+
+            {/* Amenities and Services */}
+            {(() => {
+              // Handle different formats of amenities data
+              let amenitiesArray: string[] = [];
+              if (Array.isArray(listing.amenities)) {
+                amenitiesArray = listing.amenities;
+              } else if (listing.amenities && typeof listing.amenities === 'object') {
+                // If it's an object, try to extract values
+                amenitiesArray = Object.values(listing.amenities).filter((v): v is string => typeof v === 'string');
+              }
+              
+              if (amenitiesArray.length === 0) return null;
+              
+              return (
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <h2 className="text-2xl font-semibold text-[#111111] mb-6 tracking-tight">Amenities & Features</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    {amenitiesArray.map((amenityKey: string) => {
+                      // Parse the amenity key (format: "category:name")
+                      const [category, name] = amenityKey.includes(':') 
+                        ? amenityKey.split(':') 
+                        : ['', amenityKey];
+                      
+                      // Find the amenity in our list
+                      const amenity = amenitiesList.find(
+                        (a) => a.name === name || `${a.category}:${a.name}` === amenityKey
+                      );
+                      
+                      if (!amenity) return null;
+                      
+                      const IconComponent = amenity.icon;
+                      return (
+                        <div
+                          key={amenityKey}
+                          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-[#1F2937] to-[#111111] text-white shadow-md"
+                        >
+                          <IconComponent size={16} className="flex-shrink-0 text-white" />
+                          <span className="truncate">{amenity.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Map Section */}
             <div className="bg-white rounded-xl shadow-lg p-6">
@@ -638,7 +569,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
                     <MapPin size={48} className="text-[#1F2937] mx-auto mb-2" />
-                    <p className="text-[#111111]/70">{property.address}</p>
+                    <p className="text-[#111111]/70">{formatLocationDisplay(listing.city, listing.location, listing.address)}</p>
                     <p className="text-sm text-[#111111]/50 mt-1">Map integration coming soon</p>
                   </div>
                 </div>
@@ -651,7 +582,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
             <div className="sticky top-[100px] space-y-6">
               {/* Contact Card */}
               <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-xl font-semibold text-[#111111] mb-4 tracking-tight">Contact Agent</h3>
+                <h3 className="text-xl font-semibold text-[#111111] mb-4 tracking-tight">Contact Us</h3>
                 <div className="space-y-4 mb-6">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-[#F9FAFB] rounded-lg">
@@ -662,6 +593,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                       <a href="tel:+639212303011" className="text-[#111111] font-medium hover:text-[#1F2937] transition-colors">
                         +63 921 2303011
                       </a>
+                      <p className="text-sm text-[#111111]/60 mt-1">click to contact via WhatsApp</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -689,12 +621,12 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                     </span>
                     <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                   </Link>
-                  <Link
-                    href="/contact"
-                    className="w-full border-2 border-[#1F2937] text-[#1F2937] px-6 py-3 rounded-lg hover:bg-[#1F2937] hover:text-white transition-all duration-300 font-medium text-center block"
+                  <button
+                    onClick={handleRequestInfoClick}
+                    className="w-full border-2 border-[#1F2937] text-[#1F2937] px-6 py-3 rounded-lg hover:bg-[#1F2937] hover:text-white transition-all duration-300 font-medium text-center"
                   >
                     Request Information
-                  </Link>
+                  </button>
                 </div>
               </div>
 
@@ -702,24 +634,28 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
               <div className="bg-white rounded-xl shadow-lg p-6">
                 <h3 className="text-xl font-semibold text-[#111111] mb-4 tracking-tight">Quick Facts</h3>
                 <div className="space-y-3">
-                  {property.listingType === 'sale' && property.size > 0 && property.price > 0 && (
+                  {listing.price && listing.size && listing.size > 0 && (
                     <div className="flex justify-between items-center py-2 border-b border-[#E5E7EB]">
                       <span className="text-[#111111]/70">Price per sqm</span>
-                      <span className="font-semibold text-[#111111]">₱{Math.round(property.price / property.size).toLocaleString()}</span>
+                      <span className="font-semibold text-[#111111]">₱{Math.round(listing.price / listing.size).toLocaleString()}</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center py-2 border-b border-[#E5E7EB]">
-                    <span className="text-[#111111]/70">Property Type</span>
-                    <span className="font-semibold text-[#111111] capitalize">{property.type.replace(/-/g, ' ')}</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-[#E5E7EB]">
-                    <span className="text-[#111111]/70">City</span>
-                    <span className="font-semibold text-[#111111]">{property.city}</span>
-                  </div>
+                  {listing.propertyType && (
+                    <div className="flex justify-between items-center py-2 border-b border-[#E5E7EB]">
+                      <span className="text-[#111111]/70">Property Type</span>
+                      <span className="font-semibold text-[#111111] capitalize">{propertyTypeMap[listing.propertyType] || listing.propertyType.replace(/-/g, ' ')}</span>
+                    </div>
+                  )}
+                  {listing.city && (
+                    <div className="flex justify-between items-center py-2 border-b border-[#E5E7EB]">
+                      <span className="text-[#111111]/70">City</span>
+                      <span className="font-semibold text-[#111111]">{listing.city}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center py-2">
                     <span className="text-[#111111]/70">Status</span>
-                    <span className={`font-semibold ${property.available ? 'text-green-600' : 'text-red-600'}`}>
-                      {property.available ? 'Available' : 'Sold'}
+                    <span className={`font-semibold ${listing.available ? 'text-green-600' : 'text-red-600'}`}>
+                      {listing.available ? 'Available' : 'Sold'}
                     </span>
                   </div>
                 </div>
@@ -729,99 +665,107 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {/* Image Gallery Modal */}
-      {isGalleryOpen && property && (
+      {/* Zoom Modal with Carousel */}
+      {isZoomed && listing.images && listing.images.length > 0 && (
         <div 
-          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
-          onClick={closeGallery}
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          onClick={closeZoom}
         >
           {/* Close Button */}
           <button
-            onClick={closeGallery}
-            className="absolute top-4 right-4 z-50 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors"
-            aria-label="Close gallery"
+            onClick={closeZoom}
+            className="absolute top-4 right-4 z-60 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all backdrop-blur-sm"
+            aria-label="Close zoom"
           >
-            <XIcon size={24} />
+            <X size={24} />
           </button>
 
-          {/* Main Image Container */}
+          {/* Main Zoomed Image Container */}
           <div 
-            className="relative w-full h-full max-w-7xl max-h-[90vh] flex items-center justify-center"
+            className="relative w-full h-full flex items-center justify-center p-4 md:p-8"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative w-full h-full">
+            {/* Previous Button */}
+            {listing.images.length > 1 && (
+              <button
+                onClick={prevZoomImage}
+                className="absolute left-4 md:left-8 z-60 bg-white/10 hover:bg-white/20 text-white p-4 rounded-full transition-all backdrop-blur-sm"
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={32} />
+              </button>
+            )}
+
+            {/* Zoomed Image */}
+            <div className="relative w-full h-full max-w-7xl mx-auto flex items-center justify-center">
               <Image
-                src={property.images[galleryImageIndex]}
-                alt={`Gallery Image ${galleryImageIndex + 1}`}
+                src={listing.images[zoomImageIndex]}
+                alt={`${listing.title || 'Property Image'} - Image ${zoomImageIndex + 1}`}
                 fill
                 className="object-contain"
                 sizes="100vw"
                 priority
               />
-              
-              {/* Image Counter */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
-                {galleryImageIndex + 1} / {property.images.length}
-              </div>
             </div>
 
-            {/* Navigation Arrows */}
-            {property.images.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    prevGalleryImage();
-                  }}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors z-10"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft size={32} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    nextGalleryImage();
-                  }}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors z-10"
-                  aria-label="Next image"
-                >
-                  <ChevronRight size={32} />
-                </button>
-              </>
+            {/* Next Button */}
+            {listing.images.length > 1 && (
+              <button
+                onClick={nextZoomImage}
+                className="absolute right-4 md:right-8 z-60 bg-white/10 hover:bg-white/20 text-white p-4 rounded-full transition-all backdrop-blur-sm"
+                aria-label="Next image"
+              >
+                <ChevronRight size={32} />
+              </button>
             )}
 
-            {/* Thumbnail Strip */}
-            {property.images.length > 1 && (
-              <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex gap-2 max-w-full overflow-x-auto px-4 pb-2">
-                {property.images.map((image: string, index: number) => (
-                  <button
-                    key={index}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setGalleryImageIndex(index);
-                    }}
-                    className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all ${
-                      galleryImageIndex === index
-                        ? 'border-white shadow-lg scale-110'
-                        : 'border-white/30 hover:border-white/60'
-                    }`}
-                  >
-                    <Image
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                    />
-                  </button>
-                ))}
+            {/* Image Counter */}
+            {listing.images.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-6 py-3 rounded-full text-lg z-60 backdrop-blur-sm">
+                {zoomImageIndex + 1} / {listing.images.length}
+              </div>
+            )}
+
+            {/* Thumbnail Carousel at Bottom */}
+            {listing.images.length > 1 && (
+              <div className="absolute bottom-20 left-0 right-0 z-60 px-4 md:px-8">
+                <div className="max-w-7xl mx-auto overflow-x-auto pb-4">
+                  <div className="flex gap-3 justify-center">
+                    {listing.images.map((image: string, index: number) => (
+                      <button
+                        key={index}
+                        onClick={() => goToZoomImage(index)}
+                        className={`relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
+                          zoomImageIndex === index
+                            ? 'border-white shadow-lg scale-110'
+                            : 'border-white/30 hover:border-white/60'
+                        }`}
+                      >
+                        <Image
+                          src={image}
+                          alt={`Thumbnail ${index + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="96px"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* Request Information Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showRequestInfoModal}
+        onClose={() => setShowRequestInfoModal(false)}
+        onConfirm={handleConfirmRequestInfo}
+        title="Request Information"
+        message="Do you like more information for this listing?"
+      />
     </div>
   );
 }
-

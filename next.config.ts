@@ -4,14 +4,21 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
   images: {
-    // Temporarily disable optimization to fix Netlify image loading
-    // Netlify's Next.js plugin should handle this, but if all images fail,
-    // disabling optimization will allow images to load directly
-    unoptimized: true,
+    // Enable image optimization for better performance
+    // Netlify's Next.js plugin handles image optimization automatically
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
       },
     ],
   },
@@ -19,6 +26,10 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  // Compress responses
+  compress: true,
+  // Optimize production builds
+  swcMinify: true,
 };
 
 export default nextConfig;

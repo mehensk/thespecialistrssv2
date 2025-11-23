@@ -1,7 +1,7 @@
 import { getUserFromToken } from '@/lib/get-user-from-token';
 import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
 import { UserRole } from '@prisma/client';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { Suspense } from 'react';
@@ -28,13 +28,13 @@ async function getListings(userId: string) {
 
 async function ListingsContent() {
   const user = await getUserFromToken();
-  const session = await auth();
-  const isAdmin = session?.user?.role === UserRole.ADMIN;
   
   if (!user?.id) {
-    return null;
+    redirect('/');
   }
 
+  // Use user.role directly instead of calling auth() again
+  const isAdmin = user.role === UserRole.ADMIN;
   const listings = await getListings(user.id);
 
   return (

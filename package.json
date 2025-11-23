@@ -1,14 +1,22 @@
 {
   "name": "thespecialistrealty",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node ./scripts/dev-with-db.js",
+    "dev:next": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "db:seed": "tsx prisma/seed.ts",
-    "postinstall": "node ./scripts/postinstall.js"
+    "export:listings": "tsx scripts/export-listings.ts",
+    "delete:external-blogs": "tsx scripts/delete-external-image-blogs.ts",
+    "migrate:images": "tsx scripts/migrate-images-to-cloudinary.ts",
+    "organize:listings": "tsx scripts/organize-cloudinary-listings.ts",
+    "migrate:to-neon": "tsx scripts/migrate-to-neon.ts",
+    "sync:to-production": "tsx scripts/sync-to-production.ts",
+    "postinstall": "node ./scripts/postinstall.js",
+    "build:netlify": "node ./scripts/simulate-netlify-build.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -18,6 +26,7 @@
     "@prisma/client": "^6.19.0",
     "@types/bcryptjs": "^3.0.0",
     "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.8.0",
     "dotenv": "^17.2.3",
     "geist": "^1.5.1",
     "lucide-react": "^0.553.0",

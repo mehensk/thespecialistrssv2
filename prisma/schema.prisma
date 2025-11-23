@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,98 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String     @id @default(cuid())
+  email             String     @unique
+  name              String
+  password          String
+  role              UserRole   @default(AGENT)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  activities        Activity[]
+  approvedBlogPosts BlogPost[] @relation("ApprovedBlogPosts")
+  blogPosts         BlogPost[]
+  approvedListings  Listing[]  @relation("ApprovedListings")
+  listings          Listing[]
+}
+
+model Listing {
+  id           String    @id @default(cuid())
+  title        String
+  description  String
+  price        Float?
+  location     String
+  city         String?
+  bedrooms     Int?
+  bathrooms    Int?
+  size         Float?
+  propertyType String?
+  listingType  String?
+  images       String[]
+  address      String?
+  yearBuilt    Int?
+  parking      Int?
+  floor        Int?
+  totalFloors  Int?
+  amenities    Json?
+  propertyId   String?
+  available    Boolean   @default(true)
+  userId       String
+  approvedBy   String?
+  approvedAt   DateTime?
+  isPublished  Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  approver     User?     @relation("ApprovedListings", fields: [approvedBy], references: [id])
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isPublished])
+  @@index([userId, isPublished]) // Composite index for faster filtered counts
+}
+
+model BlogPost {
+  id            String   @id @default(cuid())
+  title         String
+  content       String   @db.Text
+  slug          String   @unique
+  excerpt       String?  @db.Text
+  images        String[] // array of image URLs
+
+  // Approval workflow
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  approvedBy  String?
+  approvedAt  DateTime?
+  isPublished Boolean  @default(false)
+  approver    User?    @relation("ApprovedBlogPosts", fields: [approvedBy], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([slug])
+  @@index([isPublished])
+  @@index([userId, isPublished]) // Composite index for faster filtered counts
+}
+
+model Activity {
+  id        String           @id @default(cuid())
+  userId    String
+  action    ActivityAction
+  itemType  ActivityItemType
+  itemId    String?
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  timestamp DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([itemType, itemId])
 }
 
 enum UserRole {
@@ -31,99 +120,4 @@ enum ActivityItemType {
   BLOG
   USER
   AUTH
-}
-
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String
-  role      UserRole @default(AGENT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  listings    Listing[]
-  blogPosts   BlogPost[]
-  activities  Activity[]
-  approvedListings Listing[] @relation("ApprovedListings")
-  approvedBlogPosts BlogPost[] @relation("ApprovedBlogPosts")
-}
-
-model Listing {
-  id          String   @id @default(cuid())
-  title       String
-  description String   @db.Text
-  price       Float?
-  location    String
-  city        String?
-  bedrooms    Int?
-  bathrooms   Int?
-  size        Float? // in sqm
-  propertyType String? // condominium, house, lot, etc.
-  listingType String? // sale, rent
-  images      String[] // array of image URLs
-  address     String?
-  yearBuilt   Int?
-  parking     Int?
-  floor       Int?
-  totalFloors Int?
-  amenities   Json? // flexible JSON for amenities
-  propertyId  String? // custom property ID like TSR-2024-001
-  available   Boolean  @default(true)
-
-  // Approval workflow
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  approvedBy  String?
-  approvedAt  DateTime?
-  isPublished Boolean  @default(false)
-  approver    User?    @relation("ApprovedListings", fields: [approvedBy], references: [id])
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([userId])
-  @@index([isPublished])
-}
-
-model BlogPost {
-  id            String   @id @default(cuid())
-  title         String
-  content       String   @db.Text
-  slug          String   @unique
-  excerpt       String?  @db.Text
-  featuredImage String?
-
-  // Approval workflow
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  approvedBy  String?
-  approvedAt  DateTime?
-  isPublished Boolean  @default(false)
-  approver    User?    @relation("ApprovedBlogPosts", fields: [approvedBy], references: [id])
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([userId])
-  @@index([slug])
-  @@index([isPublished])
-}
-
-model Activity {
-  id        String           @id @default(cuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  action    ActivityAction
-  itemType  ActivityItemType
-  itemId    String?
-  metadata  Json? // flexible JSON for additional data
-  ipAddress String?
-  userAgent String?
-  timestamp DateTime         @default(now())
-
-  @@index([userId])
-  @@index([timestamp])
-  @@index([itemType, itemId])
 }

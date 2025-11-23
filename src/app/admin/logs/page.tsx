@@ -1,14 +1,8 @@
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { redirect } from 'next/navigation';
 import { UserRole } from '@prisma/client';
 
 export default async function AdminLogsPage() {
-    const session = await auth();
-
-  if (!session || session.user.role !== UserRole.ADMIN) {
-    redirect('/403');
-  }
+  // Layout already verifies admin access - no need to check again
 
   const activities = await prisma.activity.findMany({
     orderBy: { timestamp: 'desc' },
@@ -53,36 +47,59 @@ export default async function AdminLogsPage() {
                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#111111]">Action</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#111111]">Item Type</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#111111]">Item ID</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-[#111111]">Uploaded By</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-[#111111]">Approved By</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#111111]">IP Address</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E7EB]">
-              {activities.map((activity) => (
-                <tr key={activity.id} className="hover:bg-[#F9FAFB]">
-                  <td className="px-6 py-4 text-sm text-[#111111]/70">
-                    {new Date(activity.timestamp).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-[#111111]">
-                    {activity.user.name} ({activity.user.email})
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${getActionColor(
-                        activity.action
-                      )}`}
-                    >
-                      {activity.action}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-[#111111]">{activity.itemType}</td>
-                  <td className="px-6 py-4 text-sm text-[#111111]/70">
-                    {activity.itemId || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-[#111111]/70">
-                    {activity.ipAddress || 'N/A'}
-                  </td>
-                </tr>
-              ))}
+              {activities.map((activity) => {
+                const metadata = activity.metadata && typeof activity.metadata === 'object' && !Array.isArray(activity.metadata) ? activity.metadata as Record<string, any> : null;
+                const uploadedByName = metadata?.uploadedByName || null;
+                const uploadedByEmail = metadata?.uploadedByEmail || null;
+                const approvedByName = metadata?.approvedByName || null;
+                const approvedByEmail = metadata?.approvedByEmail || null;
+                
+                // Only show uploaded/approved by for BLOG and LISTING item types
+                const showUploaderApprover = activity.itemType === 'BLOG' || activity.itemType === 'LISTING';
+                
+                return (
+                  <tr key={activity.id} className="hover:bg-[#F9FAFB]">
+                    <td className="px-6 py-4 text-sm text-[#111111]/70">
+                      {new Date(activity.timestamp).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[#111111]">
+                      {activity.user.name} ({activity.user.email})
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${getActionColor(
+                          activity.action
+                        )}`}
+                      >
+                        {activity.action}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[#111111]">{activity.itemType}</td>
+                    <td className="px-6 py-4 text-sm text-[#111111]/70">
+                      {activity.itemId || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[#111111]/70">
+                      {showUploaderApprover && uploadedByName 
+                        ? `${uploadedByName}${uploadedByEmail ? ` (${uploadedByEmail})` : ''}`
+                        : 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[#111111]/70">
+                      {showUploaderApprover && approvedByName 
+                        ? `${approvedByName}${approvedByEmail ? ` (${approvedByEmail})` : ''}`
+                        : 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-[#111111]/70">
+                      {activity.ipAddress || 'N/A'}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -10,7 +10,7 @@ interface BlogPost {
   title: string;
   slug: string;
   excerpt: string | null;
-  featuredImage: string | null;
+  images: string[];
   createdAt: string;
   user: {
     name: string;
@@ -94,14 +94,15 @@ export default function BlogPage() {
                 href={`/blog/${blog.slug}`}
                 className="bg-white rounded-xl overflow-hidden shadow-lg border border-[#E5E7EB] hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block group"
               >
-                {blog.featuredImage && (
-                  <div className="relative h-64 w-full overflow-hidden">
+                {blog.images && blog.images.length > 0 && (
+                  <div className="relative aspect-video w-full overflow-hidden">
                     <Image
-                      src={blog.featuredImage}
+                      src={blog.images[0]}
                       alt={blog.title}
                       fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-110"
+                      className="object-cover object-center transition-transform duration-300 group-hover:scale-110"
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      loading="lazy"
                     />
                   </div>
                 )}

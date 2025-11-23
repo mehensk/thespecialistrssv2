@@ -9,11 +9,14 @@ import {
   Home, 
   FileText, 
   Activity,
+  Settings,
   LogOut,
   Menu,
   X
 } from 'lucide-react';
-import { useState, useMemo, useCallback, memo } from 'react';
+import { useState, useMemo, useCallback, memo, useEffect } from 'react';
+import { ActivityTracker } from '@/components/activity-tracker';
+import { broadcastLogout } from '@/components/providers/LogoutSync';
 
 // Memoize nav items to prevent recreation on every render
 const navItems = [
@@ -21,6 +24,7 @@ const navItems = [
   { href: '/dashboard/listings', label: 'My Listings', icon: Home },
   { href: '/dashboard/blogs', label: 'My Blogs', icon: FileText },
   { href: '/dashboard/activity', label: 'Activity Log', icon: Activity },
+  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ] as const;
 
 // Memoize navigation item component to prevent unnecessary re-renders
@@ -50,15 +54,31 @@ const NavItem = memo(({ item, isActive, onMobileClick }: {
 NavItem.displayName = 'NavItem';
 
 export const DashboardLayout = memo(function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Client-side check: If session becomes null (server restart, logout, etc.), redirect to home
+  // This ensures users are immediately redirected when session is invalidated
+  useEffect(() => {
+    if (session === null) {
+      // Session is null - user is logged out (server restart, manual logout, etc.)
+      // Redirect to home immediately
+      window.location.href = '/';
+    }
+  }, [session]);
+
   const handleLogout = useCallback(async () => {
-    await signOut({ redirect: false });
-    router.push('/login');
-  }, [router]);
+    // Broadcast logout to all tabs
+    broadcastLogout();
+    // Sign out with redirect - this properly clears the session cookie
+    // Using redirect: true ensures NextAuth handles cookie clearing correctly
+    await signOut({ 
+      redirect: true,
+      callbackUrl: '/'
+    });
+  }, []);
 
   // Memoize active state calculation
   const activeStates = useMemo(() => {
@@ -73,6 +93,7 @@ export const DashboardLayout = memo(function DashboardLayout({ children }: { chi
 
   return (
     <div className="min-h-screen bg-white pt-[84px]">
+      <ActivityTracker />
       <div className="flex">
         {/* Sidebar - Desktop */}
         <aside className="hidden lg:flex w-64 bg-[#1F2937] text-white flex-col min-h-[calc(100vh-84px)]">
@@ -87,7 +108,7 @@ export const DashboardLayout = memo(function DashboardLayout({ children }: { chi
               <NavItem key={item.href} item={item} isActive={isActive} />
             ))}
           </nav>
-          <div className="p-4 border-t border-[#374151]">
+          <div className="p-4 border-t border-[#374151] space-y-2">
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 px-4 py-3 rounded-md text-white/70 hover:bg-[#374151] hover:text-white transition-colors w-full"
@@ -146,7 +167,7 @@ export const DashboardLayout = memo(function DashboardLayout({ children }: { chi
 
         {/* Main Content */}
         <main className="flex-1 lg:ml-0">
-          <div className="p-6 lg:pl-4 lg:pr-8 lg:py-8">
+          <div className="p-6 lg:p-8">
             {children}
           </div>
         </main>

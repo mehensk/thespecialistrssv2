@@ -6,10 +6,19 @@ import { sora } from '@/app/lib/fonts';  // ✅ Correct path
 import { Navbar } from '@/components/ui/navbar';
 import { Footer } from '@/components/ui/footer';
 import { SessionProvider } from '@/components/providers/SessionProvider';
+import { LogoutSync } from '@/components/providers/LogoutSync';
+import { ToastProvider } from '@/components/ui/toast';
 
 export const metadata: Metadata = {
   title: 'The Specialist | Luxury Real Estate',
   description: 'Premium real estate services',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://thespecialistrealty.com'),
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: '/',
+    siteName: 'The Specialist Realty',
+  },
 };
 
 export default function RootLayout({
@@ -25,15 +34,18 @@ export default function RootLayout({
         className={`${GeistSans.variable} ${GeistMono.variable} ${sora.variable} antialiased`}
       >
         <SessionProvider>
-          {recaptchaSiteKey && (
-            <Script
-              src={`https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`}
-              strategy="afterInteractive"
-            />
-          )}
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
+          <LogoutSync />
+          <ToastProvider>
+            {recaptchaSiteKey && (
+              <Script
+                src={`https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`}
+                strategy="afterInteractive"
+              />
+            )}
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+          </ToastProvider>
         </SessionProvider>
       </body>
     </html>

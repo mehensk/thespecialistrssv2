@@ -9,7 +9,16 @@ export async function GET(
     const { slug } = await params;
     const blog = await prisma.blogPost.findUnique({
       where: { slug },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        content: true,
+        excerpt: true,
+        images: true,
+        isPublished: true,
+        createdAt: true,
+        updatedAt: true,
         user: {
           select: { name: true, email: true },
         },
@@ -25,7 +34,11 @@ export async function GET(
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ blog });
+    // Add cache headers for published blog posts
+    const headers = new Headers();
+    headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+
+    return NextResponse.json({ blog }, { headers });
   } catch (error) {
     console.error('Error fetching blog post:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -3,20 +3,41 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Upload, X, Loader2 } from 'lucide-react';
+import Image from 'next/image';
+import { useFileUpload } from '@/hooks/useFileUpload';
 
 export default function NewBlogPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  
+  const {
+    processFiles,
+    handleImageUpload,
+    handleDrop,
+    handleDragOver,
+    uploadingImages,
+    error,
+    setError,
+    fileInputRef,
+  } = useFileUpload({
+    maxFiles: 5,
+    onUploadSuccess: (url) => {
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, url],
+      }));
+    },
+  });
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
     content: '',
     excerpt: '',
-    featuredImage: '',
+    images: [] as string[],
+    coverPhotoIndex: 0, // Index of the cover photo
   });
 
   const generateSlug = (title: string) => {
@@ -31,8 +52,48 @@ export default function NewBlogPage() {
     setFormData({
       ...formData,
       title,
-      slug: formData.slug || generateSlug(title),
+      slug: generateSlug(title), // Always auto-generate slug from title
     });
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    await handleImageUpload(e, formData.images.length);
+  };
+
+  const handleFileDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    await handleDrop(e, formData.images.length);
+  };
+
+  const removeImage = (index: number) => {
+    setFormData((prev) => {
+      const newImages = prev.images.filter((_, i) => i !== index);
+      // Adjust cover photo index if needed
+      let newCoverPhotoIndex = prev.coverPhotoIndex;
+      if (index < prev.coverPhotoIndex) {
+        newCoverPhotoIndex = prev.coverPhotoIndex - 1;
+      } else if (index === prev.coverPhotoIndex && newImages.length > 0) {
+        // If removing the cover photo, set first image as cover
+        newCoverPhotoIndex = 0;
+      } else if (newImages.length === 0) {
+        newCoverPhotoIndex = 0;
+      }
+      // Ensure cover photo index is valid
+      if (newCoverPhotoIndex >= newImages.length) {
+        newCoverPhotoIndex = Math.max(0, newImages.length - 1);
+      }
+      return {
+        ...prev,
+        images: newImages,
+        coverPhotoIndex: newCoverPhotoIndex,
+      };
+    });
+  };
+
+  const setCoverPhoto = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      coverPhotoIndex: index,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,18 +108,46 @@ export default function NewBlogPage() {
     }
 
     try {
+      // Reorder images so cover photo is first
+      const reorderedImages = formData.images.length > 0
+        ? (() => {
+            const coverPhoto = formData.images[formData.coverPhotoIndex];
+            const otherImages = formData.images.filter((_, i) => i !== formData.coverPhotoIndex);
+            return [coverPhoto, ...otherImages];
+          })()
+        : [];
+
       const response = await fetch('/api/blog-posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          title: formData.title,
+          slug: formData.slug,
+          content: formData.content,
+          excerpt: formData.excerpt,
+          images: reorderedImages,
+        }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (parseError) {
+        console.error('Failed to parse response:', parseError);
+        setError(`Server error: ${response.status} ${response.statusText}. Check console for details.`);
+        setLoading(false);
+        return;
+      }
 
       if (!response.ok) {
-        setError(data.error || 'Failed to create blog post');
+        const errorMsg = data.error || 'Failed to create blog post';
+        const details = data.details ? `: ${data.details}` : '';
+        setError(`${errorMsg}${details}`);
+        console.error('Blog creation error:', data);
         setLoading(false);
         return;
       }
@@ -73,7 +162,8 @@ export default function NewBlogPage() {
         slug: '',
         content: '',
         excerpt: '',
-        featuredImage: '',
+        images: [],
+        coverPhotoIndex: 0,
       });
 
       // Redirect to blogs list after showing success message
@@ -82,7 +172,9 @@ export default function NewBlogPage() {
         router.refresh();
       }, 2000);
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      console.error('Error creating blog post:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred. Please try again.';
+      setError(errorMessage);
       setLoading(false);
     }
   };
@@ -141,11 +233,11 @@ export default function NewBlogPage() {
                 setFormData({ ...formData, slug: generateSlug(e.target.value) })
               }
               required
-              className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+              className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent bg-gray-50"
               placeholder="url-friendly-slug"
             />
             <p className="text-sm text-[#111111]/70 mt-1">
-              URL-friendly version (auto-generated from title, or customize)
+              Auto-generated from title (URL-friendly version)
             </p>
           </div>
 
@@ -179,17 +271,91 @@ export default function NewBlogPage() {
           </div>
 
           <div>
-            <label htmlFor="featuredImage" className="block text-sm font-medium text-[#111111] mb-2">
-              Featured Image URL
+            <label className="block text-sm font-medium text-[#111111] mb-2">
+              Images <span className="text-[#111111]/50 font-normal">(Max 5 images)</span>
             </label>
-            <input
-              id="featuredImage"
-              type="url"
-              value={formData.featuredImage}
-              onChange={(e) => setFormData({ ...formData, featuredImage: e.target.value })}
-              className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
-              placeholder="https://example.com/image.jpg"
-            />
+            <p className="text-sm text-[#111111]/70 mb-3">
+              Select a cover photo by clicking on an image. The cover photo will be used as the blog cover and card image. The rest will be evenly spaced throughout the content.
+            </p>
+            
+            {/* Image Upload Area */}
+            <div
+              onDrop={handleFileDrop}
+              onDragOver={handleDragOver}
+              className="border-2 border-dashed border-[#E5E7EB] rounded-md p-6 text-center hover:border-[#1F2937] transition-colors cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+                disabled={formData.images.length >= 5}
+              />
+              <Upload size={32} className="mx-auto text-[#111111]/50 mb-2" />
+              <p className="text-sm text-[#111111]/70 mb-1">
+                Click to upload or drag and drop
+              </p>
+              <p className="text-xs text-[#111111]/50">
+                {formData.images.length >= 5 
+                  ? 'Maximum 5 images reached' 
+                  : `${formData.images.length}/5 images uploaded`}
+              </p>
+            </div>
+
+            {/* Uploaded Images Preview */}
+            {formData.images.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm text-[#111111]/70 mb-3">
+                  Click on an image to set it as the cover photo
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {formData.images.map((imageUrl, index) => (
+                    <div
+                      key={index}
+                      className={`relative group cursor-pointer ${
+                        formData.coverPhotoIndex === index
+                          ? 'ring-2 ring-[#1F2937] ring-offset-2 rounded-md'
+                          : ''
+                      }`}
+                      onClick={() => setCoverPhoto(index)}
+                    >
+                      <div className="relative aspect-video rounded-md overflow-hidden border border-[#E5E7EB]">
+                        <Image
+                          src={imageUrl}
+                          alt={`Upload ${index + 1}`}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 50vw, 20vw"
+                        />
+                        {formData.coverPhotoIndex === index && (
+                          <div className="absolute top-2 left-2 bg-[#1F2937] text-white text-xs px-2 py-1 rounded font-medium">
+                            Cover Photo
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeImage(index);
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                      {uploadingImages.length > 0 && (
+                        <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-md">
+                          <Loader2 size={24} className="animate-spin text-[#1F2937]" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-4 pt-4">

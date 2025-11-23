@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Bed, Bath, Square, MapPin, Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Bed, Bath, Square, MapPin, Search, Filter, X, ChevronLeft, ChevronRight, Car, Calendar, Layers } from 'lucide-react';
+import { formatLocationDisplay, formatLocationWithLabel, groupCitiesForFilter } from '@/lib/location-utils';
 
 // Property type mapping
 const propertyTypeMap: { [key: string]: string } = {
@@ -17,274 +18,6 @@ const propertyTypeMap: { [key: string]: string } = {
   'building': 'Building',
   'commercial': 'Commercial Space',
 };
-
-// Mock property data
-const mockProperties = [
-  {
-    id: 1,
-    price: 12500000,
-    bedrooms: 3,
-    bathrooms: 2,
-    size: 120,
-    city: 'Makati',
-    type: 'condominium',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop',
-  },
-  {
-    id: 2,
-    price: 8900000,
-    bedrooms: 2,
-    bathrooms: 2,
-    size: 85,
-    city: 'Quezon City',
-    type: 'house-and-lot',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop',
-  },
-  {
-    id: 3,
-    price: 15800000,
-    bedrooms: 4,
-    bathrooms: 3,
-    size: 150,
-    city: 'BGC',
-    type: 'lot',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 4,
-    price: 6500000,
-    bedrooms: 2,
-    bathrooms: 1,
-    size: 65,
-    city: 'Manila',
-    type: 'building',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 5,
-    price: 11200000,
-    bedrooms: 3,
-    bathrooms: 2,
-    size: 110,
-    city: 'Makati',
-    type: 'townhouse',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687644-c7171b42498b?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 6,
-    price: 7500000,
-    bedrooms: 2,
-    bathrooms: 1,
-    size: 75,
-    city: 'Quezon City',
-    type: 'apartment',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 7,
-    price: 18500000,
-    bedrooms: 4,
-    bathrooms: 3,
-    size: 180,
-    city: 'BGC',
-    type: 'penthouse',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 8,
-    price: 9500000,
-    bedrooms: 3,
-    bathrooms: 2,
-    size: 95,
-    city: 'Makati',
-    type: 'condominium',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 9,
-    price: 22000000,
-    bedrooms: 5,
-    bathrooms: 4,
-    size: 250,
-    city: 'BGC',
-    type: 'house-and-lot',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687644-c7171b42498b?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 10,
-    price: 4500000,
-    bedrooms: 1,
-    bathrooms: 1,
-    size: 45,
-    city: 'Manila',
-    type: 'apartment',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 11,
-    price: 13500000,
-    bedrooms: 3,
-    bathrooms: 2,
-    size: 130,
-    city: 'Quezon City',
-    type: 'townhouse',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687644-c7171b42498b?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 12,
-    price: 28000000,
-    bedrooms: 5,
-    bathrooms: 5,
-    size: 300,
-    city: 'Makati',
-    type: 'penthouse',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 13,
-    price: 3200000,
-    bedrooms: 0,
-    bathrooms: 0,
-    size: 200,
-    city: 'Quezon City',
-    type: 'lot',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 14,
-    price: 15000000,
-    bedrooms: 0,
-    bathrooms: 0,
-    size: 500,
-    city: 'Makati',
-    type: 'commercial',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop',
-  },
-  {
-    id: 15,
-    price: 9800000,
-    bedrooms: 3,
-    bathrooms: 2,
-    size: 100,
-    city: 'BGC',
-    type: 'condominium',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop',
-  },
-  {
-    id: 16,
-    price: 7200000,
-    bedrooms: 2,
-    bathrooms: 2,
-    size: 80,
-    city: 'Manila',
-    type: 'apartment',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 17,
-    price: 16800000,
-    bedrooms: 4,
-    bathrooms: 3,
-    size: 160,
-    city: 'Makati',
-    type: 'house-and-lot',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop',
-  },
-  {
-    id: 18,
-    price: 11000000,
-    bedrooms: 3,
-    bathrooms: 2,
-    size: 115,
-    city: 'Quezon City',
-    type: 'townhouse',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687644-c7171b42498b?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 19,
-    price: 4200000,
-    bedrooms: 1,
-    bathrooms: 1,
-    size: 50,
-    city: 'Manila',
-    type: 'apartment',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 20,
-    price: 19500000,
-    bedrooms: 4,
-    bathrooms: 4,
-    size: 200,
-    city: 'BGC',
-    type: 'penthouse',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 21,
-    price: 8500000,
-    bedrooms: 2,
-    bathrooms: 2,
-    size: 90,
-    city: 'Makati',
-    type: 'condominium',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 22,
-    price: 25000000,
-    bedrooms: 5,
-    bathrooms: 5,
-    size: 280,
-    city: 'Makati',
-    type: 'house-and-lot',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop',
-  },
-  {
-    id: 23,
-    price: 5500000,
-    bedrooms: 2,
-    bathrooms: 1,
-    size: 70,
-    city: 'Quezon City',
-    type: 'apartment',
-    listingType: 'rent' as const,
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop',
-  },
-  {
-    id: 24,
-    price: 12800000,
-    bedrooms: 3,
-    bathrooms: 3,
-    size: 140,
-    city: 'BGC',
-    type: 'townhouse',
-    listingType: 'sale' as const,
-    image: 'https://images.unsplash.com/photo-1600607687644-c7171b42498b?q=80&w=2070&auto=format&fit=crop',
-  },
-];
 
 // Cities will be dynamically generated from fetched listings
 
@@ -340,6 +73,11 @@ function ListingsPageContent() {
             location: listing.location,
             title: listing.title,
             address: listing.address,
+            parking: listing.parking || null,
+            yearBuilt: listing.yearBuilt || null,
+            floor: listing.floor || null,
+            totalFloors: listing.totalFloors || null,
+            createdAt: listing.createdAt || '',
           }));
           setListings(transformedListings);
         }
@@ -353,9 +91,14 @@ function ListingsPageContent() {
     fetchListings();
   }, []);
 
-  // Get unique cities from fetched listings
-  const cities = useMemo(() => {
-    return Array.from(new Set(listings.map(p => p.city).filter(Boolean))).sort();
+  // Get unique cities from fetched listings, grouped by Metro Manila and Outside
+  const { metroManilaCities, outsideCities } = useMemo(() => {
+    const allCities = Array.from(new Set(listings.map(p => p.city).filter(Boolean))).sort();
+    const grouped = groupCitiesForFilter(allCities);
+    return {
+      metroManilaCities: grouped.metroManila,
+      outsideCities: grouped.outside,
+    };
   }, [listings]);
 
   // Filter and sort properties
@@ -501,11 +244,22 @@ function ListingsPageContent() {
 
         {/* Top Search Bar */}
         <div className="mb-6">
-          {/* Rent/Sale Tabs */}
+          {/* Rent/Sale/All Tabs */}
           <div className="flex gap-2 mb-4">
             <button
               type="button"
-              onClick={() => setListingType(listingType === 'sale' ? '' : 'sale')}
+              onClick={() => setListingType('')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                !listingType
+                  ? 'bg-gradient-to-r from-[#1F2937] to-[#111111] text-white shadow-md'
+                  : 'bg-[#F9FAFB] text-[#111111] hover:bg-[#E5E7EB]'
+              }`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setListingType('sale')}
               className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
                 listingType === 'sale'
                   ? 'bg-gradient-to-r from-[#1F2937] to-[#111111] text-white shadow-md'
@@ -516,7 +270,7 @@ function ListingsPageContent() {
             </button>
             <button
               type="button"
-              onClick={() => setListingType(listingType === 'rent' ? '' : 'rent')}
+              onClick={() => setListingType('rent')}
               className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
                 listingType === 'rent'
                   ? 'bg-gradient-to-r from-[#1F2937] to-[#111111] text-white shadow-md'
@@ -598,9 +352,20 @@ function ListingsPageContent() {
                     className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent text-[#111111] bg-white"
                   >
                     <option value="">All Locations</option>
-                    {cities.map(city => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
+                    {metroManilaCities.length > 0 && (
+                      <optgroup label="Metro Manila">
+                        {metroManilaCities.map(city => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {outsideCities.length > 0 && (
+                      <optgroup label="Outside Metro Manila">
+                        {outsideCities.map(city => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </optgroup>
+                    )}
                   </select>
                 </div>
 
@@ -730,64 +495,121 @@ function ListingsPageContent() {
                     <Link
                       key={property.id}
                       href={`/listings/${property.id}`}
-                      className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                      className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block group border border-[#E5E7EB]"
                     >
-                      <div className="relative h-64 w-full overflow-hidden">
+                      <div className="relative h-56 w-full overflow-hidden bg-gray-100">
                         <Image
                           src={property.image}
                           alt={`Property in ${property.city}`}
                           fill
-                          className="object-cover transition-transform duration-300 hover:scale-110"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          loading="lazy"
                         />
                         {/* Rent/Sale Badge - Top Right */}
                         <div className="absolute top-3 right-3">
-                          <span className={`px-3 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wide shadow-md ${
+                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider shadow-lg backdrop-blur-sm ${
                             property.listingType === 'rent'
-                              ? 'bg-[#D4AF37] text-white'
-                              : 'bg-gradient-to-r from-[#1F2937] to-[#111111] text-white'
+                              ? 'bg-[#D4AF37]/95 text-white'
+                              : 'bg-[#1F2937]/95 text-white'
                           }`}>
                             {property.listingType === 'rent' ? 'Rent' : 'Sale'}
                           </span>
                         </div>
                       </div>
-                      <div className="p-6">
-                        <div className="mb-3">
-                          <p className="text-2xl font-semibold text-[#111111]">
-                            ₱{property.price.toLocaleString()}
-                            {property.listingType === 'rent' && <span className="text-base font-normal text-[#111111]/70">/mo</span>}
-                          </p>
+                      <div className="p-5">
+                        {/* Title */}
+                        <div className="mb-2">
+                          <h3 className="text-sm font-semibold text-[#111111] line-clamp-1 leading-tight">
+                            {(property.type || '').toLowerCase() === 'lot' ? (
+                              <>
+                                {property.size > 0 && `${property.size} sqm `}
+                                Lot for {property.listingType === 'rent' ? 'Rent' : 'Sale'}
+                                {property.city && ` in ${property.city}`}
+                              </>
+                            ) : (
+                              <>
+                                {property.bedrooms > 0 && `${property.bedrooms} Bedroom `}
+                                {propertyTypeMap[property.type] || property.type || 'Property'}
+                                {' for '}
+                                {property.listingType === 'rent' ? 'Rent' : 'Sale'}
+                              </>
+                            )}
+                          </h3>
                         </div>
-                        <div className="flex flex-wrap gap-3 text-sm text-[#111111]/70 mb-4">
+                        
+                        {/* Price */}
+                        <div className="mb-3">
+                          <p className="text-2xl md:text-3xl font-bold text-[#111111] tracking-tight w-full">
+                            ₱{property.price.toLocaleString()}
+                            {property.listingType === 'rent' && <span className="text-base font-medium text-[#111111]/60 ml-1">/mo</span>}
+                          </p>
+                          {property.size > 0 && property.price > 0 && (
+                            <p className="text-xs text-[#111111]/50 mt-1">
+                              ₱{Math.round(property.price / property.size).toLocaleString()}/sqm
+                            </p>
+                          )}
+                        </div>
+                        
+                        {/* Property Details - Compact Grid */}
+                        <div className="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-[#E5E7EB]">
                           {property.bedrooms > 0 && (
-                            <div className="flex items-center gap-2">
-                              <Bed size={18} className="text-[#1F2937]" />
-                              <span>{property.bedrooms} {property.bedrooms === 1 ? 'Bedroom' : 'Bedrooms'}</span>
+                            <div className="flex items-center gap-1.5">
+                              <Bed size={16} className="text-[#1F2937] flex-shrink-0" />
+                              <span className="text-xs font-medium text-[#111111]/80">{property.bedrooms}</span>
                             </div>
                           )}
                           {property.bathrooms > 0 && (
-                            <div className="flex items-center gap-2">
-                              <Bath size={18} className="text-[#1F2937]" />
-                              <span>{property.bathrooms} {property.bathrooms === 1 ? 'Toilet' : 'Toilets'}</span>
+                            <div className="flex items-center gap-1.5">
+                              <Bath size={16} className="text-[#1F2937] flex-shrink-0" />
+                              <span className="text-xs font-medium text-[#111111]/80">{property.bathrooms}</span>
                             </div>
                           )}
                           {property.size > 0 && (
-                            <div className="flex items-center gap-2">
-                              <Square size={18} className="text-[#1F2937]" />
-                              <span>{property.size} sqm</span>
-                            </div>
-                          )}
-                          {property.city && (
-                            <div className="flex items-center gap-2">
-                              <MapPin size={18} className="text-[#1F2937]" />
-                              <span>{property.city}</span>
+                            <div className="flex items-center gap-1.5">
+                              <Square size={16} className="text-[#1F2937] flex-shrink-0" />
+                              <span className="text-xs font-medium text-[#111111]/80">{property.size}</span>
                             </div>
                           )}
                         </div>
-                        <div className="flex justify-center">
-                          <span className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-4 py-2 rounded-md text-sm uppercase tracking-wide shadow-md">
-                            {propertyTypeMap[property.type] || property.type}
-                          </span>
+                        
+                        {/* Additional Details */}
+                        <div className="flex flex-wrap gap-2 mb-3 text-xs text-[#111111]/60">
+                          {property.parking > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Car size={14} className="text-[#1F2937] flex-shrink-0" />
+                              <span>{property.parking}</span>
+                            </div>
+                          )}
+                          {property.floor && property.totalFloors && (
+                            <div className="flex items-center gap-1">
+                              <Layers size={14} className="text-[#1F2937] flex-shrink-0" />
+                              <span>Floor {property.floor}/{property.totalFloors}</span>
+                            </div>
+                          )}
+                          {property.yearBuilt && (
+                            <div className="flex items-center gap-1">
+                              <Calendar size={14} className="text-[#1F2937] flex-shrink-0" />
+                              <span>{property.yearBuilt}</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Location and Property Type */}
+                        <div className="space-y-2.5">
+                          {formatLocationDisplay(property.city, property.location, property.address) !== 'Location not specified' && (
+                            <div className="flex items-start gap-1.5">
+                              <MapPin size={14} className="text-[#1F2937] flex-shrink-0 mt-0.5" />
+                              <span className="text-sm text-[#111111]/70 line-clamp-2 leading-snug">
+                                {formatLocationWithLabel(property.city, property.location, property.address)}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex justify-start">
+                            <span className="inline-block bg-[#F9FAFB] text-[#1F2937] px-3 py-1.5 rounded-lg text-xs font-medium tracking-wide border border-[#E5E7EB]">
+                              {propertyTypeMap[property.type] || property.type}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </Link>

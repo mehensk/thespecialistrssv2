@@ -1,17 +1,41 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Phone, Mail, MapPin, Clock, Home as HomeIcon, TrendingUp, Key, FileCheck, Calculator, Lightbulb, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { ScrollAnimation } from '@/components/ui/scroll-animation';
 import { executeRecaptcha } from '@/lib/recaptcha';
 import { sendContactEmail, type ContactFormData } from '@/lib/emailjs';
 
-export default function ContactPage() {
+function ContactPageContent() {
+  const searchParams = useSearchParams();
   const [message, setMessage] = useState('');
   const [interest, setInterest] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Prefill form from URL parameters
+  useEffect(() => {
+    const interestParam = searchParams.get('interest');
+    const messageParam = searchParams.get('message');
+
+    if (interestParam) {
+      setInterest(interestParam);
+    }
+
+    if (messageParam) {
+      setMessage(messageParam);
+      // Scroll to message field after a short delay to ensure form is rendered
+      setTimeout(() => {
+        const messageField = document.getElementById('message');
+        if (messageField) {
+          messageField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          messageField.focus();
+        }
+      }, 300);
+    }
+  }, [searchParams]);
 
   const handleServiceClick = (serviceName: string, interestValue: string) => {
     setMessage(`I need help with ${serviceName}. Please contact me.`);
@@ -24,6 +48,15 @@ export default function ContactPage() {
         messageField.focus();
       }
     }, 100);
+  };
+
+  const handleEmailClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const email = 'thespecialistrss@gmail.com';
+    // Prompt user before opening email client
+    if (window.confirm('Open your default email client to send an email?')) {
+      window.location.href = `mailto:${email}`;
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -78,9 +111,11 @@ export default function ContactPage() {
       setSubmitSuccess(true);
       
       // Reset form after 3 seconds
+      // Use stored form reference (e.currentTarget can be null in setTimeout)
       setTimeout(() => {
-        const form = e.currentTarget;
-        form.reset();
+        if (form && typeof form.reset === 'function') {
+          form.reset();
+        }
         setMessage('');
         setInterest('');
         setSubmitSuccess(false);
@@ -134,11 +169,14 @@ export default function ContactPage() {
                       <div>
                         <h3 className="text-sm font-medium text-[#111111]/70 mb-1">Phone</h3>
                         <a 
-                          href="tel:+639212303011" 
+                          href="https://wa.me/639212303011" 
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-lg font-semibold text-[#111111] hover:text-[#1F2937] transition-colors"
                         >
                           +63 921 2303011
                         </a>
+                        <p className="text-sm text-[#111111]/60 mt-1">click to contact via WhatsApp</p>
                       </div>
                     </div>
 
@@ -151,7 +189,8 @@ export default function ContactPage() {
                         <h3 className="text-sm font-medium text-[#111111]/70 mb-1">Email</h3>
                         <a 
                           href="mailto:thespecialistrss@gmail.com" 
-                          className="text-lg font-semibold text-[#111111] hover:text-[#1F2937] transition-colors break-all"
+                          onClick={handleEmailClick}
+                          className="text-lg font-semibold text-[#111111] hover:text-[#1F2937] transition-colors break-all cursor-pointer"
                         >
                           thespecialistrss@gmail.com
                         </a>
@@ -413,6 +452,20 @@ export default function ContactPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function ContactPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white pt-[84px] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-[#111111]/70">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ContactPageContent />
+    </Suspense>
   );
 }
 

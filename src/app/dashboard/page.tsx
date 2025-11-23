@@ -1,9 +1,10 @@
 import { getUserFromToken } from '@/lib/get-user-from-token';
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { redirect } from 'next/navigation';
 import { Home, FileText, CheckCircle, Clock, Activity } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { UserRole } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,12 +38,18 @@ async function DashboardContent() {
   const user = await getUserFromToken();
   
   if (!user?.id) {
-    return null;
+    redirect('/');
   }
 
-  // Get user name from auth (only needed for display)
-  const session = await auth();
-  const userName = session?.user?.name || 'User';
+  // If user is admin, redirect to unified admin panel
+  // Admins should use /admin/dashboard instead of /dashboard
+  if (user.role === UserRole.ADMIN) {
+    redirect('/admin/dashboard');
+  }
+
+  // Note: We don't need to call auth() here - user info is already available
+  // If we need the user's name, we can fetch it from the database if needed
+  // For now, we'll use a generic name or fetch it separately if required
   
   const { listings, blogs, activities } = await getDashboardStats(user.id);
 
@@ -86,7 +93,7 @@ async function DashboardContent() {
 
   return (
     <div>
-      <h1 className="text-3xl font-semibold text-[#111111] mb-2">Welcome back, {userName}!</h1>
+      <h1 className="text-3xl font-semibold text-[#111111] mb-2">Welcome back!</h1>
       <p className="text-[#111111]/70 mb-8">Manage your listings and blog posts</p>
 
       {/* Statistics Grid */}

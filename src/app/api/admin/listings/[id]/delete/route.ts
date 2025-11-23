@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { verifyAdminRole } from '@/lib/verify-admin-role';
 import { prisma } from '@/lib/prisma';
 import { UserRole, ActivityAction } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
@@ -9,9 +9,10 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
+    // Verify admin role using reliable method (getToken instead of auth)
+    const { isAdmin, userId } = await verifyAdminRole();
 
-    if (!session || session.user.role !== UserRole.ADMIN) {
+    if (!isAdmin || !userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -22,7 +23,7 @@ export async function POST(
       return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
 
-    await logListingActivity(session.user.id, ActivityAction.DELETE, id, {
+    await logListingActivity(userId, ActivityAction.DELETE, id, {
       title: listing.title,
     });
 

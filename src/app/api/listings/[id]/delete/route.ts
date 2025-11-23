@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getUserFromToken } from '@/lib/get-user-from-token';
 import { prisma } from '@/lib/prisma';
 import { ActivityAction } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
@@ -9,9 +9,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth();
+    const user = await getUserFromToken();
 
-    if (!session) {
+    if (!user || !user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -23,11 +23,11 @@ export async function POST(
     }
 
     // Users can only delete their own listings
-    if (listing.userId !== session.user.id) {
+    if (listing.userId !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await logListingActivity(session.user.id, ActivityAction.DELETE, id, {
+    await logListingActivity(user.id, ActivityAction.DELETE, id, {
       title: listing.title,
     });
 

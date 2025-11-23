@@ -1,16 +1,16 @@
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { redirect } from 'next/navigation';
 import { UserRole } from '@prisma/client';
 import Link from 'next/link';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import { ResetPasswordButton } from '@/components/admin/ResetPasswordButton';
+import { getUserFromToken } from '@/lib/get-user-from-token';
 
 export default async function AdminUsersPage() {
-    const session = await auth();
-
-  if (!session || session.user.role !== UserRole.ADMIN) {
-    redirect('/403');
-  }
+  // Layout already verifies admin access - no need to check again
+  // Get current user ID for preventing self-deletion
+  // getUserFromToken() is fast (just reads JWT token, no DB query)
+  const currentUser = await getUserFromToken();
+  const currentUserId = currentUser?.id || null;
 
   const users = await prisma.user.findMany({
     orderBy: { createdAt: 'desc' },
@@ -79,14 +79,21 @@ export default async function AdminUsersPage() {
                       <Link
                         href={`/admin/users/${user.id}/edit`}
                         className="p-2 text-[#111111]/70 hover:text-[#111111] hover:bg-[#F9FAFB] rounded-md transition-colors"
+                        title="Edit User"
                       >
                         <Edit size={16} />
                       </Link>
-                      {user.id !== session.user.id && (
+                      <ResetPasswordButton
+                        userId={user.id}
+                        userName={user.name}
+                        userEmail={user.email}
+                      />
+                      {currentUserId && user.id !== currentUserId && (
                         <form action={`/api/admin/users/${user.id}/delete`} method="POST">
                           <button
                             type="submit"
                             className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                            title="Delete User"
                           >
                             <Trash2 size={16} />
                           </button>

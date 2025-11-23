@@ -1,5 +1,6 @@
 import { handlers } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 // Check NEXTAUTH_SECRET - only throw at runtime, not during build
 // This allows the build to complete even if the secret isn't set in Netlify build env
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
     }
     return response;
   } catch (error: any) {
-    console.error('NextAuth GET error:', error);
+    logger.error('NextAuth GET error:', error);
     return NextResponse.json(
       { 
         error: 'Authentication error',
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
     return response;
   } catch (error: any) {
-    console.error('NextAuth POST error:', error);
+    logger.error('NextAuth POST error:', error);
     return NextResponse.json(
       { 
         error: 'Authentication error',

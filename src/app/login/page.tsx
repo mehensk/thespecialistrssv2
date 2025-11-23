@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn, getSession } from 'next-auth/react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
+import { UserRole } from '@prisma/client';
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
-  
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -21,6 +22,7 @@ function LoginForm() {
     setLoading(true);
 
     try {
+      // Use redirect: false to handle errors, then redirect manually
       const result = await signIn('credentials', {
         email,
         password,
@@ -34,12 +36,19 @@ function LoginForm() {
       }
 
       if (result?.ok) {
-        // Optimized: Use window.location for instant redirect
-        // The middleware will handle role-based routing if needed
-        // This avoids the extra round-trip through /auth/callback
-        window.location.href = '/dashboard';
+        // Session is established - get role and redirect directly
+        // This eliminates the extra /auth/callback route hop
+        const session = await getSession();
+        if (session?.user?.role) {
+          const redirectUrl = session.user.role === UserRole.ADMIN 
+            ? '/admin/dashboard' 
+            : '/dashboard';
+          router.push(redirectUrl);
+        } else {
+          // Fallback: redirect to dashboard if role not available
+          router.push('/dashboard');
+        }
       } else {
-        // If result is not ok and no error, something went wrong
         setError('An error occurred. Please try again.');
         setLoading(false);
       }
@@ -91,15 +100,30 @@ function LoginForm() {
               <label htmlFor="password" className="block text-sm font-medium text-[#111111] mb-2">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 pr-12 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#111111]/50 hover:text-[#111111] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1F2937] rounded"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={0}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
+                </button>
+              </div>
             </div>
 
             <button

@@ -12,7 +12,7 @@ interface BlogPost {
   slug: string;
   content: string;
   excerpt: string | null;
-  featuredImage: string | null;
+  images: string[];
   createdAt: string;
   user: {
     name: string;
@@ -116,13 +116,13 @@ export default function BlogPostPage() {
               </div>
             </div>
 
-            {blog.featuredImage && (
-              <div className="relative h-96 w-full rounded-xl overflow-hidden mb-8">
+            {blog.images && blog.images.length > 0 && (
+              <div className="relative aspect-video w-full rounded-xl overflow-hidden mb-8">
                 <Image
-                  src={blog.featuredImage}
+                  src={blog.images[0]}
                   alt={blog.title}
                   fill
-                  className="object-cover"
+                  className="object-cover object-center"
                   sizes="100vw"
                   priority
                 />
@@ -137,8 +137,20 @@ export default function BlogPostPage() {
           </header>
 
           <div 
-            className="prose prose-lg max-w-none text-[#111111]/90 leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: blog.content.replace(/\n/g, '<br />') }}
+            className="prose prose-lg max-w-none text-[#111111]/90 leading-relaxed [&_img]:mx-auto [&_img]:block"
+            dangerouslySetInnerHTML={{ 
+              __html: blog.content
+                .split(/\n\s*\n/)
+                .map(paragraph => {
+                  // If paragraph contains an img tag, return it as-is (it's already HTML)
+                  if (paragraph.trim().startsWith('<img') || paragraph.includes('<img')) {
+                    return paragraph.trim();
+                  }
+                  // Otherwise, treat as text and convert single newlines to breaks
+                  return paragraph.split('\n').map(line => line || '<br />').join('');
+                })
+                .join('<br /><br />')
+            }}
           />
         </article>
 

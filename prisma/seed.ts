@@ -61,6 +61,12 @@ async function main() {
 
   console.log('Created writer user:', writer.email);
 
+  // Note: Listings should be exported from your dev database and imported into seed if needed
+  // Run: npm run export:listings to export your existing listings
+  const existingListings = await prisma.listing.count();
+  console.log(`\nℹ️  ${existingListings} listings already exist in database`);
+  console.log('   To seed with your own listings, export them from dev server and update seed script.');
+
   console.log('\n✅ Seed completed!');
   console.log('\nDefault login credentials:');
   console.log('Admin: admin@thespecialistrealty.com / admin123');

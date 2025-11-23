@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check } from 'lucide-react';
+import { useToast } from '@/components/ui/toast';
 
 export function ApproveButton({ listingId }: { listingId: string }) {
   const router = useRouter();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
 
   const handleApprove = async () => {
@@ -16,14 +18,15 @@ export function ApproveButton({ listingId }: { listingId: string }) {
       });
 
       if (response.ok) {
+        toast.success('Listing approved', 'The listing has been published successfully.');
         router.refresh();
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to approve listing');
+        toast.error('Approval failed', data.error || 'Failed to approve listing');
       }
     } catch (error) {
       console.error('Error approving listing:', error);
-      alert('An error occurred while approving the listing');
+      toast.error('Error', 'An error occurred while approving the listing');
     } finally {
       setLoading(false);
     }

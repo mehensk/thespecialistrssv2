@@ -40,3 +40,26 @@ body {
   animation: fadeInUp 0.8s ease-out 0.2s forwards;
   opacity: 0;
 }
+
+/* Blog content image styling - ensure consistent 16:9 aspect ratio */
+.prose img {
+  width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 2rem 0;
+}
+
+/* Ensure images in blog content maintain aspect ratio when not wrapped in div */
+.prose > img:not([class*="aspect"]) {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Ensure images in aspect-video containers fill properly */
+.prose div[class*="aspect-video"] img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}

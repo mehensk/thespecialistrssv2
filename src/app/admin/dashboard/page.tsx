@@ -1,97 +1,77 @@
-import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { redirect } from 'next/navigation';
-import { UserRole } from '@prisma/client';
-import { Home, FileText, Users, Activity } from 'lucide-react';
+import { Suspense } from 'react';
+import DashboardContent from './dashboard-content';
 
-export default async function AdminDashboardPage() {
-    const session = await auth();
-
-  if (!session || session.user.role !== UserRole.ADMIN) {
-    redirect('/403');
-  }
-
-  // Get statistics
-  const [totalUsers, totalListings, totalBlogs, pendingListings, pendingBlogs, recentActivities] = await Promise.all([
-    prisma.user.count(),
-    prisma.listing.count(),
-    prisma.blogPost.count(),
-    prisma.listing.count({ where: { isPublished: false } }),
-    prisma.blogPost.count({ where: { isPublished: false } }),
-    prisma.activity.findMany({
-      take: 10,
-      orderBy: { timestamp: 'desc' },
-      include: { user: { select: { name: true, email: true } } },
-    }),
-  ]);
-
-  const stats = [
-    { label: 'Total Users', value: totalUsers, icon: Users, color: 'bg-blue-500' },
-    { label: 'Total Listings', value: totalListings, icon: Home, color: 'bg-green-500' },
-    { label: 'Total Blogs', value: totalBlogs, icon: FileText, color: 'bg-purple-500' },
-    { label: 'Pending Approvals', value: pendingListings + pendingBlogs, icon: Activity, color: 'bg-yellow-500' },
-  ];
-
+export default function AdminDashboardPage() {
+  // Use Suspense to render page immediately with loading state
+  // Data will stream in as it becomes available
   return (
     <div>
-      <h1 className="text-3xl font-semibold text-[#111111] mb-8">Admin Dashboard</h1>
-
-      {/* Statistics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={stat.label}
-              className="bg-white rounded-xl shadow-lg p-6 border border-[#E5E7EB]"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[#111111]/70 mb-1">{stat.label}</p>
-                  <p className="text-3xl font-semibold text-[#111111]">{stat.value}</p>
-                </div>
-                <div className={`${stat.color} p-3 rounded-lg`}>
-                  <Icon size={24} className="text-white" />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB]">
-        <div className="p-6 border-b border-[#E5E7EB]">
-          <h2 className="text-xl font-semibold text-[#111111]">Recent Activity</h2>
-        </div>
-        <div className="p-6">
-          {recentActivities.length === 0 ? (
-            <p className="text-[#111111]/70">No recent activity</p>
-          ) : (
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center justify-between py-3 border-b border-[#E5E7EB] last:border-0"
-                >
-                  <div>
-                    <p className="text-[#111111] font-medium">
-                      {activity.user.name} ({activity.user.email})
-                    </p>
-                    <p className="text-sm text-[#111111]/70">
-                      {activity.action} - {activity.itemType}
-                      {activity.itemId && ` (ID: ${activity.itemId})`}
-                    </p>
-                  </div>
-                  <p className="text-sm text-[#111111]/70">
-                    {new Date(activity.timestamp).toLocaleString()}
-                  </p>
+      <Suspense fallback={
+        <div className="animate-pulse">
+          <div className="h-9 bg-gray-200 rounded w-64 mb-2"></div>
+          <div className="h-5 bg-gray-200 rounded w-96 mb-8"></div>
+          
+          {/* System Stats Skeleton */}
+          <div className="mb-8">
+            <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-xl shadow-lg p-6 border border-[#E5E7EB]">
+                  <div className="h-4 bg-gray-200 rounded w-24 mb-4"></div>
+                  <div className="h-8 bg-gray-200 rounded w-16"></div>
                 </div>
               ))}
             </div>
-          )}
+          </div>
+
+          {/* Personal Stats Skeleton */}
+          <div className="mb-8">
+            <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-xl shadow-lg p-6 border border-[#E5E7EB]">
+                  <div className="h-4 bg-gray-200 rounded w-24 mb-4"></div>
+                  <div className="h-8 bg-gray-200 rounded w-16"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Actions Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-6">
+                <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-10 bg-gray-200 rounded w-32"></div>
+              </div>
+            ))}
+          </div>
+
+          {/* Activity Skeleton */}
+          <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB]">
+            <div className="p-6 border-b border-[#E5E7EB]">
+              <div className="h-6 bg-gray-200 rounded w-32"></div>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center justify-between py-3 border-b border-[#E5E7EB]">
+                    <div>
+                      <div className="h-4 bg-gray-200 rounded w-48 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-64"></div>
+                    </div>
+                    <div className="h-3 bg-gray-200 rounded w-24"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      }>
+        <DashboardContent />
+      </Suspense>
     </div>
   );
 }

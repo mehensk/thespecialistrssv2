@@ -1,15 +1,19 @@
 import { getUserFromToken } from '@/lib/get-user-from-token';
 import { prisma } from '@/lib/prisma';
+import { UserRole } from '@prisma/client';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, Edit, Trash2, Eye, CheckCircle, Clock } from 'lucide-react';
+import { Plus, Edit, Eye, CheckCircle, Clock } from 'lucide-react';
 import { Suspense } from 'react';
+import { ApproveButton } from './approve-button';
+import { DeleteButton } from './delete-button';
 
 export const dynamic = 'force-dynamic';
 
 // Fast user ID retrieval from JWT token (much faster than auth())
-async function getBlogs(userId: string) {
+async function getBlogs(userId: string, isAdmin: boolean) {
   return prisma.blogPost.findMany({
-    where: { userId },
+    where: isAdmin ? {} : { userId },
     select: {
       id: true,
       title: true,
@@ -17,6 +21,14 @@ async function getBlogs(userId: string) {
       excerpt: true,
       isPublished: true,
       createdAt: true,
+      ...(isAdmin && {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      }),
     },
     orderBy: { createdAt: 'desc' },
     take: 100,
@@ -27,15 +39,18 @@ async function BlogsContent() {
   const user = await getUserFromToken();
   
   if (!user?.id) {
-    return null;
+    redirect('/');
   }
 
-  const blogs = await getBlogs(user.id);
+  const isAdmin = user.role === UserRole.ADMIN;
+  const blogs = await getBlogs(user.id, isAdmin);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-semibold text-[#111111]">My Blog Posts</h1>
+        <h1 className="text-3xl font-semibold text-[#111111]">
+          {isAdmin ? 'All Blog Posts' : 'My Blog Posts'}
+        </h1>
         <Link
           href="/dashboard/blogs/new"
           className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium flex items-center gap-2"
@@ -47,13 +62,17 @@ async function BlogsContent() {
 
       {blogs.length === 0 ? (
         <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-12 text-center">
-          <p className="text-[#111111]/70 mb-6">You haven't created any blog posts yet.</p>
-          <Link
-            href="/dashboard/blogs/new"
-            className="inline-block bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium"
-          >
-            Create Your First Blog Post
-          </Link>
+          <p className="text-[#111111]/70 mb-6">
+            {isAdmin ? 'No blog posts found.' : "You haven't created any blog posts yet."}
+          </p>
+          {!isAdmin && (
+            <Link
+              href="/dashboard/blogs/new"
+              className="inline-block bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium"
+            >
+              Create Your First Blog Post
+            </Link>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -72,6 +91,11 @@ async function BlogsContent() {
                   )}
                 </div>
                 <p className="text-sm text-[#111111]/70 mb-2">{blog.slug}</p>
+                {isAdmin && 'user' in blog && blog.user && (
+                  <p className="text-xs text-[#111111]/60 mb-2">
+                    Author: {blog.user.name || blog.user.email}
+                  </p>
+                )}
                 {blog.excerpt && (
                   <p className="text-sm text-[#111111]/70 mb-4 line-clamp-2">{blog.excerpt}</p>
                 )}
@@ -100,14 +124,10 @@ async function BlogsContent() {
                   >
                     <Edit size={16} />
                   </Link>
-                  <form action={`/api/blogs/${blog.id}/delete`} method="POST">
-                    <button
-                      type="submit"
-                      className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </form>
+                  {isAdmin && !blog.isPublished && (
+                    <ApproveButton blogId={blog.id} />
+                  )}
+                  <DeleteButton blogId={blog.id} isAdmin={isAdmin} />
                 </div>
               </div>
             </div>

@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
+import { Menu, X, LayoutDashboard, LogOut, LogIn } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { UserRole } from '@prisma/client';
+import { broadcastLogout } from '@/components/providers/LogoutSync';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,14 +14,25 @@ export function Navbar() {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
   const { data: session } = useSession();
-  const router = useRouter();
 
   const closeMenu = () => setIsOpen(false);
 
   const handleLogout = async () => {
-    await signOut({ redirect: false });
-    router.push('/');
-    router.refresh();
+    try {
+      // Broadcast logout to all tabs first
+      broadcastLogout();
+      
+      // Sign out with redirect - this properly clears the session cookie
+      // Using redirect: true ensures NextAuth handles cookie clearing correctly
+      await signOut({ 
+        redirect: true,
+        callbackUrl: '/'
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback: force redirect even if signOut fails
+      window.location.replace('/');
+    }
   };
 
   useEffect(() => {
@@ -52,7 +64,7 @@ export function Navbar() {
       {/* Username (very left edge) - only for logged in users */}
       {session?.user && (
         <Link
-          href="/dashboard"
+          href={session.user.role === UserRole.ADMIN ? '/admin/dashboard' : '/dashboard'}
           className={`absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pl-4 pr-3 py-1.5 rounded-full transition-all max-w-fit hover:scale-105 active:scale-95 ${
             shouldBeTransparent
               ? 'bg-white/20 backdrop-blur-sm border border-white/30 text-white shadow-lg hover:bg-white/30' 
@@ -89,7 +101,10 @@ export function Navbar() {
           <NavLink href="/blog" shouldBeTransparent={shouldBeTransparent}>Blog</NavLink>
           <NavLink href="/contact" shouldBeTransparent={shouldBeTransparent}>Contact</NavLink>
           {session && (
-            <NavLink href="/dashboard" shouldBeTransparent={shouldBeTransparent}>
+            <NavLink 
+              href={session.user.role === UserRole.ADMIN ? '/admin/dashboard' : '/dashboard'} 
+              shouldBeTransparent={shouldBeTransparent}
+            >
               <span className="flex items-center gap-1.5">
                 <LayoutDashboard size={16} />
                 Dashboard
@@ -100,6 +115,20 @@ export function Navbar() {
 
         {/* Desktop CTA Buttons — Right-aligned */}
         <div className="hidden lg:flex items-center gap-3 flex-shrink-0 ml-12">
+          {/* Login link - always visible for easy development access */}
+          {!session && (
+            <Link
+              href="/login"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                shouldBeTransparent
+                  ? 'text-white hover:bg-white/20 border border-white/30'
+                  : 'text-[#111111] hover:bg-[#F9FAFB] border border-[#E5E7EB]'
+              }`}
+            >
+              <LogIn size={14} />
+              <span>Login</span>
+            </Link>
+          )}
           <Link
             href="/contact"
             className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-5 py-2 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 relative overflow-hidden group"
@@ -124,6 +153,20 @@ export function Navbar() {
 
         {/* Mobile Buttons Container */}
         <div className="lg:hidden ml-auto flex items-center gap-2 flex-shrink-0">
+          {/* Login link - always visible for easy development access */}
+          {!session && (
+            <Link
+              href="/login"
+              className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all ${
+                shouldBeTransparent
+                  ? 'text-white hover:bg-white/20 border border-white/30'
+                  : 'text-[#111111] hover:bg-[#F9FAFB] border border-[#E5E7EB]'
+              }`}
+            >
+              <LogIn size={12} />
+              <span>Login</span>
+            </Link>
+          )}
           <Link
             href="/contact"
             className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-3 py-1.5 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 text-xs font-medium shadow-md whitespace-nowrap"
@@ -163,12 +206,25 @@ export function Navbar() {
           <MobileLink href="/blog" onClose={closeMenu}>Blog</MobileLink>
           <MobileLink href="/contact" onClose={closeMenu}>Contact</MobileLink>
           {session && (
-            <MobileLink href="/dashboard" onClose={closeMenu}>
+            <MobileLink 
+              href={session.user.role === UserRole.ADMIN ? '/admin/dashboard' : '/dashboard'} 
+              onClose={closeMenu}
+            >
               <span className="flex items-center gap-2">
                 <LayoutDashboard size={18} />
                 Dashboard
               </span>
             </MobileLink>
+          )}
+          {!session && (
+            <Link
+              href="/login"
+              className="block text-center bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-4 py-2.5 rounded-md mt-2 shadow-md flex items-center justify-center gap-2"
+              onClick={closeMenu}
+            >
+              <LogIn size={18} />
+              <span>Login</span>
+            </Link>
           )}
           <Link
             href="/contact"

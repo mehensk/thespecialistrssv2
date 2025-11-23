@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { isMetroManilaCity, METRO_MANILA_CITIES } from '@/lib/location-utils';
 import { 
   ArrowLeft, 
   CheckCircle, 
@@ -43,11 +45,12 @@ import {
 
 export default function NewListingPage() {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
-  const [uploadingImages, setUploadingImages] = useState<string[]>([]);
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isOutsideMetroManila, setIsOutsideMetroManila] = useState(false);
+  
+  // Initialize formData first before using it in useFileUpload
   const [formData, setFormData] = useState({
     // Basic Info
     title: '',
@@ -76,6 +79,25 @@ export default function NewListingPage() {
     // Amenities - array of selected amenity keys
     amenities: [] as string[],
   });
+  
+  const {
+    processFiles,
+    handleImageUpload,
+    handleDrop,
+    handleDragOver,
+    uploadingImages,
+    error,
+    setError,
+    fileInputRef,
+  } = useFileUpload({
+    onUploadSuccess: (url) => {
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, url],
+      }));
+    },
+    listingTitle: formData.title, // Pass title for folder organization
+  });
 
   const propertyTypes = [
     'condominium',
@@ -88,77 +110,35 @@ export default function NewListingPage() {
     'commercial',
   ];
 
-  const processFiles = async (files: FileList | File[]) => {
-    const fileArray = Array.from(files);
-    if (fileArray.length === 0) return;
-
-    for (const file of fileArray) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError(`File "${file.name}" is not an image. Please select an image file.`);
-        continue;
-      }
-
-      // Validate file size (20MB max)
-      if (file.size > 20 * 1024 * 1024) {
-        setError(`File "${file.name}" exceeds 20MB limit. Please select a smaller image.`);
-        continue;
-      }
-
-      const tempId = `${Date.now()}-${Math.random()}`;
-      setUploadingImages((prev) => [...prev, tempId]);
-
-      try {
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', file);
-
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: uploadFormData,
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to upload image');
-        }
-
-        setFormData((prev) => ({
-          ...prev,
-          images: [...prev.images, data.url],
-        }));
-        setError(''); // Clear any previous errors on success
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to upload image');
-      } finally {
-        setUploadingImages((prev) => prev.filter((id) => id !== tempId));
-      }
-    }
-
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    await handleImageUpload(e, formData.images.length);
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    await processFiles(files);
-  };
-
-  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+  const handleFileDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      await processFiles(files);
+    setIsDragging(false);
+    await handleDrop(e, formData.images.length);
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragging(true);
     }
   };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    // Only set dragging to false if we're leaving the drop zone (not just a child element)
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setIsDragging(false);
+    }
   };
 
   const removeImage = (index: number) => {
@@ -235,8 +215,8 @@ export default function NewListingPage() {
     setError('');
     setLoading(true);
 
-    if (!formData.title || !formData.description || !formData.location) {
-      setError('Title, description, and location are required');
+    if (!formData.title || !formData.description) {
+      setError('Title and description are required');
       setLoading(false);
       return;
     }
@@ -250,7 +230,7 @@ export default function NewListingPage() {
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
-          location: formData.location,
+          location: formData.location || '',
           city: formData.city || null,
           address: formData.address || null,
           price: formData.price || null,
@@ -364,31 +344,60 @@ export default function NewListingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="location" className="block text-sm font-medium text-[#111111] mb-2">
-                  Location <span className="text-red-500">*</span>
+                  Location
                 </label>
                 <input
                   id="location"
                   type="text"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  required
                   className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
-                  placeholder="e.g., Makati City"
+                  placeholder={isMetroManilaCity(formData.city) ? "e.g., Makati City" : "e.g., Cavite (for outside Metro Manila)"}
                 />
+                <p className="mt-1 text-xs text-[#111111]/60">
+                  {isOutsideMetroManila 
+                    ? "If outside Metro Manila: 'City, Region' ex. Lipa, Batangas" 
+                    : isMetroManilaCity(formData.city) 
+                      ? "For Metro Manila: City name" 
+                      : "City name (Metro Manila) or 'City, Region' if outside (ex. Lipa, Batangas)"}
+                </p>
               </div>
 
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-[#111111] mb-2">
                   City
                 </label>
-                <input
+                <select
                   id="city"
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
-                  placeholder="e.g., Makati"
-                />
+                  value={isOutsideMetroManila ? 'outside' : formData.city}
+                  onChange={(e) => {
+                    if (e.target.value === 'outside') {
+                      setIsOutsideMetroManila(true);
+                      setFormData({ ...formData, city: '' });
+                    } else {
+                      setIsOutsideMetroManila(false);
+                      setFormData({ ...formData, city: e.target.value });
+                    }
+                  }}
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent bg-white"
+                >
+                  <option value="">Select City</option>
+                  <optgroup label="Metro Manila">
+                    {METRO_MANILA_CITIES.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </optgroup>
+                  <option value="outside">Outside Metro Manila</option>
+                </select>
+                <p className="mt-1 text-xs text-[#111111]/60">
+                  {isOutsideMetroManila 
+                    ? "✓ Outside Metro Manila - enter 'City, Region' in Location field (ex. Lipa, Batangas)" 
+                    : isMetroManilaCity(formData.city) 
+                      ? "✓ Metro Manila city selected" 
+                      : formData.city 
+                        ? "Enter province/region in Location field" 
+                        : "Select a city from the dropdown"}
+                </p>
               </div>
             </div>
 
@@ -606,9 +615,15 @@ export default function NewListingPage() {
                   Upload Images
                 </label>
                 <div
-                  className="border-2 border-dashed border-[#E5E7EB] rounded-lg p-8 text-center hover:border-[#1F2937] transition-colors cursor-pointer"
-                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+                    isDragging
+                      ? 'border-[#1F2937] bg-[#F3F4F6]'
+                      : 'border-[#E5E7EB] hover:border-[#1F2937]'
+                  }`}
+                  onDrop={handleFileDrop}
                   onDragOver={handleDragOver}
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <input
@@ -617,7 +632,7 @@ export default function NewListingPage() {
                     type="file"
                     accept="image/*"
                     multiple
-                    onChange={handleImageUpload}
+                    onChange={handleFileUpload}
                     className="hidden"
                   />
                   <div className="flex flex-col items-center gap-2 text-[#111111]/70 hover:text-[#111111] transition-colors">

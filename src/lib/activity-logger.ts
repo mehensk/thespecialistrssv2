@@ -53,12 +53,50 @@ export async function logListingActivity(
   listingId: string,
   metadata?: Record<string, any>
 ) {
+  // Only fetch listing if metadata doesn't already have the info we need
+  let enrichedMetadata = { ...metadata };
+  
+  // Check if we already have the essential metadata
+  const needsFetch = !metadata?.uploadedBy || !metadata?.uploadedByName;
+  
+  if (needsFetch) {
+    try {
+      const listing = await prisma.listing.findUnique({
+        where: { id: listingId },
+        select: {
+          userId: true,
+          approvedBy: true,
+          user: {
+            select: { name: true, email: true },
+          },
+          approver: {
+            select: { name: true, email: true },
+          },
+        },
+      });
+
+      if (listing) {
+        enrichedMetadata = {
+          ...enrichedMetadata,
+          uploadedBy: listing.userId,
+          uploadedByName: listing.user.name,
+          uploadedByEmail: listing.user.email,
+          approvedBy: listing.approvedBy || null,
+          approvedByName: listing.approver?.name || null,
+          approvedByEmail: listing.approver?.email || null,
+        };
+      }
+    } catch (error) {
+      console.error('Failed to fetch listing info for activity log:', error);
+    }
+  }
+
   return logActivity({
     userId,
     action,
     itemType: ActivityItemType.LISTING,
     itemId: listingId,
-    metadata,
+    metadata: enrichedMetadata,
   });
 }
 
@@ -68,12 +106,50 @@ export async function logBlogActivity(
   blogId: string,
   metadata?: Record<string, any>
 ) {
+  // Only fetch blog if metadata doesn't already have the info we need
+  let enrichedMetadata = { ...metadata };
+  
+  // Check if we already have the essential metadata
+  const needsFetch = !metadata?.uploadedBy || !metadata?.uploadedByName;
+  
+  if (needsFetch) {
+    try {
+      const blog = await prisma.blogPost.findUnique({
+        where: { id: blogId },
+        select: {
+          userId: true,
+          approvedBy: true,
+          user: {
+            select: { name: true, email: true },
+          },
+          approver: {
+            select: { name: true, email: true },
+          },
+        },
+      });
+
+      if (blog) {
+        enrichedMetadata = {
+          ...enrichedMetadata,
+          uploadedBy: blog.userId,
+          uploadedByName: blog.user.name,
+          uploadedByEmail: blog.user.email,
+          approvedBy: blog.approvedBy || null,
+          approvedByName: blog.approver?.name || null,
+          approvedByEmail: blog.approver?.email || null,
+        };
+      }
+    } catch (error) {
+      console.error('Failed to fetch blog info for activity log:', error);
+    }
+  }
+
   return logActivity({
     userId,
     action,
     itemType: ActivityItemType.BLOG,
     itemId: blogId,
-    metadata,
+    metadata: enrichedMetadata,
   });
 }
 
