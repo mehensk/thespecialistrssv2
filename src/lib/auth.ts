@@ -7,9 +7,9 @@ import { logAuthActivity } from './activity-logger';
 import { getServerStartTime, hasServerRestarted } from './server-start-time';
 import { logger } from './logger';
 
-// Session timeout: 10 minutes in seconds
-const SESSION_MAX_AGE = 10 * 60; // 10 minutes
-// Inactivity timeout: 10 minutes in milliseconds
+// Session timeout: 24 hours in seconds (more reasonable for production)
+const SESSION_MAX_AGE = 24 * 60 * 60; // 24 hours
+// Inactivity timeout: 10 minutes in milliseconds (user inactive for 10 min = logout)
 const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
 const authOptions = {
@@ -161,21 +161,26 @@ const authOptions = {
       }
 
       // Check if server has restarted - if so, invalidate all sessions
-      if (hasServerRestarted(token.serverStartTime)) {
-        // Server has restarted, invalidate this token
+      // NOTE: Disabled in production/serverless environments because each function
+      // invocation can be a new instance, causing false positives
+      // This check is only useful for traditional server deployments
+      if (process.env.NODE_ENV !== 'production' && hasServerRestarted(token.serverStartTime)) {
+        // Server has restarted, invalidate this token (dev/test only)
         return null;
       }
 
       // Check inactivity timeout (10 minutes) BEFORE updating
+      // Add 5 second tolerance for serverless timing issues
       const timeSinceLastActivity = now - token.lastActivity;
-      if (timeSinceLastActivity > INACTIVITY_TIMEOUT) {
+      if (timeSinceLastActivity > (INACTIVITY_TIMEOUT + 5000)) {
         // User has been inactive for more than 10 minutes
         return null;
       }
 
-      // Check session max age (10 minutes from token issuance)
+      // Check session max age (24 hours from token issuance)
+      // Add 5 second tolerance for serverless timing issues
       const tokenAge = now - (token.iat * 1000);
-      if (tokenAge > SESSION_MAX_AGE * 1000) {
+      if (tokenAge > (SESSION_MAX_AGE * 1000 + 5000)) {
         // Session has exceeded max age
         return null;
       }

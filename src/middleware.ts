@@ -28,8 +28,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check if server has restarted (additional check in middleware)
-  if (token.serverStartTime && hasServerRestarted(token.serverStartTime)) {
-    // Server has restarted, clear session and redirect to home
+  // NOTE: Disabled in production/serverless environments because each function
+  // invocation can be a new instance, causing false positives
+  // This check is only useful for traditional server deployments
+  if (process.env.NODE_ENV !== 'production' && token.serverStartTime && hasServerRestarted(token.serverStartTime)) {
+    // Server has restarted, clear session and redirect to home (dev/test only)
     const response = NextResponse.redirect(new URL('/', request.url));
     // NextAuth v5 uses authjs.session-token (not next-auth.session-token)
     response.cookies.delete('authjs.session-token');
@@ -41,11 +44,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check inactivity timeout (10 minutes)
+  // Add 5 second tolerance for serverless timing issues
   const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutes
   if (token.lastActivity) {
     const timeSinceLastActivity = Date.now() - token.lastActivity;
-    if (timeSinceLastActivity > INACTIVITY_TIMEOUT) {
-      // User has been inactive, clear session and redirect to home
+    if (timeSinceLastActivity > (INACTIVITY_TIMEOUT + 5000)) {
+      // User has been inactive for more than 10 minutes, clear session and redirect to home
       const response = NextResponse.redirect(new URL('/', request.url));
       // NextAuth v5 uses authjs.session-token (not next-auth.session-token)
       response.cookies.delete('authjs.session-token');
