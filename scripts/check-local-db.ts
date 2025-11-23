@@ -104,7 +104,8 @@ async function checkLocalDatabase() {
       });
       listings.forEach((listing) => {
         const status = listing.isPublished ? 'Published' : 'Draft';
-        console.log(`   - ${listing.title} - $${listing.price.toLocaleString()} (${listing.location}) [${status}]`);
+        const priceStr = listing.price != null ? listing.price.toLocaleString() : 'N/A';
+        console.log(`   - ${listing.title} - $${priceStr} (${listing.location}) [${status}]`);
       });
       console.log('');
     }

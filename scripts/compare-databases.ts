@@ -81,7 +81,8 @@ async function compareDatabases() {
 
       localListingsData.forEach(listing => {
         const exists = neonListingIds.has(listing.id);
-        console.log(`   ${exists ? '✅' : '❌'} ${listing.title} - $${listing.price.toLocaleString()}`);
+        const priceStr = listing.price != null ? listing.price.toLocaleString() : 'N/A';
+        console.log(`   ${exists ? '✅' : '❌'} ${listing.title} - $${priceStr}`);
         console.log(`      ID: ${listing.id} | Created: ${listing.createdAt.toISOString().split('T')[0]}`);
       });
       console.log('');
