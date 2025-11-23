@@ -14,6 +14,9 @@
     "migrate:images": "tsx scripts/migrate-images-to-cloudinary.ts",
     "organize:listings": "tsx scripts/organize-cloudinary-listings.ts",
     "migrate:to-neon": "tsx scripts/migrate-to-neon.ts",
+    "check:neon-db": "tsx scripts/check-neon-db.ts",
+    "check:local-db": "tsx scripts/check-local-db.ts",
+    "compare:databases": "tsx scripts/compare-databases.ts",
     "sync:to-production": "tsx scripts/sync-to-production.ts",
     "postinstall": "node ./scripts/postinstall.js",
     "build:netlify": "node ./scripts/simulate-netlify-build.js"

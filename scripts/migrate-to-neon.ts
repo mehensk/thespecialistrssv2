@@ -84,7 +84,7 @@ async function migrateToNeon() {
       // For now, proceed with caution
     }
 
-    // Migrate Users (skip default users if they exist)
+    // Migrate Users (use email as unique key, let Neon generate new IDs)
     console.log('👥 Migrating users...');
     const localUsersList = await localPrisma.user.findMany({
       include: {
@@ -96,15 +96,15 @@ async function migrateToNeon() {
     let usersMigrated = 0;
     for (const user of localUsersList) {
       try {
+        // Use email as the unique identifier, let Neon assign new ID
         await neonPrisma.user.upsert({
           where: { email: user.email },
           update: {
             name: user.name,
             role: user.role,
-            // Don't update password - keep existing or set new
+            // Don't update password or ID - keep existing
           },
           create: {
-            id: user.id,
             email: user.email,
             name: user.name,
             password: user.password, // Hashed password
@@ -120,6 +120,24 @@ async function migrateToNeon() {
     }
     console.log(`   ✅ Migrated ${usersMigrated} users\n`);
 
+    // Create user ID mapping (local ID -> Neon ID)
+    console.log('📋 Creating user ID mapping...');
+    const userMapping = new Map<string, string>();
+    const neonUsersList = await neonPrisma.user.findMany({
+      select: { id: true, email: true },
+    });
+    const localUsersForMapping = await localPrisma.user.findMany({
+      select: { id: true, email: true },
+    });
+
+    for (const localUser of localUsersForMapping) {
+      const neonUser = neonUsersList.find((u) => u.email === localUser.email);
+      if (neonUser) {
+        userMapping.set(localUser.id, neonUser.id);
+      }
+    }
+    console.log(`   ✅ Mapped ${userMapping.size} users\n`);
+
     // Migrate Listings
     console.log('🏠 Migrating listings...');
     const localListingsList = await localPrisma.listing.findMany({
@@ -131,18 +149,21 @@ async function migrateToNeon() {
     let listingsMigrated = 0;
     for (const listing of localListingsList) {
       try {
-        // Check if user exists in Neon (create if not)
-        await neonPrisma.user.upsert({
-          where: { id: listing.userId },
-          update: {},
-          create: {
-            id: listing.user.id,
-            email: listing.user.email,
-            name: listing.user.name,
-            password: listing.user.password,
-            role: listing.user.role,
-          },
-        });
+        // Get Neon user ID (should already exist from user migration)
+        const neonUserId = userMapping.get(listing.userId);
+        if (!neonUserId) {
+          console.error(`   ⚠️  User ${listing.userId} (${listing.user.email}) not found in Neon, skipping listing ${listing.id}`);
+          continue;
+        }
+
+        // Map approvedBy to Neon user ID if it exists
+        let neonApprovedBy: string | null = null;
+        if (listing.approvedBy) {
+          neonApprovedBy = userMapping.get(listing.approvedBy) || null;
+          if (!neonApprovedBy && listing.approvedBy) {
+            console.log(`   ⚠️  ApprovedBy user ${listing.approvedBy} not found in Neon, setting to null for listing ${listing.id}`);
+          }
+        }
 
         await neonPrisma.listing.upsert({
           where: { id: listing.id },
@@ -166,8 +187,9 @@ async function migrateToNeon() {
             amenities: listing.amenities === null ? Prisma.DbNull : (listing.amenities as Prisma.InputJsonValue),
             propertyId: listing.propertyId,
             available: listing.available,
+            userId: neonUserId,
             isPublished: listing.isPublished,
-            approvedBy: listing.approvedBy,
+            approvedBy: neonApprovedBy,
             approvedAt: listing.approvedAt,
           },
           create: {
@@ -191,9 +213,9 @@ async function migrateToNeon() {
             amenities: listing.amenities === null ? Prisma.DbNull : (listing.amenities as Prisma.InputJsonValue),
             propertyId: listing.propertyId,
             available: listing.available,
-            userId: listing.userId,
+            userId: neonUserId,
             isPublished: listing.isPublished,
-            approvedBy: listing.approvedBy,
+            approvedBy: neonApprovedBy,
             approvedAt: listing.approvedAt,
             createdAt: listing.createdAt,
             updatedAt: listing.updatedAt,
@@ -217,18 +239,21 @@ async function migrateToNeon() {
     let blogsMigrated = 0;
     for (const blog of localBlogsList) {
       try {
-        // Check if user exists in Neon (create if not)
-        await neonPrisma.user.upsert({
-          where: { id: blog.userId },
-          update: {},
-          create: {
-            id: blog.user.id,
-            email: blog.user.email,
-            name: blog.user.name,
-            password: blog.user.password,
-            role: blog.user.role,
-          },
-        });
+        // Get Neon user ID (should already exist from user migration)
+        const neonUserId = userMapping.get(blog.userId);
+        if (!neonUserId) {
+          console.error(`   ⚠️  User ${blog.userId} (${blog.user.email}) not found in Neon, skipping blog ${blog.id}`);
+          continue;
+        }
+
+        // Map approvedBy to Neon user ID if it exists
+        let neonApprovedBy: string | null = null;
+        if (blog.approvedBy) {
+          neonApprovedBy = userMapping.get(blog.approvedBy) || null;
+          if (!neonApprovedBy && blog.approvedBy) {
+            console.log(`   ⚠️  ApprovedBy user ${blog.approvedBy} not found in Neon, setting to null for blog ${blog.id}`);
+          }
+        }
 
         await neonPrisma.blogPost.upsert({
           where: { id: blog.id },
@@ -238,8 +263,9 @@ async function migrateToNeon() {
             slug: blog.slug,
             excerpt: blog.excerpt,
             images: blog.images,
+            userId: neonUserId,
             isPublished: blog.isPublished,
-            approvedBy: blog.approvedBy,
+            approvedBy: neonApprovedBy,
             approvedAt: blog.approvedAt,
           },
           create: {
@@ -249,9 +275,9 @@ async function migrateToNeon() {
             slug: blog.slug,
             excerpt: blog.excerpt,
             images: blog.images,
-            userId: blog.userId,
+            userId: neonUserId,
             isPublished: blog.isPublished,
-            approvedBy: blog.approvedBy,
+            approvedBy: neonApprovedBy,
             approvedAt: blog.approvedAt,
             createdAt: blog.createdAt,
             updatedAt: blog.updatedAt,
@@ -274,13 +300,10 @@ async function migrateToNeon() {
     let activitiesMigrated = 0;
     for (const activity of localActivitiesList) {
       try {
-        // Check if user exists in Neon
-        const userExists = await neonPrisma.user.findUnique({
-          where: { id: activity.userId },
-        });
-
-        if (!userExists) {
-          // Skip if user doesn't exist
+        // Get Neon user ID using mapping
+        const neonUserId = userMapping.get(activity.userId);
+        if (!neonUserId) {
+          // Skip if user doesn't exist in Neon
           continue;
         }
 
@@ -289,7 +312,7 @@ async function migrateToNeon() {
           update: {},
           create: {
             id: activity.id,
-            userId: activity.userId,
+            userId: neonUserId,
             action: activity.action,
             itemType: activity.itemType,
             itemId: activity.itemId,
