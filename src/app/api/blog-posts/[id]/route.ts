@@ -119,7 +119,7 @@ export async function PUT(
         processedContent = processedContent.replace(/<img[^>]+>/gi, '').trim();
         
         // Split content into paragraphs (by double newlines or single newlines)
-        const paragraphs = processedContent.split(/\n\s*\n|\n/).filter(p => p.trim().length > 0);
+        const paragraphs = processedContent.split(/\n\s*\n|\n/).filter((p: string) => p.trim().length > 0);
         
         if (paragraphs.length > 0) {
           // Calculate spacing: distribute images evenly across paragraphs
