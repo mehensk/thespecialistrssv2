@@ -62,8 +62,8 @@ export async function GET(request: NextRequest) {
     };
 
     // Add pagination if limit is provided
-    const take = limit ? safeParseInt(limit, 1, 100) : undefined;
-    const skip = offset ? safeParseInt(offset, 0) : undefined;
+    const take = limit ? safeParseInt(limit, 1, 100) ?? undefined : undefined;
+    const skip = offset ? safeParseInt(offset, 0) ?? undefined : undefined;
 
     const listings = await prisma.listing.findMany({
       where,

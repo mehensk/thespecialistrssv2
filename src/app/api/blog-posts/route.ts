@@ -42,8 +42,8 @@ export async function GET(request: NextRequest) {
     };
 
     // Add pagination if limit is provided
-    const take = limit ? safeParseInt(limit, 1, 100) : undefined;
-    const skip = offset ? safeParseInt(offset, 0) : undefined;
+    const take = limit ? safeParseInt(limit, 1, 100) ?? undefined : undefined;
+    const skip = offset ? safeParseInt(offset, 0) ?? undefined : undefined;
 
     const blogs = await prisma.blogPost.findMany({
       where,
@@ -102,6 +102,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
+    // After validation, title and slug are guaranteed to be defined
+    if (!title || !slug) {
+      return NextResponse.json({ error: 'Title and slug are required' }, { status: 400 });
+    }
+
     // Check if slug already exists
     const existing = await prisma.blogPost.findUnique({ where: { slug } });
     if (existing) {
@@ -118,7 +123,7 @@ export async function POST(request: NextRequest) {
       
       if (contentImages.length > 0) {
         // Split content into paragraphs (by double newlines or single newlines)
-        const paragraphs = content.split(/\n\s*\n|\n/).filter(p => p.trim().length > 0);
+        const paragraphs = content.split(/\n\s*\n|\n/).filter((p: string) => p.trim().length > 0);
         
         if (paragraphs.length > 0) {
           // Calculate spacing: distribute images evenly across paragraphs
