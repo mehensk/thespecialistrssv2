@@ -137,13 +137,13 @@ export function FeaturedListings() {
               <h3 className="text-sm font-semibold text-[#111111] line-clamp-1 leading-tight">
                 {(listing.propertyType || '').toLowerCase() === 'lot' ? (
                   <>
-                    {listing.size > 0 && `${listing.size} sqm `}
+                    {listing.size && listing.size > 0 && `${listing.size} sqm `}
                     Lot for {listing.listingType === 'rent' ? 'Rent' : 'Sale'}
                     {listing.city && ` in ${listing.city}`}
                   </>
                 ) : (
                   <>
-                    {listing.bedrooms > 0 && `${listing.bedrooms} Bedroom `}
+                    {listing.bedrooms && listing.bedrooms > 0 && `${listing.bedrooms} Bedroom `}
                     {propertyTypeMap[listing.propertyType || ''] || listing.propertyType || 'Property'}
                     {' for '}
                     {listing.listingType === 'rent' ? 'Rent' : 'Sale'}
@@ -155,10 +155,10 @@ export function FeaturedListings() {
             {/* Price */}
             <div className="mb-3">
               <p className="text-2xl md:text-3xl font-bold text-[#111111] tracking-tight w-full">
-                ₱{listing.price.toLocaleString()}
-                {listing.listingType === 'rent' && <span className="text-base font-medium text-[#111111]/60 ml-1">/mo</span>}
+                {listing.price ? `₱${listing.price.toLocaleString()}` : 'Price on request'}
+                {listing.price && listing.listingType === 'rent' && <span className="text-base font-medium text-[#111111]/60 ml-1">/mo</span>}
               </p>
-              {listing.size > 0 && listing.price > 0 && (
+              {listing.size && listing.size > 0 && listing.price && listing.price > 0 && (
                 <p className="text-xs text-[#111111]/50 mt-1">
                   ₱{Math.round(listing.price / listing.size).toLocaleString()}/sqm
                 </p>
@@ -167,19 +167,19 @@ export function FeaturedListings() {
             
             {/* Property Details - Compact Grid */}
             <div className="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-[#E5E7EB]">
-              {listing.bedrooms > 0 && (
+              {listing.bedrooms && listing.bedrooms > 0 && (
                 <div className="flex items-center gap-1.5">
                   <Bed size={16} className="text-[#1F2937] flex-shrink-0" />
                   <span className="text-xs font-medium text-[#111111]/80">{listing.bedrooms}</span>
                 </div>
               )}
-              {listing.bathrooms > 0 && (
+              {listing.bathrooms && listing.bathrooms > 0 && (
                 <div className="flex items-center gap-1.5">
                   <Bath size={16} className="text-[#1F2937] flex-shrink-0" />
                   <span className="text-xs font-medium text-[#111111]/80">{listing.bathrooms}</span>
                 </div>
               )}
-              {listing.size > 0 && (
+              {listing.size && listing.size > 0 && (
                 <div className="flex items-center gap-1.5">
                   <Square size={16} className="text-[#1F2937] flex-shrink-0" />
                   <span className="text-xs font-medium text-[#111111]/80">{listing.size}</span>
@@ -189,7 +189,7 @@ export function FeaturedListings() {
             
             {/* Additional Details */}
             <div className="flex flex-wrap gap-2 mb-3 text-xs text-[#111111]/60">
-              {listing.parking > 0 && (
+              {listing.parking && listing.parking > 0 && (
                 <div className="flex items-center gap-1">
                   <Car size={14} className="text-[#1F2937] flex-shrink-0" />
                   <span>{listing.parking}</span>

@@ -18,7 +18,7 @@ interface UseFileUploadReturn {
   uploadingImages: string[];
   error: string;
   setError: (error: string) => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUploadReturn {

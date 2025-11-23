@@ -19,7 +19,7 @@ export function SearchInput({
   debounceMs = 300,
 }: SearchInputProps) {
   const [localValue, setLocalValue] = useState(value);
-  const debounceTimer = useRef<NodeJS.Timeout>();
+  const debounceTimer = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     if (debounceTimer.current) {

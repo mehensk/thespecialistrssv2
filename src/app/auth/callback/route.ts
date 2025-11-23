@@ -20,12 +20,8 @@ export async function GET(request: NextRequest) {
     // Token role is set during login and is reliable
     const userRole = token.role as UserRole;
 
-    // Check if user is admin (handle both enum and string comparisons)
-    const isAdmin = userRole && (
-      userRole === UserRole.ADMIN || 
-      userRole === 'ADMIN' || 
-      userRole.toLowerCase() === 'admin'
-    );
+    // Check if user is admin
+    const isAdmin = userRole === UserRole.ADMIN;
 
     // Only log in development to avoid performance impact
     if (process.env.NODE_ENV === 'development') {

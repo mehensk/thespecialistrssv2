@@ -17,8 +17,6 @@ export function ActivityTracker() {
       return;
     }
 
-    let activityTimeout: NodeJS.Timeout;
-
     const updateActivity = async () => {
       try {
         // Update the session to refresh the lastActivity timestamp
@@ -71,9 +69,6 @@ export function ActivityTracker() {
         window.removeEventListener(activity, handleActivity);
       });
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (activityTimeout) {
-        clearTimeout(activityTimeout);
-      }
     };
   }, [session, update]);
 
