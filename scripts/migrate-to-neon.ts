@@ -11,7 +11,7 @@
  *   tsx scripts/migrate-to-neon.ts
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import dotenv from 'dotenv';
 
 // Load local .env file
@@ -163,7 +163,7 @@ async function migrateToNeon() {
             parking: listing.parking,
             floor: listing.floor,
             totalFloors: listing.totalFloors,
-            amenities: listing.amenities,
+            amenities: listing.amenities === null ? Prisma.DbNull : (listing.amenities as Prisma.InputJsonValue),
             propertyId: listing.propertyId,
             available: listing.available,
             isPublished: listing.isPublished,
@@ -188,7 +188,7 @@ async function migrateToNeon() {
             parking: listing.parking,
             floor: listing.floor,
             totalFloors: listing.totalFloors,
-            amenities: listing.amenities,
+            amenities: listing.amenities === null ? Prisma.DbNull : (listing.amenities as Prisma.InputJsonValue),
             propertyId: listing.propertyId,
             available: listing.available,
             userId: listing.userId,
