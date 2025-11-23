@@ -25,11 +25,7 @@ export default async function AdminLayoutWrapper({
     // If we successfully got session, verify admin role
     if (session?.user?.id) {
       const userRole = session.user.role;
-      const isAdmin = userRole && (
-        userRole === UserRole.ADMIN || 
-        userRole === 'ADMIN' || 
-        userRole.toLowerCase() === 'admin'
-      );
+      const isAdmin = userRole === UserRole.ADMIN;
 
       // If we have role info and user is not admin, redirect
       if (userRole && !isAdmin) {

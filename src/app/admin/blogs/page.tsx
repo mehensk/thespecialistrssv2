@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
 import { AdminBlogsView } from './blogs-view';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminBlogsPage() {
   // Layout already verifies admin access - no need to check again
 

@@ -5,6 +5,8 @@ import { Plus, Edit, Trash2 } from 'lucide-react';
 import { ResetPasswordButton } from '@/components/admin/ResetPasswordButton';
 import { getUserFromToken } from '@/lib/get-user-from-token';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminUsersPage() {
   // Layout already verifies admin access - no need to check again
   // Get current user ID for preventing self-deletion

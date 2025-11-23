@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
 import DashboardContent from './dashboard-content';
 
+export const dynamic = 'force-dynamic';
+
 export default function AdminDashboardPage() {
   // Use Suspense to render page immediately with loading state
   // Data will stream in as it becomes available
