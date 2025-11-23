@@ -6,6 +6,14 @@ import Link from 'next/link';
 import { ArrowLeft, UserPlus, Loader2, Eye, EyeOff, Copy, Check } from 'lucide-react';
 import { UserRole } from '@prisma/client';
 
+interface NewUserFormData {
+  name: string;
+  email: string;
+  role: UserRole;
+  password: string;
+  generatePassword: boolean;
+}
+
 export default function NewUserPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -13,7 +21,7 @@ export default function NewUserPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
   const [temporaryPassword, setTemporaryPassword] = useState('');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<NewUserFormData>({
     name: '',
     email: '',
     role: UserRole.AGENT,
