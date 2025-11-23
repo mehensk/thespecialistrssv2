@@ -293,7 +293,7 @@ async function migrateToNeon() {
             action: activity.action,
             itemType: activity.itemType,
             itemId: activity.itemId,
-            metadata: activity.metadata,
+            metadata: activity.metadata === null ? Prisma.DbNull : (activity.metadata as Prisma.InputJsonValue),
             ipAddress: activity.ipAddress,
             userAgent: activity.userAgent,
             timestamp: activity.timestamp,
