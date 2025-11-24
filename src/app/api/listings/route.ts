@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromToken } from '@/lib/get-user-from-token';
+import { getToken } from 'next-auth/jwt';
 import { prisma } from '@/lib/prisma';
-import { ActivityAction, Prisma } from '@prisma/client';
+import { ActivityAction, Prisma, UserRole } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
 import { safeParseInt, safeParseFloat, validateListingInput } from '@/lib/validation';
 import { randomUUID } from 'crypto';
@@ -19,7 +19,13 @@ function generatePropertyId(): string {
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getUserFromToken();
+    // Get token directly from request (more reliable in serverless environments)
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+    
+    const user = token?.id ? { id: token.id as string, role: token.role as UserRole } : null;
     const searchParams = request.nextUrl.searchParams;
     const published = searchParams.get('published');
     const limit = searchParams.get('limit');
@@ -97,11 +103,40 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getUserFromToken();
+    // Get token directly from request (more reliable in serverless environments)
+    // Retry logic for production where cookies might take a moment to be available
+    let token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
 
-    if (!user || !user.id) {
+    // If token not found, retry multiple times with increasing delays (for production cookie timing)
+    if (!token || !token.id) {
+      const maxRetries = 5;
+      let retryCount = 0;
+      
+      while ((!token || !token.id) && retryCount < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 200 * (retryCount + 1))); // Increasing delay
+        token = await getToken({
+          req: request,
+          secret: process.env.NEXTAUTH_SECRET,
+        });
+        retryCount++;
+      }
+    }
+
+    if (!token || !token.id) {
+      logger.error('Listing creation unauthorized - missing token after retries', {
+        hasToken: !!token,
+        hasTokenId: !!token?.id,
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const user = {
+      id: token.id as string,
+      role: token.role as UserRole,
+    };
 
     const body = await request.json();
 

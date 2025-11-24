@@ -1,6 +1,8 @@
 // scripts/dev-with-db.js
 // Automatically sets up database and starts Next.js dev server
 const { spawn, spawnSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const DATABASE_URL = process.env.DATABASE_URL || '';
@@ -11,6 +13,37 @@ console.log('🚀 Starting development environment with database...\n');
 const isPrismaDev = DATABASE_URL.startsWith('prisma+postgres://');
 
 let prismaDevProcess = null;
+
+// Function to check for locked files (Windows-specific)
+// Note: We don't kill processes automatically as it's risky
+// Users should manually close other Node processes if needed
+function checkForLockedFiles() {
+  if (process.platform === 'win32') {
+    const prismaPath = path.join(process.cwd(), 'node_modules', '.prisma', 'client', 'query_engine-windows.dll.node');
+    if (fs.existsSync(prismaPath)) {
+      try {
+        // Try to access the file to see if it's locked
+        fs.accessSync(prismaPath, fs.constants.R_OK);
+      } catch (e) {
+        console.log('   ⚠️  Prisma client files may be locked by another process');
+        console.log('   💡 If generation fails, close other Node processes and try again');
+      }
+    }
+  }
+}
+
+// Function to clean Prisma client cache
+function cleanPrismaCache() {
+  const prismaPath = path.join(process.cwd(), 'node_modules', '.prisma');
+  if (fs.existsSync(prismaPath)) {
+    try {
+      fs.rmSync(prismaPath, { recursive: true, force: true });
+      console.log('   Cleaned Prisma client cache\n');
+    } catch (e) {
+      // Ignore if cleanup fails
+    }
+  }
+}
 
 
 
@@ -164,20 +197,106 @@ function cleanup() {
   }
 }
 
+// Function to generate Prisma client with better error handling
+async function generatePrismaClient() {
+  return new Promise((resolve, reject) => {
+    console.log('📦 Generating Prisma client...\n');
+    
+    // On Windows, check for potential file locks
+    if (process.platform === 'win32') {
+      checkForLockedFiles();
+      // Small delay to ensure file system is ready
+      setTimeout(() => {
+        console.log('   Starting Prisma generation...');
+        runGenerate(resolve, reject);
+      }, 200);
+    } else {
+      runGenerate(resolve, reject);
+    }
+  });
+}
+
+function runGenerate(resolve, reject) {
+  console.log('   Running: npx prisma generate');
+  const generateProcess = spawn('npx', ['prisma', 'generate'], {
+    stdio: 'pipe',
+    shell: true
+  });
+
+  let stdout = '';
+  let stderr = '';
+
+  generateProcess.stdout.on('data', (data) => {
+    const output = data.toString();
+    stdout += output;
+    process.stdout.write(output);
+  });
+
+  generateProcess.stderr.on('data', (data) => {
+    const output = data.toString();
+    stderr += output;
+    process.stderr.write(output);
+  });
+
+  generateProcess.on('error', (error) => {
+    console.error('   Process error:', error.message);
+    reject(new Error(`Failed to start Prisma generate: ${error.message}`));
+  });
+
+  generateProcess.on('close', async (code) => {
+    if (code === 0) {
+      resolve();
+    } else {
+      // If generation failed on Windows, try cleaning cache and retrying
+      if (process.platform === 'win32') {
+        console.log('\n   Generation failed, cleaning cache and retrying...\n');
+        cleanPrismaCache();
+        await new Promise(delayResolve => setTimeout(delayResolve, 500));
+        
+        const retryProcess = spawn('npx', ['prisma', 'generate'], {
+          stdio: 'pipe',
+          shell: true
+        });
+
+        let retryStdout = '';
+        let retryStderr = '';
+
+        retryProcess.stdout.on('data', (data) => {
+          const output = data.toString();
+          retryStdout += output;
+          process.stdout.write(output);
+        });
+
+        retryProcess.stderr.on('data', (data) => {
+          const output = data.toString();
+          retryStderr += output;
+          process.stderr.write(output);
+        });
+
+        retryProcess.on('close', (retryCode) => {
+          if (retryCode === 0) {
+            resolve();
+          } else {
+            reject(new Error(`Prisma generate failed after retry (code: ${retryCode})`));
+          }
+        });
+
+        retryProcess.on('error', (error) => {
+          reject(new Error(`Failed to retry Prisma generate: ${error.message}`));
+        });
+      } else {
+        reject(new Error(`Prisma generate failed with code ${code}`));
+      }
+    }
+  });
+}
+
 // Main execution
 (async () => {
   try {
     // Ensure Prisma client is generated
-    console.log('📦 Generating Prisma client...\n');
-    const generateResult = spawnSync('npx', ['prisma', 'generate'], {
-      stdio: 'inherit',
-      shell: true
-    });
-
-    if (generateResult.status !== 0) {
-      console.error('❌ Prisma generate failed');
-      process.exit(1);
-    }
+    await generatePrismaClient();
+    console.log('✅ Prisma client generated successfully!\n');
 
     // Setup database
     await setupDatabase();
@@ -186,7 +305,9 @@ function cleanup() {
     startNextDev();
 
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('\n❌ Error:', error.message);
+    console.error('   Try manually running: npx prisma generate');
+    console.error('   Or kill any running Node processes and try again\n');
     cleanup();
     process.exit(1);
   }
