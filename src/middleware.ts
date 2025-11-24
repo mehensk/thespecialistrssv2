@@ -43,24 +43,6 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Check inactivity timeout (10 minutes)
-  // Add 5 second tolerance for serverless timing issues
-  const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutes
-  if (token.lastActivity) {
-    const timeSinceLastActivity = Date.now() - token.lastActivity;
-    if (timeSinceLastActivity > (INACTIVITY_TIMEOUT + 5000)) {
-      // User has been inactive for more than 10 minutes, clear session and redirect to home
-      const response = NextResponse.redirect(new URL('/', request.url));
-      // NextAuth v5 uses authjs.session-token (not next-auth.session-token)
-      response.cookies.delete('authjs.session-token');
-      response.cookies.delete('__Secure-authjs.session-token');
-      // Also clear old cookie names for backward compatibility
-      response.cookies.delete('next-auth.session-token');
-      response.cookies.delete('__Secure-next-auth.session-token');
-      return response;
-    }
-  }
-
   // Admin routes - only ADMIN role allowed
   if (pathname.startsWith('/admin')) {
     // Check if we have a valid token with user ID
@@ -85,8 +67,16 @@ export async function middleware(request: NextRequest) {
   }
 
   // Dashboard routes - any authenticated user allowed
+  // NOTE: We don't check inactivity timeout in middleware because:
+  // 1. In serverless environments (Netlify), getToken() in middleware doesn't trigger JWT callback
+  // 2. The JWT callback (triggered by auth() in layouts) properly handles inactivity timeout
+  // 3. The ActivityTracker component keeps the session alive via periodic updates
+  // 4. Checking inactivity here causes false redirects due to stale lastActivity values
+  // The middleware only verifies the token exists - the JWT callback handles timeouts
   if (pathname.startsWith('/dashboard')) {
     // Token exists and is valid, allow access
+    // Inactivity timeout is handled by JWT callback in auth() calls
+    return NextResponse.next();
   }
 
   return NextResponse.next();

@@ -111,11 +111,14 @@ const authOptions = {
       }
 
       // Set missing timestamp fields if they don't exist (for legacy tokens)
+      // IMPORTANT: Always set lastActivity if missing to prevent middleware from redirecting
+      // This is especially important in serverless environments where tokens might not have this field
       if (!token.lastActivity) {
         if (process.env.NODE_ENV === 'development') {
           console.log('JWT callback: Setting missing lastActivity');
         }
-        token.lastActivity = Date.now();
+        // Set to current time to prevent immediate timeout
+        token.lastActivity = now;
       }
       if (!token.serverStartTime) {
         if (process.env.NODE_ENV === 'development') {
@@ -219,6 +222,45 @@ const authOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
+  // Explicit cookie configuration for Brave browser compatibility
+  // Brave's privacy features can block cookies, so we need explicit settings
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production' 
+        ? '__Secure-authjs.session-token' 
+        : 'authjs.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax' as const, // 'lax' is more compatible with Brave than 'strict'
+        path: '/',
+        secure: process.env.NODE_ENV === 'production', // Only secure in production (HTTPS)
+        // Set maxAge to match session maxAge
+        maxAge: SESSION_MAX_AGE,
+      },
+    },
+    callbackUrl: {
+      name: process.env.NODE_ENV === 'production'
+        ? '__Secure-authjs.callback-url'
+        : 'authjs.callback-url',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax' as const,
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    csrfToken: {
+      name: process.env.NODE_ENV === 'production'
+        ? '__Host-authjs.csrf-token'
+        : 'authjs.csrf-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax' as const,
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
 };
 
 // Type augmentation for NextAuth

@@ -1,15 +1,21 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 
 /**
  * Activity Tracker Component
  * Tracks user activity and updates the session to prevent inactivity timeout
  * This component should be included in protected layouts
+ * 
+ * Uses a combination of:
+ * 1. User activity tracking (mouse, keyboard, scroll, etc.)
+ * 2. Periodic heartbeat (every 2 minutes) to keep session alive
+ * 3. Page visibility tracking
  */
 export function ActivityTracker() {
   const { data: session, update } = useSession();
+  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Only track activity if user is logged in
@@ -37,9 +43,10 @@ export function ActivityTracker() {
       'click',
     ];
 
-    // Throttle activity updates to once per minute to avoid excessive updates
+    // Throttle activity updates to every 30 seconds to keep session alive
+    // Reduced from 1 minute to prevent timeout issues
     let lastUpdate = 0;
-    const THROTTLE_INTERVAL = 60 * 1000; // 1 minute
+    const THROTTLE_INTERVAL = 30 * 1000; // 30 seconds
 
     const handleActivity = () => {
       const now = Date.now();
@@ -63,12 +70,26 @@ export function ActivityTracker() {
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
+    // Periodic heartbeat: Update session every 2 minutes even if no user activity
+    // This ensures the session stays alive even if user is just reading/typing
+    // Set to 2 minutes (120 seconds) to be well under the 10-minute timeout
+    heartbeatIntervalRef.current = setInterval(() => {
+      updateActivity();
+    }, 2 * 60 * 1000); // 2 minutes
+
+    // Initial update to ensure session is fresh
+    updateActivity();
+
     // Cleanup
     return () => {
       activities.forEach((activity) => {
         window.removeEventListener(activity, handleActivity);
       });
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
     };
   }, [session, update]);
 
