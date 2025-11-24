@@ -17,14 +17,30 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 export async function POST(request: NextRequest) {
   try {
     // Get token directly from JWT (more reliable than auth() in API routes)
-    const token = await getToken({
+    // Retry multiple times for serverless cookie timing issues
+    let token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
     });
 
+    // If token not found, retry with increasing delays (serverless cookie timing)
+    if (!token || !token.id) {
+      const maxRetries = 3;
+      let retryCount = 0;
+      
+      while ((!token || !token.id) && retryCount < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 100 * (retryCount + 1))); // Increasing delay
+        token = await getToken({
+          req: request,
+          secret: process.env.NEXTAUTH_SECRET,
+        });
+        retryCount++;
+      }
+    }
+
     // Check if token exists
     if (!token || !token.id) {
-      logger.debug('Upload unauthorized - missing token:', {
+      logger.debug('Upload unauthorized - missing token after retries:', {
         hasToken: !!token,
         hasTokenId: !!token?.id,
       });

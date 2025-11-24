@@ -1,12 +1,29 @@
 import { Home, FileText, Users, Activity, CheckCircle, Clock } from 'lucide-react';
 import { getUserFromToken } from '@/lib/get-user-from-token';
+import { auth } from '@/lib/auth';
 import { getCachedPersonalStats } from '@/lib/dashboard-cache';
+import { UserRole } from '@prisma/client';
 import Link from 'next/link';
 
 export default async function StatsContent() {
   // Layout already verified user is admin, but we need userId for personal stats
-  // getUserFromToken() is fast (just reads JWT token, no DB query)
-  const user = await getUserFromToken();
+  // Try getUserFromToken() first (fast path), fallback to auth() if it fails
+  let user = await getUserFromToken();
+  
+  // If getUserFromToken fails (serverless issue), try auth() as fallback
+  if (!user?.id) {
+    try {
+      const session = await auth();
+      if (session?.user?.id && session?.user?.role) {
+        user = {
+          id: session.user.id,
+          role: session.user.role as UserRole,
+        };
+      }
+    } catch (error) {
+      console.error('Failed to get user from auth() fallback:', error);
+    }
+  }
   
   if (!user?.id) {
     return <div>Loading...</div>;
