@@ -75,7 +75,7 @@ const NavItem = memo(({ item, isActive, onMobileClick, onPrefetch }: {
 NavItem.displayName = 'NavItem';
 
 export const AdminLayout = memo(function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { data: session, update } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -86,15 +86,16 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
   const sessionMemo = useMemo(() => session, [session?.user?.id, session?.user?.role]);
 
   // Client-side check: If session becomes null (server restart, logout, etc.), redirect to home
-  // This ensures users are immediately redirected when session is invalidated
-  // Using memoized session to avoid unnecessary checks
+  // IMPORTANT: Only redirect if status is 'unauthenticated', not during 'loading' state
+  // This prevents false redirects when session is still loading or temporarily unavailable
   useEffect(() => {
-    if (sessionMemo === null) {
-      // Session is null - user is logged out (server restart, manual logout, etc.)
-      // Redirect to home immediately
+    // Only redirect if we're sure the user is unauthenticated (not just loading)
+    if (status === 'unauthenticated') {
+      // User is definitely logged out - redirect to home
       window.location.href = '/';
     }
-  }, [sessionMemo]);
+    // Don't redirect if status is 'loading' - session might still be loading
+  }, [status]);
 
   const handleLogout = useCallback(async () => {
     // Broadcast logout to all tabs

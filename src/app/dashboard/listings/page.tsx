@@ -1,4 +1,5 @@
 import { getUserFromToken } from '@/lib/get-user-from-token';
+import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
 import { redirect } from 'next/navigation';
@@ -27,8 +28,25 @@ async function getListings(userId: string) {
 }
 
 async function ListingsContent() {
-  const user = await getUserFromToken();
+  // Try to get user from token first (fast path)
+  let user = await getUserFromToken();
   
+  // If getUserFromToken fails (serverless issue), try auth() as fallback
+  if (!user?.id) {
+    try {
+      const session = await auth();
+      if (session?.user?.id) {
+        user = {
+          id: session.user.id,
+          role: session.user.role as UserRole,
+        };
+      }
+    } catch (error) {
+      console.error('Failed to get user from auth() fallback:', error);
+    }
+  }
+  
+  // Only redirect if we truly can't get user info
   if (!user?.id) {
     redirect('/');
   }

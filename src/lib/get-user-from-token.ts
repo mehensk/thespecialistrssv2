@@ -24,7 +24,14 @@ export async function getUserFromToken(): Promise<{ id: string; role: UserRole }
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    if (!token || !token.id || !token.role) {
+    if (!token || !token.id) {
+      return null;
+    }
+
+    // Role might not always be set in token (especially in serverless)
+    // If role is missing, return null so calling code can fall back to auth()
+    // This is safer than guessing the role
+    if (!token.role) {
       return null;
     }
 

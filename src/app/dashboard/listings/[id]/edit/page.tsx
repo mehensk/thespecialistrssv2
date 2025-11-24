@@ -395,12 +395,6 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
       </div>
 
       <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-            {error}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information Section */}
           <div className="space-y-6">
@@ -857,6 +851,12 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
             </Link>
           </div>
         </form>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mt-6">
+            {error}
+          </div>
+        )}
 
         {success && (
           <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mt-6 flex items-center gap-2">
