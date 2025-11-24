@@ -250,9 +250,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     logger.error('Error uploading image:', error);
+    
+    // Return the actual error message if it's an Error instance
+    // This helps with debugging authorization and other issues
+    const errorMessage = error instanceof Error ? error.message : 'Failed to upload image';
+    const errorStatus = errorMessage.includes('Unauthorized') ? 401 : 500;
+    
     return NextResponse.json(
-      { error: 'Failed to upload image' },
-      { status: 500 }
+      { error: errorMessage },
+      { status: errorStatus }
     );
   }
 }

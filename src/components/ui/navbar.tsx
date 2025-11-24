@@ -13,7 +13,11 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  
+  // Determine if user is authenticated - check both session and status
+  // Status 'authenticated' means user is logged in, 'unauthenticated' means logged out
+  const isAuthenticated = status === 'authenticated' && session?.user;
 
   const closeMenu = () => setIsOpen(false);
 
@@ -22,15 +26,30 @@ export function Navbar() {
       // Broadcast logout to all tabs first
       broadcastLogout();
       
-      // Sign out with redirect - this properly clears the session cookie
-      // Using redirect: true ensures NextAuth handles cookie clearing correctly
+      // Sign out without redirect first to ensure cookies are cleared
+      // Then manually redirect to ensure session is cleared
       await signOut({ 
-        redirect: true,
+        redirect: false, // Don't redirect automatically - we'll do it manually
         callbackUrl: '/'
       });
+      
+      // Manually clear all auth cookies to ensure they're removed
+      // NextAuth v5 uses authjs.session-token
+      document.cookie = 'authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = '__Secure-authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
+      // Also clear old cookie names for backward compatibility
+      document.cookie = 'next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = '__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
+      
+      // Force redirect to home page - this ensures middleware checks the session
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
-      // Fallback: force redirect even if signOut fails
+      // Fallback: clear cookies and force redirect even if signOut fails
+      document.cookie = 'authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = '__Secure-authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
+      document.cookie = 'next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = '__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
       window.location.replace('/');
     }
   };
@@ -62,7 +81,7 @@ export function Navbar() {
       }`}
     >
       {/* Username (very left edge) - only for logged in users */}
-      {session?.user && (
+      {isAuthenticated && (
         <Link
           href={session.user.role === UserRole.ADMIN ? '/admin/dashboard' : '/dashboard'}
           className={`absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pl-4 pr-3 py-1.5 rounded-full transition-all max-w-fit hover:scale-105 active:scale-95 ${
@@ -100,9 +119,9 @@ export function Navbar() {
           <NavLink href="/listings" shouldBeTransparent={shouldBeTransparent}>Listings</NavLink>
           <NavLink href="/blog" shouldBeTransparent={shouldBeTransparent}>Blog</NavLink>
           <NavLink href="/contact" shouldBeTransparent={shouldBeTransparent}>Contact</NavLink>
-          {session && (
+          {isAuthenticated && (
             <NavLink 
-              href={session.user.role === UserRole.ADMIN ? '/admin/dashboard' : '/dashboard'} 
+              href={session?.user?.role === UserRole.ADMIN ? '/admin/dashboard' : '/dashboard'} 
               shouldBeTransparent={shouldBeTransparent}
             >
               <span className="flex items-center gap-1.5">
@@ -116,7 +135,7 @@ export function Navbar() {
         {/* Desktop CTA Buttons — Right-aligned */}
         <div className="hidden lg:flex items-center gap-3 flex-shrink-0 ml-12">
           {/* Login link - always visible for easy development access */}
-          {!session && (
+          {!isAuthenticated && (
             <Link
               href="/login"
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
@@ -136,7 +155,7 @@ export function Navbar() {
             <span className="relative z-10">Contact Us</span>
             <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
           </Link>
-          {session && (
+          {isAuthenticated && (
             <button
               onClick={handleLogout}
               className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-300 ${
@@ -154,7 +173,7 @@ export function Navbar() {
         {/* Mobile Buttons Container */}
         <div className="lg:hidden ml-auto flex items-center gap-2 flex-shrink-0">
           {/* Login link - always visible for easy development access */}
-          {!session && (
+          {!isAuthenticated && (
             <Link
               href="/login"
               className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all ${
@@ -173,7 +192,7 @@ export function Navbar() {
           >
             Contact Us
           </Link>
-          {session && (
+          {isAuthenticated && (
             <button
               onClick={handleLogout}
               className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all ${
@@ -205,9 +224,9 @@ export function Navbar() {
           <MobileLink href="/listings" onClose={closeMenu}>Listings</MobileLink>
           <MobileLink href="/blog" onClose={closeMenu}>Blog</MobileLink>
           <MobileLink href="/contact" onClose={closeMenu}>Contact</MobileLink>
-          {session && (
+          {isAuthenticated && (
             <MobileLink 
-              href={session.user.role === UserRole.ADMIN ? '/admin/dashboard' : '/dashboard'} 
+              href={session?.user?.role === UserRole.ADMIN ? '/admin/dashboard' : '/dashboard'} 
               onClose={closeMenu}
             >
               <span className="flex items-center gap-2">
@@ -216,7 +235,7 @@ export function Navbar() {
               </span>
             </MobileLink>
           )}
-          {!session && (
+          {!isAuthenticated && (
             <Link
               href="/login"
               className="block text-center bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-4 py-2.5 rounded-md mt-2 shadow-md flex items-center justify-center gap-2"

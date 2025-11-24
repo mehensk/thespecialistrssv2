@@ -98,14 +98,35 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
   }, [status]);
 
   const handleLogout = useCallback(async () => {
-    // Broadcast logout to all tabs
-    broadcastLogout();
-    // Sign out with redirect - this properly clears the session cookie
-    // Using redirect: true ensures NextAuth handles cookie clearing correctly
-    await signOut({ 
-      redirect: true,
-      callbackUrl: '/'
-    });
+    try {
+      // Broadcast logout to all tabs
+      broadcastLogout();
+      
+      // Sign out without redirect first to ensure cookies are cleared
+      await signOut({ 
+        redirect: false, // Don't redirect automatically - we'll do it manually
+        callbackUrl: '/'
+      });
+      
+      // Manually clear all auth cookies to ensure they're removed
+      // NextAuth v5 uses authjs.session-token
+      document.cookie = 'authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = '__Secure-authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
+      // Also clear old cookie names for backward compatibility
+      document.cookie = 'next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = '__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
+      
+      // Force redirect to home page - this ensures middleware checks the session
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback: clear cookies and force redirect even if signOut fails
+      document.cookie = 'authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = '__Secure-authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
+      document.cookie = 'next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = '__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
+      window.location.replace('/');
+    }
   }, []);
 
   // Memoize active state calculation
