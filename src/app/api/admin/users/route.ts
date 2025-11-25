@@ -28,8 +28,8 @@ function generateTemporaryPassword(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin role using reliable method (getToken instead of auth)
-    const { isAdmin, userId } = await verifyAdminRole();
+    // Verify admin role - pass request for API route compatibility
+    const { isAdmin, userId } = await verifyAdminRole(request);
 
     if (!isAdmin || !userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

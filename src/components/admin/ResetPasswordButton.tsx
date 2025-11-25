@@ -25,6 +25,7 @@ export function ResetPasswordButton({ userId, userName, userEmail }: ResetPasswo
     try {
       const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
         method: 'POST',
+        credentials: 'include', // Ensure cookies are sent (important for Netlify)
       });
 
       const data = await response.json();

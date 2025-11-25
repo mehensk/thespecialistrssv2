@@ -75,6 +75,7 @@ export default function NewUserPage() {
     try {
       const response = await fetch('/api/admin/users', {
         method: 'POST',
+        credentials: 'include', // Ensure cookies are sent (important for Netlify)
         headers: {
           'Content-Type': 'application/json',
         },

@@ -11,10 +11,14 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Verify admin role using reliable method (getToken instead of auth)
-    const { isAdmin, userId } = await verifyAdminRole();
+    // Verify admin role - pass request for API route compatibility
+    const { isAdmin, userId } = await verifyAdminRole(request);
 
     if (!isAdmin || !userId) {
+      logger.error('Admin listing approval unauthorized', {
+        hasUserId: !!userId,
+        isAdmin,
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

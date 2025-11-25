@@ -15,6 +15,7 @@ export function ApproveButton({ listingId }: { listingId: string }) {
     try {
       const response = await fetch(`/api/admin/listings/${listingId}/approve`, {
         method: 'POST',
+        credentials: 'include', // Ensure cookies are sent (important for Netlify)
       });
 
       if (response.ok) {

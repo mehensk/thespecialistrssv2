@@ -37,7 +37,9 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
   useEffect(() => {
     async function fetchUser() {
       try {
-        const response = await fetch(`/api/admin/users/${id}`);
+        const response = await fetch(`/api/admin/users/${id}`, {
+          credentials: 'include', // Ensure cookies are sent (important for Netlify)
+        });
         if (!response.ok) {
           if (response.status === 404) {
             setError('User not found');
@@ -75,6 +77,7 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
     try {
       const response = await fetch(`/api/admin/users/${id}`, {
         method: 'PUT',
+        credentials: 'include', // Ensure cookies are sent (important for Netlify)
         headers: {
           'Content-Type': 'application/json',
         },
