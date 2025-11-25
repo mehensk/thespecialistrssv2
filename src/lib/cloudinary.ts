@@ -39,6 +39,16 @@ export function sanitizeFolderName(title: string): string {
     || 'listings';
 }
 
+/**
+ * Uploads an image buffer to Cloudinary with minimal processing.
+ * Since images are already optimized locally with Sharp, we only use Cloudinary for storage.
+ * This minimizes credit consumption by avoiding unnecessary processing/transformations.
+ * 
+ * @param buffer - The image buffer (already processed/optimized locally)
+ * @param folder - Cloudinary folder path
+ * @param options - Optional upload options (currently unused to minimize processing)
+ * @returns The secure URL of the uploaded image
+ */
 export async function uploadToCloudinary(
   buffer: Buffer,
   folder: string = 'listings',
@@ -51,10 +61,17 @@ export async function uploadToCloudinary(
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder,
-        format: 'jpg',
-        quality: 'auto:good',
-        fetch_format: 'auto',
-        ...(options && { transformation: [{ width: options.width, height: options.height, crop: 'limit' }] }),
+        // No format conversion - image is already optimized locally
+        // No quality settings - already optimized with Sharp
+        // No transformations - only consumes processing credits
+        // Resource type explicitly set to avoid auto-detection overhead
+        resource_type: 'image',
+        // Don't invalidate CDN cache (saves processing)
+        invalidate: false,
+        // Use unique filename to avoid overwriting
+        use_filename: false,
+        // Don't perform any automatic transformations
+        eager: undefined,
       },
       (error, result) => {
         if (error) {

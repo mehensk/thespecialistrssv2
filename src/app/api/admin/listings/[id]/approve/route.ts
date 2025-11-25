@@ -3,6 +3,7 @@ import { verifyAdminRole } from '@/lib/verify-admin-role';
 import { prisma } from '@/lib/prisma';
 import { UserRole, ActivityAction } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
+import { logger } from '@/lib/logger';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache';
 

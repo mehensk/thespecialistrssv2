@@ -226,10 +226,9 @@ export async function POST(request: NextRequest) {
         : 'listings';
       
       // Upload to Cloudinary (production/serverless)
-      publicUrl = await uploadToCloudinary(processedImage, folderName, {
-        width: targetWidth,
-        height: targetHeight,
-      });
+      // Image is already processed locally with Sharp - no Cloudinary transformations needed
+      // This minimizes credit consumption (only storage, no processing)
+      publicUrl = await uploadToCloudinary(processedImage, folderName);
     } else if (isServerless || isProduction) {
       // In serverless/production environments, Cloudinary is required
       logger.error('Cloudinary not configured in serverless/production environment', {
