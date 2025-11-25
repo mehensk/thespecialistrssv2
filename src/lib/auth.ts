@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from './prisma';
+import { prisma, dbQuery } from './prisma';
 import bcrypt from 'bcryptjs';
 import { UserRole, ActivityAction, ActivityItemType } from '@prisma/client';
 import { logAuthActivity } from './activity-logger';
@@ -22,34 +22,52 @@ const authOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
+          logger.debug('Authorize: Missing email or password');
           return null;
         }
 
         try {
+          // Always log in production to debug login issues
+          console.log('[AUTH] Attempting login for:', credentials.email);
+          logger.debug('Authorize: Attempting to find user', { email: credentials.email });
+          
+          // Use dbQuery wrapper for automatic retry on connection failures
           // Optimize: Only select fields we need (faster query)
-          const user = await prisma.user.findUnique({
-            where: { email: credentials.email as string },
-            select: {
-              id: true,
-              email: true,
-              name: true,
-              role: true,
-              password: true, // Need password for verification
-            },
-          });
+          const user = await dbQuery(() =>
+            prisma.user.findUnique({
+              where: { email: credentials.email as string },
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                password: true, // Need password for verification
+              },
+            })
+          );
 
           if (!user) {
+            console.log('[AUTH] ❌ User not found:', credentials.email);
+            logger.warn('Authorize: User not found', { email: credentials.email });
             return null;
           }
 
+          console.log('[AUTH] ✅ User found:', user.email, 'Role:', user.role);
+          logger.debug('Authorize: User found, comparing password', { userId: user.id, email: user.email });
+          
           const isPasswordValid = await bcrypt.compare(
             credentials.password as string,
             user.password
           );
 
           if (!isPasswordValid) {
+            console.log('[AUTH] ❌ Invalid password for:', credentials.email);
+            logger.warn('Authorize: Invalid password', { email: credentials.email });
             return null;
           }
+
+          console.log('[AUTH] ✅ Password valid! Login successful for:', user.email);
+          logger.debug('Authorize: Password valid, authentication successful', { userId: user.id });
 
           // Log login activity asynchronously (non-blocking)
           // This prevents login from being slow due to activity logging
@@ -65,6 +83,8 @@ const authOptions = {
             role: user.role,
           };
         } catch (error: any) {
+          console.error('[AUTH] ❌ Database error during authentication:', error.message);
+          console.error('[AUTH] Error stack:', error.stack);
           logger.error('Database error during authentication:', error);
           // Return null to indicate authentication failure
           // The route handler will catch any unhandled errors
@@ -138,11 +158,14 @@ const authOptions = {
       // Most tokens will have role set during login, so this is fast path
       if (!token.role && token.id) {
         try {
+          // Use dbQuery wrapper for automatic retry on connection failures
           // Optimize: Only select role field
-          const user = await prisma.user.findUnique({
-            where: { id: token.id as string },
-            select: { role: true },
-          });
+          const user = await dbQuery(() =>
+            prisma.user.findUnique({
+              where: { id: token.id as string },
+              select: { role: true },
+            })
+          );
           if (user) {
             token.role = user.role;
           } else {
@@ -164,11 +187,12 @@ const authOptions = {
       }
 
       // Check if server has restarted - if so, invalidate all sessions
-      // NOTE: Disabled in production/serverless environments because each function
-      // invocation can be a new instance, causing false positives
+      // NOTE: Disabled in production/serverless environments (Netlify, Vercel) because each function
+      // invocation can be a new instance, causing false positives and breaking authentication
       // This check is only useful for traditional server deployments
-      if (process.env.NODE_ENV !== 'production' && hasServerRestarted(token.serverStartTime)) {
-        // Server has restarted, invalidate this token (dev/test only)
+      const isServerless = process.env.NETLIFY || process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+      if (!isServerless && process.env.NODE_ENV !== 'production' && hasServerRestarted(token.serverStartTime)) {
+        // Server has restarted, invalidate this token (dev/test only, not serverless)
         return null;
       }
 
@@ -221,43 +245,58 @@ const authOptions = {
     signIn: '/login',
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === 'development',
+  trustHost: true, // Required for NextAuth v5 in serverless environments (Netlify, Vercel)
+  debug: process.env.NODE_ENV === 'development', // Only debug in development (reduces noise in production)
   // Explicit cookie configuration for Brave browser compatibility
   // Brave's privacy features can block cookies, so we need explicit settings
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production' 
+      // Only use __Secure- prefix if actually on HTTPS (not localhost)
+      name: process.env.NODE_ENV === 'production' && 
+            process.env.NEXTAUTH_URL?.startsWith('https://') && 
+            !process.env.NEXTAUTH_URL?.includes('localhost')
         ? '__Secure-authjs.session-token' 
         : 'authjs.session-token',
       options: {
         httpOnly: true,
         sameSite: 'lax' as const, // 'lax' is more compatible with Brave than 'strict'
         path: '/',
-        secure: process.env.NODE_ENV === 'production', // Only secure in production (HTTPS)
+        // Only use secure cookies if NEXTAUTH_URL is HTTPS AND not localhost
+        // Localhost with https:// in NEXTAUTH_URL but actually http:// should not use secure
+        secure: (process.env.NEXTAUTH_URL?.startsWith('https://') && 
+                !process.env.NEXTAUTH_URL?.includes('localhost')) ?? false,
         // Set maxAge to match session maxAge
         maxAge: SESSION_MAX_AGE,
       },
     },
     callbackUrl: {
-      name: process.env.NODE_ENV === 'production'
+      // Only use __Secure- prefix if actually on HTTPS (not localhost)
+      name: process.env.NODE_ENV === 'production' && 
+            process.env.NEXTAUTH_URL?.startsWith('https://') && 
+            !process.env.NEXTAUTH_URL?.includes('localhost')
         ? '__Secure-authjs.callback-url'
         : 'authjs.callback-url',
       options: {
         httpOnly: true,
         sameSite: 'lax' as const,
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: (process.env.NEXTAUTH_URL?.startsWith('https://') && 
+                !process.env.NEXTAUTH_URL?.includes('localhost')) ?? false,
       },
     },
     csrfToken: {
-      name: process.env.NODE_ENV === 'production'
+      name: process.env.NODE_ENV === 'production' && 
+            process.env.NEXTAUTH_URL?.startsWith('https://') && 
+            !process.env.NEXTAUTH_URL?.includes('localhost')
         ? '__Host-authjs.csrf-token'
         : 'authjs.csrf-token',
       options: {
         httpOnly: true,
         sameSite: 'lax' as const,
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        // CSRF token must NOT be secure on HTTP localhost
+        secure: (process.env.NEXTAUTH_URL?.startsWith('https://') && 
+                !process.env.NEXTAUTH_URL?.includes('localhost')) ?? false,
       },
     },
   },

@@ -19,6 +19,7 @@ function LoginForm() {
     setLoading(true);
 
     try {
+      console.log('[LOGIN] Attempting sign in for:', email);
       // Use redirect: false to handle errors, then redirect manually
       const result = await signIn('credentials', {
         email,
@@ -26,7 +27,15 @@ function LoginForm() {
         redirect: false,
       });
 
+      console.log('[LOGIN] Sign in result:', {
+        ok: result?.ok,
+        error: result?.error,
+        status: result?.status,
+        url: result?.url,
+      });
+
       if (result?.error) {
+        console.error('[LOGIN] Sign in error:', result.error);
         setError('Invalid email or password');
         setLoading(false);
         return;
@@ -75,6 +84,14 @@ function LoginForm() {
           retries++;
         }
         
+        console.log('[LOGIN] Final session check:', {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          hasRole: !!session?.user?.role,
+          role: session?.user?.role,
+          sessionData: session,
+        });
+
         if (session?.user?.role) {
           // Redirect directly based on role - client-side redirect is more reliable
           const redirectPath = session.user.role === UserRole.ADMIN 
@@ -88,6 +105,10 @@ function LoginForm() {
           // If session still not available, redirect to home and let user navigate manually
           // The navbar will show they're logged in, so they can click the dashboard link
           console.warn('⚠️ Session not available after retries, redirecting to home');
+          console.warn('⚠️ Session details:', {
+            session,
+            cookies: document.cookie,
+          });
           window.location.replace(window.location.origin);
         }
       } else {

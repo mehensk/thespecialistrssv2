@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  output: 'standalone', // Required for server deployment (DigitalOcean, VPS, etc.)
   reactCompiler: true,
   images: {
     // Enable image optimization for better performance

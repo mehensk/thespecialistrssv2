@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { UserRole } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
+import { prisma, dbQuery } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 import sharp from 'sharp';
 import { writeFile, mkdir } from 'fs/promises';
@@ -93,10 +93,13 @@ export async function POST(request: NextRequest) {
     // If role is missing from token/session, fetch from database
     if (!userRole && userId) {
       try {
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { role: true },
-        });
+        // Use dbQuery wrapper for automatic retry on connection failures
+        const user = await dbQuery(() =>
+          prisma.user.findUnique({
+            where: { id: userId },
+            select: { role: true },
+          })
+        );
         if (user) {
           userRole = user.role;
         } else {
@@ -208,38 +211,68 @@ export async function POST(request: NextRequest) {
         .toBuffer();
     }
 
-    // Use Cloudinary in production (if configured), otherwise use local storage
+    // Use Cloudinary in production/serverless environments
+    // In serverless (Netlify, Vercel, etc.), filesystem is read-only, so Cloudinary is required
+    const isServerless = process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME;
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     let publicUrl: string;
 
+    // Check Cloudinary configuration first
     if (isCloudinaryConfigured()) {
       // Determine folder name: use sanitized listing title if provided, otherwise default to 'listings'
       const folderName = listingTitle 
         ? `listings/${sanitizeFolderName(listingTitle)}`
         : 'listings';
       
-      // Upload to Cloudinary (production)
+      // Upload to Cloudinary (production/serverless)
       publicUrl = await uploadToCloudinary(processedImage, folderName, {
         width: targetWidth,
         height: targetHeight,
       });
+    } else if (isServerless || isProduction) {
+      // In serverless/production environments, Cloudinary is required
+      logger.error('Cloudinary not configured in serverless/production environment', {
+        isServerless,
+        isProduction,
+        hasCloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
+        hasApiKey: !!process.env.CLOUDINARY_API_KEY,
+        hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
+      });
+      return NextResponse.json(
+        { 
+          error: 'Image upload service not configured. Please configure Cloudinary for production deployments.',
+          details: 'Cloudinary is required on Netlify. See CLOUDINARY_SETUP.md for instructions.',
+        },
+        { status: 500 }
+      );
     } else {
-      // Save locally (development)
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 15);
-      const filename = `listing-${timestamp}-${randomString}.jpg`;
+      // Save locally (development only - when not in serverless)
+      try {
+        const timestamp = Date.now();
+        const randomString = Math.random().toString(36).substring(2, 15);
+        const filename = `listing-${timestamp}-${randomString}.jpg`;
 
-      // Ensure uploads directory exists
-      const uploadsDir = join(process.cwd(), 'public', 'uploads', 'listings');
-      if (!existsSync(uploadsDir)) {
-        await mkdir(uploadsDir, { recursive: true });
+        // Ensure uploads directory exists
+        const uploadsDir = join(process.cwd(), 'public', 'uploads', 'listings');
+        if (!existsSync(uploadsDir)) {
+          await mkdir(uploadsDir, { recursive: true });
+        }
+
+        // Save file
+        const filepath = join(uploadsDir, filename);
+        await writeFile(filepath, processedImage);
+
+        // Return public URL
+        publicUrl = `/uploads/listings/${filename}`;
+      } catch (writeError) {
+        // If local write fails (e.g., read-only filesystem), return error
+        logger.error('Failed to write file locally:', writeError);
+        return NextResponse.json(
+          { error: 'Failed to save image. Please configure Cloudinary for image uploads.' },
+          { status: 500 }
+        );
       }
-
-      // Save file
-      const filepath = join(uploadsDir, filename);
-      await writeFile(filepath, processedImage);
-
-      // Return public URL
-      publicUrl = `/uploads/listings/${filename}`;
     }
 
     return NextResponse.json({

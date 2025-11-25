@@ -17,6 +17,22 @@ DATABASE_URL="postgresql://user:password@localhost:5432/thespecialistrealty?sche
 # NextAuth
 NEXTAUTH_SECRET="your-secret-key-here-change-in-production"
 NEXTAUTH_URL="http://localhost:3000"
+
+# Activity Logging (Optional - for small teams, recommended to disable verbose logging)
+# Set to "false" to disable all activity logging (saves database storage)
+ENABLE_ACTIVITY_LOGGING=true
+
+# Log login/logout events (default: false - not logged unless enabled)
+# For small teams, you probably don't need to log every login
+LOG_AUTH_ACTIONS=false
+
+# Log update/edit actions (default: false - not logged unless enabled)
+# Only CREATE, DELETE, APPROVE, REJECT are logged by default
+LOG_UPDATE_ACTIONS=false
+
+# Store minimal data (skip IP address and user agent) - default: false
+# Set to "true" to save storage space by not storing IP/userAgent
+LOG_MINIMAL_DATA=false
 ```
 
 **Important:** 
@@ -97,13 +113,17 @@ NEXTAUTH_URL="http://localhost:3000"
 - Automatic redirects to login when needed
 
 ### Activity Logging
-- All user actions are logged:
-  - Login/logout events
-  - CRUD operations on listings
-  - CRUD operations on blog posts
+- **Configurable logging** - Control what gets logged to save database storage
+- **By default logs:**
+  - CREATE operations (new listings/blogs)
+  - DELETE operations
+  - APPROVE/REJECT actions
   - User management actions
-  - Approval actions
-- Logs include: user, action, item type, IP address, user agent, timestamp
+- **By default skips:**
+  - LOGIN/LOGOUT events (can enable with `LOG_AUTH_ACTIONS=true`)
+  - UPDATE operations (can enable with `LOG_UPDATE_ACTIONS=true`)
+- **For small teams (3-4 people):** Recommended to keep defaults or disable entirely with `ENABLE_ACTIVITY_LOGGING=false`
+- Logs include: user, action, item type, metadata, IP address (optional), user agent (optional), timestamp
 
 ### Approval Workflow
 - Sub-users create listings/blogs → marked as unpublished

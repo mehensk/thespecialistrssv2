@@ -10,13 +10,74 @@ interface LogActivityParams {
   metadata?: Record<string, any>;
 }
 
+// Activity logging configuration
+const ENABLE_ACTIVITY_LOGGING = process.env.ENABLE_ACTIVITY_LOGGING !== 'false'; // Default: true (enabled)
+const LOG_AUTH_ACTIONS = process.env.LOG_AUTH_ACTIONS === 'true'; // Default: false (skip login/logout)
+const LOG_UPDATE_ACTIONS = process.env.LOG_UPDATE_ACTIONS === 'true'; // Default: false (skip updates)
+const LOG_MINIMAL_DATA = process.env.LOG_MINIMAL_DATA === 'true'; // Default: false (store full data)
+
+// Actions that are always logged (important actions)
+const ALWAYS_LOG_ACTIONS: ActivityAction[] = [
+  ActivityAction.APPROVE,
+  ActivityAction.REJECT,
+  ActivityAction.DELETE,
+  ActivityAction.CREATE, // Creating content is important
+];
+
+// Actions that can be skipped if configured
+const SKIPPABLE_ACTIONS: ActivityAction[] = [
+  ActivityAction.LOGIN,
+  ActivityAction.LOGOUT,
+  ActivityAction.UPDATE,
+];
+
+function shouldLogActivity(action: ActivityAction): boolean {
+  // If activity logging is disabled, don't log anything
+  if (!ENABLE_ACTIVITY_LOGGING) {
+    return false;
+  }
+
+  // Always log important actions
+  if (ALWAYS_LOG_ACTIONS.includes(action)) {
+    return true;
+  }
+
+  // Check if this is a skippable action
+  if (SKIPPABLE_ACTIONS.includes(action)) {
+    if (action === ActivityAction.LOGIN || action === ActivityAction.LOGOUT) {
+      return LOG_AUTH_ACTIONS; // Only log if explicitly enabled
+    }
+    if (action === ActivityAction.UPDATE) {
+      return LOG_UPDATE_ACTIONS; // Only log if explicitly enabled
+    }
+  }
+
+  // Default: log everything else (CREATE, etc.)
+  return true;
+}
+
 export async function logActivity(params: LogActivityParams) {
+  // Check if we should log this activity
+  if (!shouldLogActivity(params.action)) {
+    return; // Silently skip logging
+  }
+
   try {
-    const headersList = await headers();
-    const ipAddress = headersList.get('x-forwarded-for') || 
-                      headersList.get('x-real-ip') || 
-                      'unknown';
-    const userAgent = headersList.get('user-agent') || 'unknown';
+    let ipAddress: string | null = null;
+    let userAgent: string | null = null;
+
+    // Only fetch headers if we're storing full data (saves overhead)
+    if (!LOG_MINIMAL_DATA) {
+      try {
+        const headersList = await headers();
+        ipAddress = headersList.get('x-forwarded-for') || 
+                    headersList.get('x-real-ip') || 
+                    null;
+        userAgent = headersList.get('user-agent') || null;
+      } catch (error) {
+        // Headers might not be available in some contexts, that's okay
+      }
+    }
 
     await prisma.activity.create({
       data: {

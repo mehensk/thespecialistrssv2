@@ -2,6 +2,7 @@
 
 import { useState, FormEvent, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Script from 'next/script';
 import { Phone, Mail, MapPin, Clock, Home as HomeIcon, TrendingUp, Key, FileCheck, Calculator, Lightbulb, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { ScrollAnimation } from '@/components/ui/scroll-animation';
 import { executeRecaptcha } from '@/lib/recaptcha';
@@ -456,16 +457,26 @@ function ContactPageContent() {
 }
 
 export default function ContactPage() {
+  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+  
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-white pt-[84px] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-[#111111]/70">Loading...</p>
+    <>
+      {recaptchaSiteKey && (
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`}
+          strategy="afterInteractive"
+        />
+      )}
+      <Suspense fallback={
+        <div className="min-h-screen bg-white pt-[84px] flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-[#111111]/70">Loading...</p>
+          </div>
         </div>
-      </div>
-    }>
-      <ContactPageContent />
-    </Suspense>
+      }>
+        <ContactPageContent />
+      </Suspense>
+    </>
   );
 }
 

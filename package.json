@@ -20,8 +20,13 @@
     "compare:databases": "tsx scripts/compare-databases.ts",
     "migrate:to-dev": "tsx scripts/migrate-to-dev-branch.ts",
     "sync:to-production": "tsx scripts/sync-to-production.ts",
+    "analyze:db": "tsx scripts/analyze-db-storage.ts",
+    "optimize:db": "tsx scripts/optimize-db-storage.ts",
+    "cleanup:activities": "tsx scripts/cleanup-activities.ts",
     "postinstall": "node ./scripts/postinstall.js",
-    "build:netlify": "node ./scripts/simulate-netlify-build.js"
+    "build:netlify": "node ./scripts/simulate-netlify-build.js",
+    "build:netlify-local": "node ./scripts/build-netlify-local.js",
+    "test:netlify-local": "powershell -ExecutionPolicy Bypass -File ./test-netlify-local.ps1"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

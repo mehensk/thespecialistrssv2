@@ -26,8 +26,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-
   return (
     <html lang="en">
       <body
@@ -36,12 +34,6 @@ export default function RootLayout({
         <SessionProvider>
           <LogoutSync />
           <ToastProvider>
-            {recaptchaSiteKey && (
-              <Script
-                src={`https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`}
-                strategy="afterInteractive"
-              />
-            )}
             <Navbar />
             <main>{children}</main>
             <Footer />

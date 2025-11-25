@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Menu, X, LayoutDashboard, LogOut, LogIn } from 'lucide-react';
@@ -14,10 +14,21 @@ export function Navbar() {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
   const { data: session, status } = useSession();
+  const [isStableAuthenticated, setIsStableAuthenticated] = useState(false);
   
-  // Determine if user is authenticated - check both session and status
-  // Status 'authenticated' means user is logged in, 'unauthenticated' means logged out
-  const isAuthenticated = status === 'authenticated' && session?.user;
+  // Stabilize authentication state to prevent flickering
+  // Only update when status actually changes from loading to authenticated/unauthenticated
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      setIsStableAuthenticated(true);
+    } else if (status === 'unauthenticated') {
+      setIsStableAuthenticated(false);
+    }
+    // Don't update during 'loading' state to prevent flickering
+  }, [status, session?.user]);
+  
+  // Use stable authenticated state
+  const isAuthenticated = isStableAuthenticated;
 
   const closeMenu = () => setIsOpen(false);
 
@@ -81,7 +92,7 @@ export function Navbar() {
       }`}
     >
       {/* Username (very left edge) - only for logged in users */}
-      {isAuthenticated && (
+      {isAuthenticated && session?.user && (
         <Link
           href={session.user.role === UserRole.ADMIN ? '/admin/dashboard' : '/dashboard'}
           className={`absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pl-4 pr-3 py-1.5 rounded-full transition-all max-w-fit hover:scale-105 active:scale-95 ${
