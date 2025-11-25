@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ActivityAction, Prisma, UserRole } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
@@ -103,34 +104,58 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get token directly from request (more reliable in serverless environments)
-    // Retry logic for production where cookies might take a moment to be available
+    // Get token directly from request - getToken() should handle cookies automatically
+    // On Netlify, cookies are named __Secure-authjs.session-token (HTTPS)
+    // getToken() should automatically find them
     let token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    // If token not found, retry multiple times with increasing delays (for production cookie timing)
+    // If token not found, try auth() as fallback (works better in some serverless environments)
     if (!token || !token.id) {
-      const maxRetries = 5;
-      let retryCount = 0;
-      
-      while ((!token || !token.id) && retryCount < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, 200 * (retryCount + 1))); // Increasing delay
-        token = await getToken({
-          req: request,
-          secret: process.env.NEXTAUTH_SECRET,
-        });
-        retryCount++;
+      try {
+        const session = await auth();
+        if (session?.user?.id) {
+          // Use session data - this is more reliable on Netlify
+          token = {
+            id: session.user.id,
+            role: session.user.role,
+          } as any;
+        }
+      } catch (authError) {
+        // auth() failed, continue with token check below
       }
     }
 
+    // Final check - if still no token, return error with detailed logging
     if (!token || !token.id) {
-      logger.error('Listing creation unauthorized - missing token after retries', {
+      // Extract cookie info for debugging
+      const cookieHeader = request.headers.get('cookie') || '';
+      const cookies = cookieHeader ? cookieHeader.split(';').map(c => c.trim()) : [];
+      const sessionCookies = cookies.filter(c => 
+        c.includes('authjs.session-token') || 
+        c.includes('__Secure-authjs.session-token')
+      );
+      
+      logger.error('Listing creation unauthorized - token not found', {
         hasToken: !!token,
         hasTokenId: !!token?.id,
+        cookieHeaderPresent: !!cookieHeader,
+        cookieCount: cookies.length,
+        sessionCookieCount: sessionCookies.length,
+        sessionCookieNames: sessionCookies.map(c => c.split('=')[0]),
+        nodeEnv: process.env.NODE_ENV,
+        nextAuthUrl: process.env.NEXTAUTH_URL,
+        requestUrl: request.url,
       });
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      
+      return NextResponse.json({ 
+        error: 'Unauthorized',
+        details: process.env.NODE_ENV === 'development' 
+          ? 'Token not found. Please ensure you are logged in and cookies are enabled.' 
+          : undefined
+      }, { status: 401 });
     }
 
     const user = {
