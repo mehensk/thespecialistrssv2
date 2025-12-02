@@ -194,10 +194,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Process image: resize if needed, then optimize
+    // Process image: auto-rotate based on EXIF orientation, resize if needed, then optimize
     let processedImage: Buffer;
     if (needsResize) {
       processedImage = await sharp(buffer)
+        .rotate() // Auto-rotate based on EXIF orientation data
         .resize(targetWidth, targetHeight, {
           fit: 'inside',
           withoutEnlargement: true,
@@ -205,8 +206,9 @@ export async function POST(request: NextRequest) {
         .jpeg({ quality: 85, mozjpeg: true })
         .toBuffer();
     } else {
-      // Just optimize without resizing
+      // Just auto-rotate and optimize without resizing
       processedImage = await sharp(buffer)
+        .rotate() // Auto-rotate based on EXIF orientation data
         .jpeg({ quality: 85, mozjpeg: true })
         .toBuffer();
     }

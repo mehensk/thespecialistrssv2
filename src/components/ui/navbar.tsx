@@ -91,11 +91,11 @@ export function Navbar() {
           : 'bg-white/95 backdrop-blur-sm shadow-lg'
       }`}
     >
-      {/* Username (very left edge) - only for logged in users */}
+      {/* Username (very left edge) - only for logged in users - hidden on mobile */}
       {isAuthenticated && session?.user && (
         <Link
           href={session.user.role === UserRole.ADMIN ? '/admin/dashboard' : '/dashboard'}
-          className={`absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pl-4 pr-3 py-1.5 rounded-full transition-all max-w-fit hover:scale-105 active:scale-95 ${
+          className={`hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 items-center gap-2 pl-4 pr-3 py-1.5 rounded-full transition-all max-w-fit hover:scale-105 active:scale-95 ${
             shouldBeTransparent
               ? 'bg-white/20 backdrop-blur-sm border border-white/30 text-white shadow-lg hover:bg-white/30' 
               : 'bg-gradient-to-r from-[#1F2937] to-[#111111] text-white shadow-md hover:from-[#1A232E] hover:to-[#0F1419]'
@@ -182,48 +182,51 @@ export function Navbar() {
         </div>
 
         {/* Mobile Buttons Container */}
-        <div className="lg:hidden ml-auto flex items-center gap-2 flex-shrink-0">
+        <div className="lg:hidden ml-auto flex items-center gap-1.5 flex-shrink-0">
           {/* Login link - always visible for easy development access */}
           {!isAuthenticated && (
             <Link
               href="/login"
-              className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center justify-center gap-1 px-2.5 py-2 rounded-md text-xs font-medium transition-all min-w-[60px] ${
                 shouldBeTransparent
                   ? 'text-white hover:bg-white/20 border border-white/30'
                   : 'text-[#111111] hover:bg-[#F9FAFB] border border-[#E5E7EB]'
               }`}
             >
-              <LogIn size={12} />
-              <span>Login</span>
+              <LogIn size={14} className="flex-shrink-0" />
+              <span className="hidden sm:inline">Login</span>
             </Link>
           )}
           <Link
             href="/contact"
-            className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-3 py-1.5 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 text-xs font-medium shadow-md whitespace-nowrap"
+            className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-2.5 py-2 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 text-xs font-medium shadow-md whitespace-nowrap flex items-center justify-center"
           >
-            Contact Us
+            <span className="hidden sm:inline">Contact Us</span>
+            <span className="sm:hidden">Contact</span>
           </Link>
           {isAuthenticated && (
             <button
               onClick={handleLogout}
-              className={`flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-all ${
+              className={`flex items-center justify-center gap-1 px-2.5 py-2 rounded-md text-xs font-medium transition-all min-w-[60px] ${
                 shouldBeTransparent
-                  ? 'bg-white/20 hover:bg-white/30 text-white'
-                  : 'bg-white border border-[#E5E7EB] text-[#111111] hover:border-[#1F2937]'
+                  ? 'bg-white/20 hover:bg-white/30 text-white border border-white/30'
+                  : 'bg-white border border-[#E5E7EB] text-[#111111] hover:border-[#1F2937] hover:bg-[#F9FAFB]'
               }`}
             >
-              <LogOut size={14} />
-              <span>Logout</span>
+              <LogOut size={14} className="flex-shrink-0" />
+              <span className="hidden sm:inline">Logout</span>
             </button>
           )}
           <button
-            className={`transition-colors ${
-              shouldBeTransparent ? 'text-white drop-shadow-lg' : 'text-[#111111]'
+            className={`p-2 rounded-md transition-all ${
+              shouldBeTransparent 
+                ? 'text-white hover:bg-white/20 border border-white/30' 
+                : 'text-[#111111] hover:bg-[#F9FAFB] border border-[#E5E7EB]'
             }`}
             onClick={() => setIsOpen(!isOpen)}
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
           >
-            {isOpen ? <X size={26} /> : <Menu size={26} />}
+            {isOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>

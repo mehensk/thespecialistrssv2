@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Edit, Trash2 } from 'lucide-react';
+import { Eye, Edit, Trash2 } from 'lucide-react';
 import { ApproveButton } from './approve-button';
 import { ViewToggle } from '@/components/admin/ViewToggle';
 import { CompactListingCard } from '@/components/admin/CompactListingCard';
@@ -166,6 +166,14 @@ export function AdminListingsView({ listings }: AdminListingsViewProps) {
                     </td>
                     <td className="px-4 py-2 text-xs">
                       <div className="flex items-center gap-1">
+                        <Link
+                          href={`/listings/${listing.id}`}
+                          className="p-1.5 text-[#111111]/70 hover:text-[#111111] hover:bg-[#F9FAFB] rounded-md transition-colors"
+                          target="_blank"
+                          title="View"
+                        >
+                          <Eye size={14} />
+                        </Link>
                         <Link
                           href={`/dashboard/listings/${listing.id}/edit`}
                           className="p-1.5 text-[#111111]/70 hover:text-[#111111] hover:bg-[#F9FAFB] rounded-md transition-colors"

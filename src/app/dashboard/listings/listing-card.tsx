@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Edit, Trash2, CheckCircle, Clock } from 'lucide-react';
+import { Eye, Edit, Trash2, CheckCircle, Clock } from 'lucide-react';
 import { ApproveButton } from './approve-button';
 
 interface ListingCardProps {
@@ -50,9 +50,19 @@ export function ListingCard({ listing, isAdmin }: ListingCardProps) {
       </Link>
       <div className="px-6 pb-6 flex items-center gap-2">
         <Link
+          href={`/listings/${listing.id}`}
+          className="p-2 text-[#111111]/70 hover:text-[#111111] hover:bg-[#F9FAFB] rounded-md transition-colors"
+          target="_blank"
+          onClick={(e) => e.stopPropagation()}
+          title="View"
+        >
+          <Eye size={16} />
+        </Link>
+        <Link
           href={`/dashboard/listings/${listing.id}/edit`}
           className="p-2 text-[#111111]/70 hover:text-[#111111] hover:bg-[#F9FAFB] rounded-md transition-colors"
           onClick={(e) => e.stopPropagation()}
+          title="Edit"
         >
           <Edit size={16} />
         </Link>
@@ -65,6 +75,7 @@ export function ListingCard({ listing, isAdmin }: ListingCardProps) {
           <button
             type="submit"
             className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+            title="Delete"
           >
             <Trash2 size={16} />
           </button>
