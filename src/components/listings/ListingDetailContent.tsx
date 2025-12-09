@@ -397,7 +397,21 @@ export function ListingDetailContent({
               <div>
                 <div className="text-sm font-medium text-[#111111]/70 mb-1">Phone</div>
                 <a
-                  href="https://wa.me/639212303011"
+                  href={(() => {
+                    // Construct the listing URL
+                    const listingUrl = typeof window !== 'undefined'
+                      ? `${window.location.origin}/listings/${listing.id}`
+                      : `/listings/${listing.id}`;
+                    
+                    // Create the WhatsApp message
+                    const message = `I would like more details about this property\n\n${listingUrl}`;
+                    
+                    // URL encode the message
+                    const encodedMessage = encodeURIComponent(message);
+                    
+                    // Return the WhatsApp URL with pre-filled message
+                    return `https://wa.me/639212303011?text=${encodedMessage}`;
+                  })()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-[#111111] hover:text-[#D4AF37] transition-colors flex items-center gap-2"

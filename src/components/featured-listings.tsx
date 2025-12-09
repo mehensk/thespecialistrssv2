@@ -51,25 +51,36 @@ export function FeaturedListings() {
         
         if (response.ok && data.listings) {
           // Transform API listings to match expected format
-          const transformedListings = data.listings.map((listing: any) => ({
-            id: listing.id,
-            title: listing.title || '',
-            price: listing.price || 0,
-            bedrooms: listing.bedrooms || 0,
-            bathrooms: listing.bathrooms || 0,
-            size: listing.size || 0,
-            city: listing.city || listing.location || '',
-            propertyType: listing.propertyType || '',
-            listingType: listing.listingType || 'sale',
-            images: listing.images && listing.images.length > 0 ? listing.images : ['/images/hero-condo.jpg'],
-            location: listing.location || listing.address || '',
-            address: listing.address || null,
-            parking: listing.parking || null,
-            yearBuilt: listing.yearBuilt || null,
-            floor: listing.floor || null,
-            totalFloors: listing.totalFloors || null,
-            createdAt: listing.createdAt || '',
-          }));
+          const transformedListings = data.listings.map((listing: any) => {
+            // Properly handle bedrooms - preserve null/undefined, convert to number otherwise
+            const bedrooms = listing.bedrooms === null || listing.bedrooms === undefined || listing.bedrooms === ''
+              ? null
+              : Number(listing.bedrooms);
+            
+            return {
+              id: listing.id,
+              title: listing.title || '',
+              price: listing.price || 0,
+              bedrooms,
+              bathrooms: listing.bathrooms === null || listing.bathrooms === undefined || listing.bathrooms === ''
+                ? null
+                : Number(listing.bathrooms),
+              size: listing.size === null || listing.size === undefined || listing.size === ''
+                ? null
+                : Number(listing.size),
+              city: listing.city || listing.location || '',
+              propertyType: listing.propertyType || '',
+              listingType: listing.listingType || 'sale',
+              images: listing.images && listing.images.length > 0 ? listing.images : ['/images/hero-condo.jpg'],
+              location: listing.location || listing.address || '',
+              address: listing.address || null,
+              parking: listing.parking || null,
+              yearBuilt: listing.yearBuilt || null,
+              floor: listing.floor || null,
+              totalFloors: listing.totalFloors || null,
+              createdAt: listing.createdAt || '',
+            };
+          });
           setListings(transformedListings);
         }
       } catch (error) {
