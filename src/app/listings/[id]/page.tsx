@@ -4,17 +4,27 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getCachedListing, getCachedListingIds } from '@/lib/cache';
 import { ListingDetailClient } from '@/components/listings/ListingDetailClient';
+import { formatBedrooms } from '@/lib/location-utils';
+import { getUserFromToken } from '@/lib/get-user-from-token';
+import { prisma } from '@/lib/prisma';
+import { UserRole } from '@prisma/client';
 
 // ISR: Generate static params for top 100 listings
+// Made more resilient to handle build-time errors
 export async function generateStaticParams() {
   try {
     const listingIds = await getCachedListingIds(100);
     return listingIds.map((id) => ({ id }));
   } catch (error) {
+    // Gracefully handle errors during build (e.g., database not available)
     console.error('Error generating static params for listings:', error);
+    // Return empty array - routes will be generated on-demand
     return [];
   }
 }
+
+// Make this route dynamic to handle unpublished listings
+export const dynamic = 'force-dynamic';
 
 // Revalidate every hour
 export const revalidate = 3600;
@@ -34,9 +44,17 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     }
 
     const title = `${listing.title} | The Specialist Realty`;
+    // Only show bedrooms in metadata if it's > 0 or it's a condominium with 0 (Studio)
+    const bedroomsText = listing.bedrooms !== null && listing.bedrooms !== undefined 
+      ? (listing.bedrooms === 0 && listing.propertyType?.toLowerCase() === 'condominium' 
+          ? 'Studio unit' 
+          : listing.bedrooms > 0 
+            ? `${listing.bedrooms} bedrooms`
+            : '')
+      : '';
     const description = listing.description 
       ? listing.description.substring(0, 160) + (listing.description.length > 160 ? '...' : '')
-      : `View ${listing.title} in ${listing.city || listing.location}. ${listing.bedrooms ? `${listing.bedrooms} bedrooms` : ''} ${listing.bathrooms ? `${listing.bathrooms} bathrooms` : ''}. ${listing.price ? `₱${listing.price.toLocaleString()}` : 'Price on request'}.`;
+      : `View ${listing.title} in ${listing.city || listing.location}. ${bedroomsText ? `${bedroomsText} ` : ''}${listing.bathrooms ? `${listing.bathrooms} bathrooms ` : ''}${listing.price ? `₱${listing.price.toLocaleString()}` : 'Price on request'}.`;
     
     const image = listing.images && listing.images.length > 0 ? listing.images[0] : undefined;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thespecialistrealty.com';
@@ -71,10 +89,63 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   
   try {
-    const listing = await getCachedListing(id);
+    // Try to get from cache first
+    let listing = await getCachedListing(id);
+    
+    // If not in cache, fetch directly from database
+    if (!listing) {
+      listing = await prisma.listing.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          price: true,
+          location: true,
+          city: true,
+          address: true,
+          bedrooms: true,
+          bathrooms: true,
+          size: true,
+          propertyType: true,
+          listingType: true,
+          images: true,
+          yearBuilt: true,
+          parking: true,
+          floor: true,
+          totalFloors: true,
+          amenities: true,
+          propertyId: true,
+          available: true,
+          isPublished: true,
+          userId: true,
+          createdAt: true,
+          user: {
+            select: { name: true, email: true },
+          },
+        },
+      });
+    }
 
-    if (!listing || !listing.isPublished) {
+    if (!listing) {
       notFound();
+    }
+
+    // If listing is not published, check if user has access
+    if (!listing.isPublished) {
+      const user = await getUserFromToken();
+      
+      // Allow access if:
+      // 1. User is authenticated and owns the listing, OR
+      // 2. User is an admin
+      const hasAccess = user && (
+        listing.userId === user.id || 
+        user.role === UserRole.ADMIN
+      );
+      
+      if (!hasAccess) {
+        notFound();
+      }
     }
 
     return (

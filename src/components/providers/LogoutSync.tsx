@@ -21,15 +21,25 @@ export function LogoutSync() {
         // Another tab logged out, log out this tab too
         if (session) {
           try {
-            // Sign out - this clears the session cookie
+            // Set logout flag
+            localStorage.setItem('auth-logout-flag', 'true');
+            
+            // Call server-side logout endpoint
+            await fetch('/api/auth/logout', {
+              method: 'POST',
+              credentials: 'include',
+            });
+            
+            // Sign out client-side
             await signOut({ 
               redirect: true,
-              callbackUrl: '/'
+              callbackUrl: '/?logout=success'
             });
           } catch (error) {
             console.error('Logout sync error:', error);
             // Fallback: force redirect
-            window.location.href = '/';
+            localStorage.setItem('auth-logout-flag', 'true');
+            window.location.href = '/?logout=success';
           }
         }
       }
@@ -42,11 +52,21 @@ export function LogoutSync() {
       if (e.key === 'auth-logout' && e.newValue === 'true') {
         if (session) {
           try {
-            // Sign out - this clears the session cookie
+            // Set logout flag
+            localStorage.setItem('auth-logout-flag', 'true');
+            
+            // Call server-side logout endpoint
+            await fetch('/api/auth/logout', {
+              method: 'POST',
+              credentials: 'include',
+            });
+            
+            // Sign out client-side
             await signOut({ 
               redirect: true,
-              callbackUrl: '/'
+              callbackUrl: '/?logout=success'
             });
+            
             // Clear the flag
             localStorage.removeItem('auth-logout');
           } catch (error) {
@@ -54,7 +74,8 @@ export function LogoutSync() {
             // Clear the flag
             localStorage.removeItem('auth-logout');
             // Fallback: force redirect
-            window.location.href = '/';
+            localStorage.setItem('auth-logout-flag', 'true');
+            window.location.href = '/?logout=success';
           }
         }
       }

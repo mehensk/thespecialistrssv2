@@ -127,3 +127,63 @@ export function groupCitiesForFilter(cities: string[]): {
   };
 }
 
+/**
+ * Format bedrooms for display
+ * For condominium properties with 0 bedrooms, returns "Studio"
+ * For other property types with 0 bedrooms, returns empty string (don't show)
+ * Otherwise returns the number of bedrooms
+ */
+export function formatBedrooms(
+  bedrooms: number | null | undefined,
+  propertyType: string | null | undefined
+): string {
+  if (bedrooms === null || bedrooms === undefined) {
+    return '';
+  }
+  
+  // For condominium properties with 0 bedrooms, show "Studio"
+  if (bedrooms === 0 && propertyType?.toLowerCase() === 'condominium') {
+    return 'Studio';
+  }
+  
+  // For other property types with 0 bedrooms, return empty string (don't show)
+  if (bedrooms === 0) {
+    return '';
+  }
+  
+  // For other cases, return the number as string
+  return bedrooms.toString();
+}
+
+/**
+ * Format bedrooms for display in titles/cards
+ * Returns formatted string like "Studio" or "3 Bedroom" or empty string
+ * Only shows "Studio" for condominiums with 0 bedrooms
+ * For other property types with 0 bedrooms, returns empty string (don't show)
+ */
+export function formatBedroomsForTitle(
+  bedrooms: number | null | undefined,
+  propertyType: string | null | undefined
+): string {
+  if (bedrooms === null || bedrooms === undefined) {
+    return '';
+  }
+  
+  // For condominium properties with 0 bedrooms, show "Studio"
+  if (bedrooms === 0 && propertyType?.toLowerCase() === 'condominium') {
+    return 'Studio ';
+  }
+  
+  // For other property types with 0 bedrooms, return empty string (don't show)
+  if (bedrooms === 0) {
+    return '';
+  }
+  
+  // For other cases, return formatted string like "3 Bedroom "
+  if (bedrooms > 0) {
+    return `${bedrooms} Bedroom `;
+  }
+  
+  return '';
+}
+

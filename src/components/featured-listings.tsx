@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Bed, Bath, Square, MapPin, Car, Calendar, Layers } from 'lucide-react';
-import { formatLocationDisplay, formatLocationWithLabel } from '@/lib/location-utils';
+import { formatLocationDisplay, formatLocationWithLabel, formatBedrooms, formatBedroomsForTitle } from '@/lib/location-utils';
 
 const propertyTypeMap: { [key: string]: string } = {
   'condominium': 'Condominium',
@@ -143,7 +143,7 @@ export function FeaturedListings() {
                   </>
                 ) : (
                   <>
-                    {listing.bedrooms && listing.bedrooms > 0 && `${listing.bedrooms} Bedroom `}
+                    {formatBedroomsForTitle(listing.bedrooms, listing.propertyType)}
                     {propertyTypeMap[listing.propertyType || ''] || listing.propertyType || 'Property'}
                     {' for '}
                     {listing.listingType === 'rent' ? 'Rent' : 'Sale'}
@@ -158,7 +158,7 @@ export function FeaturedListings() {
                 {listing.price ? `₱${listing.price.toLocaleString()}` : 'Price on request'}
                 {listing.price && listing.listingType === 'rent' && <span className="text-base font-medium text-[#111111]/60 ml-1">/mo</span>}
               </p>
-              {listing.size && listing.size > 0 && listing.price && listing.price > 0 && (
+              {listing.size && listing.size > 0 && listing.price && listing.price > 0 && listing.listingType === 'sale' && (
                 <p className="text-xs text-[#111111]/50 mt-1">
                   ₱{Math.round(listing.price / listing.size).toLocaleString()}/sqm
                 </p>
@@ -167,12 +167,17 @@ export function FeaturedListings() {
             
             {/* Property Details - Compact Grid */}
             <div className="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-[#E5E7EB]">
-              {listing.bedrooms && listing.bedrooms > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <Bed size={16} className="text-[#1F2937] flex-shrink-0" />
-                  <span className="text-xs font-medium text-[#111111]/80">{listing.bedrooms}</span>
-                </div>
-              )}
+              {(() => {
+                const bedroomsText = formatBedrooms(listing.bedrooms, listing.propertyType);
+                return bedroomsText ? (
+                  <div className="flex items-center gap-1.5">
+                    <Bed size={16} className="text-[#1F2937] flex-shrink-0" />
+                    <span className="text-xs font-medium text-[#111111]/80">
+                      {bedroomsText}
+                    </span>
+                  </div>
+                ) : null;
+              })()}
               {listing.bathrooms && listing.bathrooms > 0 && (
                 <div className="flex items-center gap-1.5">
                   <Bath size={16} className="text-[#1F2937] flex-shrink-0" />
@@ -182,7 +187,7 @@ export function FeaturedListings() {
               {listing.size && listing.size > 0 && (
                 <div className="flex items-center gap-1.5">
                   <Square size={16} className="text-[#1F2937] flex-shrink-0" />
-                  <span className="text-xs font-medium text-[#111111]/80">{listing.size}</span>
+                  <span className="text-xs font-medium text-[#111111]/80">{listing.size} sqm</span>
                 </div>
               )}
             </div>

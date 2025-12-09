@@ -292,29 +292,23 @@ export default function NewListingPage() {
         <h1 className="text-2xl font-semibold text-[#111111]">Create New Listing</h1>
       </div>
 
-      {/* Notification bars - positioned under the heading */}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-md mb-4 flex items-center gap-2 text-sm">
-          <CheckCircle size={18} />
-          <span>Listing created successfully! Redirecting to your listings...</span>
-        </div>
-      )}
+      {/* Error notification - positioned under the heading */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md mb-4 text-sm">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="w-full md:max-w-5xl mx-auto bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-[#111111] border-b border-[#E5E7EB] pb-1.5">
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
               Basic Information
             </h2>
 
             <div>
-              <label htmlFor="title" className="block text-xs font-medium text-[#111111] mb-1.5">
+              <label htmlFor="title" className="block text-sm font-medium text-[#111111] mb-2">
                 Title <span className="text-red-500">*</span>
               </label>
               <input
@@ -323,13 +317,13 @@ export default function NewListingPage() {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
-                className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                 placeholder="e.g., Luxury 3-Bedroom Condominium in Makati"
               />
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-xs font-medium text-[#111111] mb-1.5">
+              <label htmlFor="description" className="block text-sm font-medium text-[#111111] mb-2">
                 Description <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -337,15 +331,15 @@ export default function NewListingPage() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 required
-                rows={4}
-                className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                rows={10}
+                className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                 placeholder="Describe the property in detail..."
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="location" className="block text-xs font-medium text-[#111111] mb-1.5">
+                <label htmlFor="location" className="block text-sm font-medium text-[#111111] mb-2">
                   Location
                 </label>
                 <input
@@ -353,10 +347,10 @@ export default function NewListingPage() {
                   type="text"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                   placeholder={isMetroManilaCity(formData.city) ? "e.g., Makati City" : "e.g., Cavite (for outside Metro Manila)"}
                 />
-                <p className="mt-1 text-[10px] text-[#111111]/60">
+                <p className="mt-1 text-xs text-[#111111]/60">
                   {isOutsideMetroManila 
                     ? "If outside Metro Manila: 'City, Region' ex. Lipa, Batangas" 
                     : isMetroManilaCity(formData.city) 
@@ -366,7 +360,7 @@ export default function NewListingPage() {
               </div>
 
               <div>
-                <label htmlFor="city" className="block text-xs font-medium text-[#111111] mb-1.5">
+                <label htmlFor="city" className="block text-sm font-medium text-[#111111] mb-2">
                   City
                 </label>
                 <select
@@ -381,7 +375,7 @@ export default function NewListingPage() {
                       setFormData({ ...formData, city: e.target.value });
                     }
                   }}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent bg-white"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent bg-white"
                 >
                   <option value="">Select City</option>
                   <optgroup label="Metro Manila">
@@ -391,7 +385,7 @@ export default function NewListingPage() {
                   </optgroup>
                   <option value="outside">Outside Metro Manila</option>
                 </select>
-                <p className="mt-1 text-[10px] text-[#111111]/60">
+                <p className="mt-1 text-xs text-[#111111]/60">
                   {isOutsideMetroManila 
                     ? "✓ Outside Metro Manila - enter 'City, Region' in Location field (ex. Lipa, Batangas)" 
                     : isMetroManilaCity(formData.city) 
@@ -404,7 +398,7 @@ export default function NewListingPage() {
             </div>
 
             <div>
-              <label htmlFor="address" className="block text-xs font-medium text-[#111111] mb-1.5">
+              <label htmlFor="address" className="block text-sm font-medium text-[#111111] mb-2">
                 Full Address
               </label>
               <input
@@ -412,21 +406,21 @@ export default function NewListingPage() {
                 type="text"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                 placeholder="e.g., 123 Ayala Avenue, Makati City"
               />
             </div>
           </div>
 
           {/* Property Details Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-[#111111] border-b border-[#E5E7EB] pb-1.5">
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
               Property Details
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="price" className="block text-xs font-medium text-[#111111] mb-1.5">
+                <label htmlFor="price" className="block text-sm font-medium text-[#111111] mb-2">
                   Price (₱)
                 </label>
                 <input
@@ -434,7 +428,7 @@ export default function NewListingPage() {
                   type="number"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                   placeholder="12500000"
                   min="0"
                   step="0.01"
@@ -442,14 +436,14 @@ export default function NewListingPage() {
               </div>
 
               <div>
-                <label htmlFor="listingType" className="block text-xs font-medium text-[#111111] mb-1.5">
+                <label htmlFor="listingType" className="block text-sm font-medium text-[#111111] mb-2">
                   Listing Type
                 </label>
                 <select
                   id="listingType"
                   value={formData.listingType}
                   onChange={(e) => setFormData({ ...formData, listingType: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                 >
                   <option value="">Select listing type</option>
                   <option value="sale">Sale</option>
@@ -459,14 +453,14 @@ export default function NewListingPage() {
             </div>
 
             <div>
-              <label htmlFor="propertyType" className="block text-xs font-medium text-[#111111] mb-1.5">
+              <label htmlFor="propertyType" className="block text-sm font-medium text-[#111111] mb-2">
                 Property Type
               </label>
               <select
                 id="propertyType"
                 value={formData.propertyType}
                 onChange={(e) => setFormData({ ...formData, propertyType: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
               >
                 <option value="">Select property type</option>
                 {propertyTypes.map((type) => (
@@ -477,9 +471,9 @@ export default function NewListingPage() {
               </select>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <label htmlFor="bedrooms" className="block text-xs font-medium text-[#111111] mb-1.5">
+                <label htmlFor="bedrooms" className="block text-sm font-medium text-[#111111] mb-2">
                   Bedrooms
                 </label>
                 <input
@@ -487,14 +481,14 @@ export default function NewListingPage() {
                   type="number"
                   value={formData.bedrooms}
                   onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                   placeholder="3"
                   min="0"
                 />
               </div>
 
               <div>
-                <label htmlFor="bathrooms" className="block text-xs font-medium text-[#111111] mb-1.5">
+                <label htmlFor="bathrooms" className="block text-sm font-medium text-[#111111] mb-2">
                   Bathrooms
                 </label>
                 <input
@@ -502,14 +496,14 @@ export default function NewListingPage() {
                   type="number"
                   value={formData.bathrooms}
                   onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                   placeholder="2"
                   min="0"
                 />
               </div>
 
               <div>
-                <label htmlFor="size" className="block text-xs font-medium text-[#111111] mb-1.5">
+                <label htmlFor="size" className="block text-sm font-medium text-[#111111] mb-2">
                   Size (sqm)
                 </label>
                 <input
@@ -517,7 +511,7 @@ export default function NewListingPage() {
                   type="number"
                   value={formData.size}
                   onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                   placeholder="120"
                   min="0"
                   step="0.01"
@@ -525,7 +519,7 @@ export default function NewListingPage() {
               </div>
 
               <div>
-                <label htmlFor="parking" className="block text-xs font-medium text-[#111111] mb-1.5">
+                <label htmlFor="parking" className="block text-sm font-medium text-[#111111] mb-2">
                   Parking Spaces
                 </label>
                 <input
@@ -533,16 +527,16 @@ export default function NewListingPage() {
                   type="number"
                   value={formData.parking}
                   onChange={(e) => setFormData({ ...formData, parking: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                   placeholder="1"
                   min="0"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label htmlFor="yearBuilt" className="block text-xs font-medium text-[#111111] mb-1.5">
+                <label htmlFor="yearBuilt" className="block text-sm font-medium text-[#111111] mb-2">
                   Year Built
                 </label>
                 <input
@@ -550,7 +544,7 @@ export default function NewListingPage() {
                   type="number"
                   value={formData.yearBuilt}
                   onChange={(e) => setFormData({ ...formData, yearBuilt: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                   placeholder="2018"
                   min="1900"
                   max={new Date().getFullYear()}
@@ -558,7 +552,7 @@ export default function NewListingPage() {
               </div>
 
               <div>
-                <label htmlFor="floor" className="block text-xs font-medium text-[#111111] mb-1.5">
+                <label htmlFor="floor" className="block text-sm font-medium text-[#111111] mb-2">
                   Floor
                 </label>
                 <input
@@ -566,14 +560,14 @@ export default function NewListingPage() {
                   type="number"
                   value={formData.floor}
                   onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                   placeholder="15"
                   min="0"
                 />
               </div>
 
               <div>
-                <label htmlFor="totalFloors" className="block text-xs font-medium text-[#111111] mb-1.5">
+                <label htmlFor="totalFloors" className="block text-sm font-medium text-[#111111] mb-2">
                   Total Floors
                 </label>
                 <input
@@ -581,7 +575,7 @@ export default function NewListingPage() {
                   type="number"
                   value={formData.totalFloors}
                   onChange={(e) => setFormData({ ...formData, totalFloors: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                   placeholder="30"
                   min="0"
                 />
@@ -596,15 +590,15 @@ export default function NewListingPage() {
                 onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
                 className="w-4 h-4 text-[#1F2937] border-[#E5E7EB] rounded focus:ring-[#1F2937]"
               />
-              <label htmlFor="available" className="text-xs font-medium text-[#111111]">
+              <label htmlFor="available" className="text-sm font-medium text-[#111111]">
                 Property is available
               </label>
             </div>
           </div>
 
           {/* Images Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-[#111111] border-b border-[#E5E7EB] pb-1.5">
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
               Images
             </h2>
 
@@ -612,7 +606,7 @@ export default function NewListingPage() {
               <div>
                 <label
                   htmlFor="imageUpload"
-                  className="block text-xs font-medium text-[#111111] mb-1.5"
+                  className="block text-sm font-medium text-[#111111] mb-1.5"
                 >
                   Upload Images
                 </label>
@@ -710,15 +704,15 @@ export default function NewListingPage() {
           </div>
 
           {/* Amenities and Services Section */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-[#111111] border-b border-[#E5E7EB] pb-1.5">
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
               Amenities and Services
             </h2>
             <p className="text-xs text-[#111111]/70 mb-3">
               Select all amenities and services available in this property
             </p>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1.5">
               {amenitiesList.map((amenity) => {
                 const amenityKey = `${amenity.category}:${amenity.name}`;
                 const isSelected = formData.amenities.includes(amenityKey);
@@ -760,6 +754,14 @@ export default function NewListingPage() {
           </div>
         </form>
       </div>
+
+      {/* Success message - positioned at bottom */}
+      {success && (
+        <div className="mt-4 bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-md flex items-center gap-2 text-sm">
+          <CheckCircle size={18} />
+          <span>Listing created successfully! Redirecting to your listings...</span>
+        </div>
+      )}
 
       <div className="mt-4 bg-blue-50 border border-blue-200 rounded-md p-3">
         <p className="text-xs text-blue-800">

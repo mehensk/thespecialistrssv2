@@ -197,24 +197,26 @@ const authOptions = {
       }
 
       // Check inactivity timeout (10 minutes) BEFORE updating
-      // Add 5 second tolerance for serverless timing issues
+      // Add 10 second tolerance for serverless timing issues and concurrent requests
+      // Increased tolerance to prevent false timeouts during rapid activity updates
       const timeSinceLastActivity = now - token.lastActivity;
-      if (timeSinceLastActivity > (INACTIVITY_TIMEOUT + 5000)) {
-        // User has been inactive for more than 10 minutes
+      if (timeSinceLastActivity > (INACTIVITY_TIMEOUT + 10000)) {
+        // User has been inactive for more than 10 minutes (with tolerance)
         return null;
       }
 
       // Check session max age (24 hours from token issuance)
-      // Add 5 second tolerance for serverless timing issues
+      // Add 10 second tolerance for serverless timing issues
       const tokenAge = now - (token.iat * 1000);
-      if (tokenAge > (SESSION_MAX_AGE * 1000 + 5000)) {
-        // Session has exceeded max age
+      if (tokenAge > (SESSION_MAX_AGE * 1000 + 10000)) {
+        // Session has exceeded max age (with tolerance)
         return null;
       }
 
       // Update last activity time on each request
       // Only update if checks passed (user is still active)
-      token.lastActivity = now;
+      // Use the maximum of current time and existing lastActivity to prevent time travel
+      token.lastActivity = Math.max(now, token.lastActivity || now);
 
       return token;
     },

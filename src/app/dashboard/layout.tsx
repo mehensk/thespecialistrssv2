@@ -4,8 +4,7 @@ import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { UserRole } from '@prisma/client';
 
-// Additional auth check in layout as a safety net
-// Middleware handles most cases, but this ensures we redirect if token is invalid
+// Hybrid approach: Allow access if middleware passed, but redirect if session is explicitly null
 // IMPORTANT: Admins should use the unified admin panel layout, not the regular dashboard layout
 export default async function DashboardLayoutWrapper({
   children,
@@ -14,18 +13,23 @@ export default async function DashboardLayoutWrapper({
 }) {
   try {
     // Middleware already verified token exists and is valid
-    // Try to get session to verify user, but don't fail if we can't read it
-    // This handles serverless environments where cookie reading can be unreliable
+    // Try to get session to verify user
     let session;
     try {
       session = await auth();
     } catch (authError) {
-      // If auth() fails, log but don't redirect - middleware already verified token exists
+      // If auth() fails, it might be a serverless issue, but if middleware passed, allow access
       console.warn('Dashboard layout: Could not read session, but middleware verified token exists', authError);
       // Allow access since middleware already verified authentication
-      // Use AdminLayout as default for admins, DashboardLayout for others
-      // We can't determine role, so default to DashboardLayout
+      // Default to DashboardLayout if we can't determine role
       return <DashboardLayout>{children}</DashboardLayout>;
+    }
+
+    // Hybrid approach: If session is explicitly null (not just undefined), redirect
+    // This handles cases where JWT callback returned null (expired, inactive, etc.)
+    if (session === null) {
+      // Session is explicitly null, redirect to home
+      redirect('/');
     }
 
     // If we successfully got session, check user

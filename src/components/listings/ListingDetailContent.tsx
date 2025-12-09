@@ -62,6 +62,13 @@ const propertyTypeMap: { [key: string]: string } = {
   'commercial': 'Commercial Space',
 };
 
+// Convert number to ordinal (1st, 2nd, 3rd, 19th, etc.)
+const getOrdinal = (n: number): string => {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
+
 // Amenities mapping with icons (uniform styling, no category colors)
 const amenitiesMap: { [key: string]: { icon: any } } = {
   'Air Conditioning': { icon: Wind },
@@ -127,6 +134,7 @@ export function ListingDetailContent({
   };
 
   return (
+    <>
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Main Content */}
       <div className="lg:col-span-2 space-y-8">
@@ -231,15 +239,25 @@ export function ListingDetailContent({
 
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-6 border-y border-gray-200">
-            {listing.bedrooms !== null && (
-              <div className="flex items-center gap-2">
-                <Bed className="text-[#111111]/70" size={20} />
-                <div>
-                  <div className="text-sm text-[#111111]/70">Bedrooms</div>
-                  <div className="font-semibold text-[#111111]">{listing.bedrooms}</div>
+            {(() => {
+              // Only show bedrooms if it's not null/undefined and either > 0 or it's a condominium with 0 (Studio)
+              const shouldShow = listing.bedrooms !== null && listing.bedrooms !== undefined && 
+                (listing.bedrooms > 0 || (listing.bedrooms === 0 && listing.propertyType?.toLowerCase() === 'condominium'));
+              
+              return shouldShow ? (
+                <div className="flex items-center gap-2">
+                  <Bed className="text-[#111111]/70" size={20} />
+                  <div>
+                    <div className="text-sm text-[#111111]/70">Bedrooms</div>
+                    <div className="font-semibold text-[#111111]">
+                      {listing.bedrooms === 0 && listing.propertyType?.toLowerCase() === 'condominium' 
+                        ? 'Studio' 
+                        : listing.bedrooms}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              ) : null;
+            })()}
             {listing.bathrooms !== null && (
               <div className="flex items-center gap-2">
                 <Bath className="text-[#111111]/70" size={20} />
@@ -300,7 +318,7 @@ export function ListingDetailContent({
                   <div>
                     <div className="text-sm text-[#111111]/70">Floor</div>
                     <div className="font-semibold text-[#111111]">
-                      {listing.floor}{listing.totalFloors ? ` of ${listing.totalFloors}` : ''}
+                      {getOrdinal(listing.floor)}{listing.totalFloors ? ` of ${listing.totalFloors}` : ''}
                     </div>
                   </div>
                 )}
@@ -430,17 +448,12 @@ export function ListingDetailContent({
                 </div>
               )}
               <div>
+                <div className="text-sm font-medium text-[#111111] mb-1">Status</div>
                 <div className={`text-lg font-semibold ${
                   listing.available ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {listing.available ? 'Available' : 'Unavailable'}
                 </div>
-                {listing.available && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-xs text-[#111111]/60">Property is currently available</span>
-                  </div>
-                )}
               </div>
               {listing.propertyType && (
                 <div className="pt-4 border-t border-gray-200">
@@ -499,5 +512,17 @@ export function ListingDetailContent({
         </div>
       </div>
     </div>
+
+    {/* Browse More Listings Section */}
+    <div className="mt-12 w-full flex justify-center">
+      <Link
+        href="/listings"
+        className="inline-flex items-center gap-2 bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-8 py-4 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 relative overflow-hidden group"
+      >
+        <span className="relative z-10">View All Listings</span>
+        <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+      </Link>
+    </div>
+    </>
   );
 }

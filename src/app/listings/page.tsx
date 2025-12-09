@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Bed, Bath, Square, MapPin, Search, Filter, X, ChevronLeft, ChevronRight, Car, Calendar, Layers } from 'lucide-react';
-import { formatLocationDisplay, formatLocationWithLabel, groupCitiesForFilter } from '@/lib/location-utils';
+import { formatLocationDisplay, formatLocationWithLabel, groupCitiesForFilter, formatBedrooms, formatBedroomsForTitle } from '@/lib/location-utils';
 
 // Property type mapping
 const propertyTypeMap: { [key: string]: string } = {
@@ -529,7 +529,7 @@ function ListingsPageContent() {
                               </>
                             ) : (
                               <>
-                                {property.bedrooms > 0 && `${property.bedrooms} Bedroom `}
+                                {formatBedroomsForTitle(property.bedrooms, property.type)}
                                 {propertyTypeMap[property.type] || property.type || 'Property'}
                                 {' for '}
                                 {property.listingType === 'rent' ? 'Rent' : 'Sale'}
@@ -544,7 +544,7 @@ function ListingsPageContent() {
                             ₱{property.price.toLocaleString()}
                             {property.listingType === 'rent' && <span className="text-base font-medium text-[#111111]/60 ml-1">/mo</span>}
                           </p>
-                          {property.size > 0 && property.price > 0 && (
+                          {property.size > 0 && property.price > 0 && property.listingType === 'sale' && (
                             <p className="text-xs text-[#111111]/50 mt-1">
                               ₱{Math.round(property.price / property.size).toLocaleString()}/sqm
                             </p>
@@ -553,12 +553,17 @@ function ListingsPageContent() {
                         
                         {/* Property Details - Compact Grid */}
                         <div className="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-[#E5E7EB]">
-                          {property.bedrooms > 0 && (
-                            <div className="flex items-center gap-1.5">
-                              <Bed size={16} className="text-[#1F2937] flex-shrink-0" />
-                              <span className="text-xs font-medium text-[#111111]/80">{property.bedrooms}</span>
-                            </div>
-                          )}
+                          {(() => {
+                            const bedroomsText = formatBedrooms(property.bedrooms, property.type);
+                            return bedroomsText ? (
+                              <div className="flex items-center gap-1.5">
+                                <Bed size={16} className="text-[#1F2937] flex-shrink-0" />
+                                <span className="text-xs font-medium text-[#111111]/80">
+                                  {bedroomsText}
+                                </span>
+                              </div>
+                            ) : null;
+                          })()}
                           {property.bathrooms > 0 && (
                             <div className="flex items-center gap-1.5">
                               <Bath size={16} className="text-[#1F2937] flex-shrink-0" />
@@ -568,7 +573,7 @@ function ListingsPageContent() {
                           {property.size > 0 && (
                             <div className="flex items-center gap-1.5">
                               <Square size={16} className="text-[#1F2937] flex-shrink-0" />
-                              <span className="text-xs font-medium text-[#111111]/80">{property.size}</span>
+                              <span className="text-xs font-medium text-[#111111]/80">{property.size} sqm</span>
                             </div>
                           )}
                         </div>

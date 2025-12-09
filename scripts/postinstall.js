@@ -8,10 +8,17 @@ if (process.env.NETLIFY && !process.env.DATABASE_URL) {
   process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/dbname?schema=public';
 }
 
+// Ensure DATABASE_URL exists for prisma generate (even if it's a placeholder)
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/dbname?schema=public';
+}
+
 console.log('Running prisma generate...');
 const res = spawnSync('npx', ['prisma', 'generate'], { 
   stdio: 'inherit',
-  env: { ...process.env }
+  env: { ...process.env },
+  shell: true, // Add shell option for Windows compatibility
+  cwd: process.cwd()
 });
 
 if (res.status !== 0) {

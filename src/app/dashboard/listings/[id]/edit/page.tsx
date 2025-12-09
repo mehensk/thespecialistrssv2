@@ -407,7 +407,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
+      <div className="w-full md:max-w-5xl mx-auto bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information Section */}
           <div className="space-y-6">
@@ -439,7 +439,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 required
-                rows={6}
+                rows={10}
                 className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
                 placeholder="Describe the property in detail..."
               />

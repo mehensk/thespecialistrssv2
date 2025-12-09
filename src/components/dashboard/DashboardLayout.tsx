@@ -59,47 +59,57 @@ export const DashboardLayout = memo(function DashboardLayout({ children }: { chi
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Client-side check: If session becomes null (server restart, logout, etc.), redirect to home
-  // IMPORTANT: Only redirect if status is 'unauthenticated', not during 'loading' state
-  // This prevents false redirects when session is still loading
+  // Client-side check: If session becomes null (server restart, logout, etc.), redirect to home immediately
+  // Redirect immediately when session is null, even if status is 'loading'
   useEffect(() => {
-    // Only redirect if we're sure the user is unauthenticated (not just loading)
-    if (status === 'unauthenticated') {
-      // User is definitely logged out - redirect to home
-      window.location.href = '/';
+    // Check logout flag first
+    const logoutFlag = localStorage.getItem('auth-logout-flag');
+    if (logoutFlag) {
+      window.location.href = '/?logout=success';
+      return;
     }
-    // Don't redirect if status is 'loading' - session might still be loading
-  }, [status]);
+    
+    // If session is null/undefined, redirect immediately
+    if (!session) {
+      // Only redirect if status is not loading (to avoid redirecting during initial load)
+      if (status !== 'loading') {
+        window.location.href = '/';
+      }
+      return;
+    }
+  }, [session, status]);
 
   const handleLogout = useCallback(async () => {
     try {
+      // Set logout flag to prevent auto-refetch
+      localStorage.setItem('auth-logout-flag', 'true');
+      
       // Broadcast logout to all tabs
       broadcastLogout();
       
-      // Sign out without redirect first to ensure cookies are cleared
-      await signOut({ 
-        redirect: false, // Don't redirect automatically - we'll do it manually
-        callbackUrl: '/'
+      // Call server-side logout endpoint to properly clear HttpOnly cookies
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
       });
       
-      // Manually clear all auth cookies to ensure they're removed
-      // NextAuth v5 uses authjs.session-token
-      document.cookie = 'authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      document.cookie = '__Secure-authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
-      // Also clear old cookie names for backward compatibility
-      document.cookie = 'next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      document.cookie = '__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
+      if (!response.ok) {
+        throw new Error('Logout request failed');
+      }
       
-      // Force redirect to home page - this ensures middleware checks the session
-      window.location.href = '/';
+      // Also call signOut for client-side cleanup
+      await signOut({ 
+        redirect: false,
+        callbackUrl: '/?logout=success'
+      });
+      
+      // Redirect to home with success message
+      window.location.href = '/?logout=success';
     } catch (error) {
       console.error('Logout error:', error);
-      // Fallback: clear cookies and force redirect even if signOut fails
-      document.cookie = 'authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      document.cookie = '__Secure-authjs.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
-      document.cookie = 'next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      document.cookie = '__Secure-next-auth.session-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; secure';
-      window.location.replace('/');
+      // Fallback: force redirect even if logout fails
+      localStorage.setItem('auth-logout-flag', 'true');
+      window.location.href = '/?logout=success';
     }
   }, []);
 
