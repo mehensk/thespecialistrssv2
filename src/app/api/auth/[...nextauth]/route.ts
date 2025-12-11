@@ -12,6 +12,10 @@ const checkAuthSecret = () => {
 
 // Wrap handlers with error handling to ensure JSON responses
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+  const url = request.nextUrl.toString();
+  const isSessionEndpoint = url.includes('/api/auth/session');
+  
   try {
     checkAuthSecret();
     
@@ -24,7 +28,31 @@ export async function GET(request: NextRequest) {
       });
     }
     
+    // #region agent log
+    if (isSessionEndpoint) {
+      try {
+        await fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:14',message:'session API GET request started',data:{url,isNetlify:!!process.env.NETLIFY,startTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H6'})}).catch(()=>{});
+      } catch {}
+    }
+    // #endregion
+    
     const response = await handlers.GET(request);
+    
+    // #region agent log
+    if (isSessionEndpoint) {
+      const duration = Date.now() - startTime;
+      const responseClone = response?.clone();
+      let sessionData = null;
+      try {
+        if (responseClone) {
+          sessionData = await responseClone.json();
+        }
+      } catch {}
+      try {
+        await fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'route.ts:27',message:'session API GET request completed',data:{url,duration,status:response?.status,hasSession:!!sessionData?.user,userId:sessionData?.user?.id,isNetlify:!!process.env.NETLIFY},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H6'})}).catch(()=>{});
+      } catch {}
+    }
+    // #endregion
     // Ensure we have a valid response
     if (!response) {
       logger.error('NextAuth GET - No response from handler');

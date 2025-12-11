@@ -10,6 +10,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     // Check logout flag on mount and when it changes
     const checkLogoutFlag = () => {
       const logoutFlag = localStorage.getItem('auth-logout-flag');
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SessionProvider.tsx:13',message:'checkLogoutFlag called',data:{logoutFlag,shouldRefetch:!logoutFlag},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2'})}).catch(()=>{});
+      // #endregion
       setShouldRefetch(!logoutFlag);
     };
 
@@ -33,6 +36,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       clearInterval(interval);
     };
   }, []);
+
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'SessionProvider.tsx:37',message:'SessionProvider render with refetch config',data:{shouldRefetch,refetchInterval:shouldRefetch?3*60:0,refetchOnWindowFocus:shouldRefetch},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2'})}).catch(()=>{});
+  }, [shouldRefetch]);
+  // #endregion
 
   return (
     <NextAuthSessionProvider

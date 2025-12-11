@@ -1,12 +1,42 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Menu, X, LayoutDashboard, LogOut, LogIn } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { UserRole } from '@prisma/client';
 import { broadcastLogout } from '@/components/providers/LogoutSync';
+
+// #region agent log
+// Intercept fetch calls to session endpoint to track timing
+if (typeof window !== 'undefined' && !(window as any).__sessionFetchIntercepted) {
+  (window as any).__sessionFetchIntercepted = true;
+  const originalFetch = window.fetch;
+  window.fetch = async function(...args) {
+    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
+    const isSessionEndpoint = url.includes('/api/auth/session');
+    if (isSessionEndpoint) {
+      const startTime = Date.now();
+      try {
+        await fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:fetch-interceptor',message:'session fetch started',data:{url,startTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H6'})}).catch(()=>{});
+      } catch {}
+      const response = await originalFetch.apply(this, args);
+      const duration = Date.now() - startTime;
+      try {
+        const clone = response.clone();
+        let sessionData = null;
+        try {
+          sessionData = await clone.json();
+        } catch {}
+        await fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:fetch-interceptor',message:'session fetch completed',data:{url,duration,status:response.status,hasSession:!!sessionData?.user,userId:sessionData?.user?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H6'})}).catch(()=>{});
+      } catch {}
+      return response;
+    }
+    return originalFetch.apply(this, args);
+  };
+}
+// #endregion
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,17 +45,67 @@ export function Navbar() {
   const isHomePage = pathname === '/';
   const { data: session, status } = useSession();
   const [isStableAuthenticated, setIsStableAuthenticated] = useState(false);
+  const unauthenticatedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:16',message:'useSession values changed',data:{status,hasSession:!!session,hasUser:!!session?.user,userId:session?.user?.id,userEmail:session?.user?.email},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4'})}).catch(()=>{});
+  }, [status, session]);
+  // #endregion
   
   // Stabilize authentication state to prevent flickering
   // Only update when status actually changes from loading to authenticated/unauthenticated
+  // Improved: Add debounce for 'unauthenticated' state to handle brief transitions during refetches
   useEffect(() => {
+    // Clear any pending timeout
+    if (unauthenticatedTimeoutRef.current) {
+      clearTimeout(unauthenticatedTimeoutRef.current);
+      unauthenticatedTimeoutRef.current = null;
+    }
+    
+    // #region agent log
+    const prevStable = isStableAuthenticated;
+    const willSetTrue = status === 'authenticated' && session?.user;
+    const willSetFalse = status === 'unauthenticated';
+    const isCurrentlyLoading = status === 'loading';
+    fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:21',message:'stabilize effect running',data:{status,hasSession:!!session,hasUser:!!session?.user,prevStable,willSetTrue,willSetFalse,isCurrentlyLoading,condition1:status==='authenticated',condition2:!!session?.user},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4,H5,H6'})}).catch(()=>{});
+    // #endregion
+    
     if (status === 'authenticated' && session?.user) {
+      // Immediately set to true when authenticated
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:23',message:'setting isStableAuthenticated to true',data:{prevStable,newValue:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4,H5,H6'})}).catch(()=>{});
+      // #endregion
       setIsStableAuthenticated(true);
     } else if (status === 'unauthenticated') {
-      setIsStableAuthenticated(false);
+      // Debounce setting to false - wait 200ms to see if status changes back
+      // This handles brief 'unauthenticated' states during slow network refetches on Netlify
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:25',message:'debouncing unauthenticated state',data:{prevStable},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4,H5,H6'})}).catch(()=>{});
+      // #endregion
+      unauthenticatedTimeoutRef.current = setTimeout(() => {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:25',message:'setting isStableAuthenticated to false after debounce',data:{prevStable,newValue:false},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4,H5,H6'})}).catch(()=>{});
+        // #endregion
+        setIsStableAuthenticated(false);
+        unauthenticatedTimeoutRef.current = null;
+      }, 200);
     }
     // Don't update during 'loading' state to prevent flickering
-  }, [status, session?.user]);
+    // If we're already authenticated and status becomes 'loading', keep the authenticated state
+    
+    return () => {
+      if (unauthenticatedTimeoutRef.current) {
+        clearTimeout(unauthenticatedTimeoutRef.current);
+      }
+    };
+  }, [status, session?.user, isStableAuthenticated]);
+  
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:31',message:'isStableAuthenticated changed',data:{isStableAuthenticated,status,hasSession:!!session,hasUser:!!session?.user},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4,H5'})}).catch(()=>{});
+  }, [isStableAuthenticated, status, session]);
+  // #endregion
   
   // Use stable authenticated state
   const isAuthenticated = isStableAuthenticated;
