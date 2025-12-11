@@ -14,7 +14,14 @@ if (typeof window !== 'undefined' && !(window as any).__sessionFetchIntercepted)
   (window as any).__sessionFetchIntercepted = true;
   const originalFetch = window.fetch;
   window.fetch = async function(...args) {
-    const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
+    let url = '';
+    if (typeof args[0] === 'string') {
+      url = args[0];
+    } else if (args[0] instanceof URL) {
+      url = args[0].href;
+    } else if (args[0] instanceof Request) {
+      url = args[0].url;
+    }
     const isSessionEndpoint = url.includes('/api/auth/session');
     if (isSessionEndpoint) {
       const startTime = Date.now();
