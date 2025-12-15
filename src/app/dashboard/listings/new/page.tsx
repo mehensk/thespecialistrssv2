@@ -292,13 +292,6 @@ export default function NewListingPage() {
         <h1 className="text-2xl font-semibold text-[#111111]">Create New Listing</h1>
       </div>
 
-      {/* Error notification - positioned under the heading */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md mb-4 text-sm">
-          {error}
-        </div>
-      )}
-
       <div className="w-full md:max-w-5xl mx-auto bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information Section */}
@@ -735,6 +728,13 @@ export default function NewListingPage() {
               })}
             </div>
           </div>
+
+          {/* Error notification */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md mb-4 text-sm">
+              {error}
+            </div>
+          )}
 
           {/* Submit Buttons */}
           <div className="flex items-center gap-3 pt-3 border-t border-[#E5E7EB]">

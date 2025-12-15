@@ -394,19 +394,6 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         <h1 className="text-3xl font-semibold text-[#111111]">Edit Listing</h1>
       </div>
 
-      {/* Notification bars - positioned under the heading */}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6 flex items-center gap-2">
-          <CheckCircle size={20} />
-          <span>Listing updated successfully! Redirecting to your listings...</span>
-        </div>
-      )}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-          {error}
-        </div>
-      )}
-
       <div className="w-full md:max-w-5xl mx-auto bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information Section */}
@@ -846,6 +833,19 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
               })}
             </div>
           </div>
+
+          {/* Notification bars */}
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6 flex items-center gap-2">
+              <CheckCircle size={20} />
+              <span>Listing updated successfully! Redirecting to your listings...</span>
+            </div>
+          )}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+              {error}
+            </div>
+          )}
 
           {/* Submit Buttons */}
           <div className="flex items-center gap-4 pt-4 border-t border-[#E5E7EB]">

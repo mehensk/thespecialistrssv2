@@ -193,18 +193,6 @@ export default function NewBlogPage() {
       </div>
 
       <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6 flex items-center gap-2">
-            <CheckCircle size={20} />
-            <span>Blog post created successfully! Redirecting to your blogs...</span>
-          </div>
-        )}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-            {error}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-[#111111] mb-2">
@@ -357,6 +345,19 @@ export default function NewBlogPage() {
               </div>
             )}
           </div>
+
+          {/* Success/Error Messages */}
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6 flex items-center gap-2">
+              <CheckCircle size={20} />
+              <span>Blog post created successfully! Redirecting to your blogs...</span>
+            </div>
+          )}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+              {error}
+            </div>
+          )}
 
           <div className="flex items-center gap-4 pt-4">
             <button

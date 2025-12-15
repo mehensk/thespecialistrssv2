@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Premium Realty - Your Trusted Property Partner</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      background: #ffffff; 
+      color: #1a1a1a; 
+      line-height: 1.6;
+    }
+    
+    /* Header */
+    header {
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 0;
+    }
+    nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-links a {
+      color: #475569;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover {
+      color: #0f172a;
+    }
+    
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+      color: #ffffff;
+      padding: 100px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1600&q=80') center/cover;
+      opacity: 0.15;
+      z-index: 0;
+    }
+    .hero .wrapper {
+      position: relative;
+      z-index: 1;
+    }
+    .hero-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .hero h1 {
+      font-size: 56px;
+      font-weight: 800;
+      margin: 0 0 24px;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    .hero p {
+      font-size: 20px;
+      color: #e2e8f0;
+      margin: 0 0 32px;
+      line-height: 1.6;
+    }
+    .hero-image {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .hero-image img {
+      width: 100%;
+      height: 400px;
+      object-fit: cover;
+      display: block;
+    }
+    .btn-group {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 14px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #3b82f6;
+      color: #ffffff;
+      border-color: #3b82f6;
+    }
+    .btn-primary:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: #ffffff;
+      border-color: #ffffff;
+    }
+    .btn-secondary:hover {
+      background: #ffffff;
+      color: #0f172a;
+    }
+    .btn-outline {
+      background: transparent;
+      color: #3b82f6;
+      border-color: #3b82f6;
+    }
+    .btn-outline:hover {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+    
+    /* Sections */
+    .section {
+      padding: 80px 24px;
+    }
+    .section-alt {
+      background: #f8fafc;
+    }
+    .wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .section-header h2 {
+      font-size: 42px;
+      font-weight: 800;
+      margin: 0 0 16px;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
+    .section-header p {
+      font-size: 18px;
+      color: #64748b;
+      margin: 0;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    /* Featured Listing */
+    .featured-listing {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 48px;
+      align-items: center;
+      background: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    }
+    .featured-image {
+      position: relative;
+      height: 100%;
+      min-height: 400px;
+    }
+    .featured-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .featured-badge {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      background: #3b82f6;
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .featured-content {
+      padding: 48px;
+    }
+    .featured-content h3 {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0 0 12px;
+      color: #0f172a;
+    }
+    .featured-location {
+      color: #64748b;
+      font-size: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .featured-price {
+      font-size: 36px;
+      font-weight: 800;
+      color: #3b82f6;
+      margin: 0 0 24px;
+    }
+    .featured-specs {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .spec-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #475569;
+      font-size: 15px;
+    }
+    
+    /* Listing Grid */
+    .listing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 32px;
+      margin-top: 48px;
+    }
+    .listing-card {
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transition: all 0.3s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .listing-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+    }
+    .listing-image {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      overflow: hidden;
+    }
+    .listing-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+    .listing-card:hover .listing-image img {
+      transform: scale(1.05);
+    }
+    .listing-status {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #10b981;
+      color: #ffffff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .listing-body {
+      padding: 20px;
+    }
+    .listing-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: #0f172a;
+    }
+    .listing-location {
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .listing-specs {
+      display: flex;
+      gap: 16px;
+      color: #64748b;
+      font-size: 13px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .listing-price {
+      font-size: 22px;
+      font-weight: 800;
+      color: #3b82f6;
+      margin: 0;
+    }
+    
+    /* About */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .about-content h2 {
+      font-size: 38px;
+      font-weight: 800;
+      margin: 0 0 24px;
+      color: #0f172a;
+    }
+    .about-content p {
+      font-size: 17px;
+      color: #475569;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    .about-image {
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    .about-image img {
+      width: 100%;
+      height: 400px;
+      object-fit: cover;
+      display: block;
+    }
+    
+    /* Testimonials */
+    .testimonial-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+      margin-top: 48px;
+    }
+    .testimonial {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      border-left: 4px solid #3b82f6;
+    }
+    .testimonial-text {
+      font-size: 17px;
+      color: #334155;
+      line-height: 1.7;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .testimonial-author strong {
+      color: #0f172a;
+      font-weight: 600;
+    }
+    .testimonial-author span {
+      color: #64748b;
+      font-size: 14px;
+    }
+    
+    /* FAQ */
+    .faq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 48px;
+    }
+    .faq-item {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 1px solid #e2e8f0;
+    }
+    .faq-question {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0 0 12px;
+    }
+    .faq-answer {
+      color: #64748b;
+      line-height: 1.7;
+      margin: 0;
+    }
+    
+    /* Contact CTA */
+    .contact-cta {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: #ffffff;
+      text-align: center;
+      padding: 80px 24px;
+      border-radius: 20px;
+      margin: 0 24px;
+    }
+    .contact-cta h2 {
+      font-size: 42px;
+      font-weight: 800;
+      margin: 0 0 16px;
+    }
+    .contact-cta p {
+      font-size: 20px;
+      color: #dbeafe;
+      margin: 0 0 32px;
+    }
+    .contact-info {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #ffffff;
+      font-size: 16px;
+    }
+    
+    /* Map */
+    .map-container {
+      height: 400px;
+      background: #e2e8f0;
+      border-radius: 16px;
+      overflow: hidden;
+      margin: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      border: 1px solid #cbd5e1;
+    }
+    
+    /* Footer */
+    footer {
+      background: #0f172a;
+      color: #94a3b8;
+      padding: 60px 24px 32px;
+    }
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+    .footer-brand h3 {
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 16px;
+    }
+    .footer-brand p {
+      color: #64748b;
+      line-height: 1.7;
+      margin: 0;
+    }
+    .footer-links h4 {
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0 0 20px;
+    }
+    .footer-links ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .footer-links li {
+      margin-bottom: 12px;
+    }
+    .footer-links a {
+      color: #94a3b8;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover {
+      color: #ffffff;
+    }
+    .social-links {
+      display: flex;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .social-links a {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .social-links a:hover {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-top: 32px;
+      border-top: 1px solid #1e293b;
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero-content,
+      .featured-listing,
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero h1 {
+        font-size: 36px;
+      }
+      .section-header h2 {
+        font-size: 32px;
+      }
+      .footer-content {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <nav>
+      <a href="/" class="logo">Premium Realty</a>
+      <ul class="nav-links">
+        <li><a href="#listings">Listings</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#testimonials">Testimonials</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrapper">
+      <div class="hero-content">
+        <div>
+          <h1>Find Your Dream Property in the Philippines</h1>
+          <p>Premium real estate services with expert local knowledge. Discover luxury homes, condominiums, and investment properties across Metro Manila, Cebu, and beyond.</p>
+          <div class="btn-group">
+            <a href="#listings" class="btn btn-primary">Explore Listings</a>
+            <a href="#contact" class="btn btn-secondary">Get in Touch</a>
+          </div>
+        </div>
+        <div class="hero-image">
+          <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80" alt="Luxury property" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Listing -->
+  <section class="section">
+    <div class="wrapper">
+      <div class="featured-listing">
+        <div class="featured-image">
+          <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80" alt="Featured property" />
+          <div class="featured-badge">Featured</div>
+        </div>
+        <div class="featured-content">
+          <h3>Coastal Luxury Estate</h3>
+          <div class="featured-location">📍 123 Coastal Drive, Cebu City, Cebu</div>
+          <div class="featured-price">₱12,500,000</div>
+          <div class="featured-specs">
+            <div class="spec-item">🛏️ 3 Bedrooms</div>
+            <div class="spec-item">🚿 2 Bathrooms</div>
+            <div class="spec-item">📐 180 sqm</div>
+            <div class="spec-item">🌊 Ocean View</div>
+          </div>
+          <p style="color: #64748b; line-height: 1.7; margin-bottom: 32px;">
+            Stunning modern home with panoramic ocean views. Features open-plan living, premium finishes, and a private garden. Perfect for families seeking luxury coastal living.
+          </p>
+          <a href="#contact" class="btn btn-primary">Schedule Viewing</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Listing Grid -->
+  <section class="section section-alt" id="listings">
+    <div class="wrapper">
+      <div class="section-header">
+        <h2>Latest Listings</h2>
+        <p>Curated selection of premium properties available now</p>
+      </div>
+      <div class="listing-grid">
+        <a href="/listing/1" class="listing-card">
+          <div class="listing-image">
+            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=80" alt="Ayala Heights Residence" />
+            <div class="listing-status">Active</div>
+          </div>
+          <div class="listing-body">
+            <h3 class="listing-title">Ayala Heights Residence</h3>
+            <div class="listing-location">Quezon City, Metro Manila</div>
+            <div class="listing-specs">
+              <span>4 bed</span>
+              <span>3 bath</span>
+              <span>220 sqm</span>
+            </div>
+            <div class="listing-price">₱18,900,000</div>
+          </div>
+        </a>
+        
+        <a href="/listing/2" class="listing-card">
+          <div class="listing-image">
+            <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&q=80" alt="Serendra Park Loft" />
+            <div class="listing-status">Active</div>
+          </div>
+          <div class="listing-body">
+            <h3 class="listing-title">Serendra Park Loft</h3>
+            <div class="listing-location">BGC, Taguig City</div>
+            <div class="listing-specs">
+              <span>2 bed</span>
+              <span>2 bath</span>
+              <span>120 sqm</span>
+            </div>
+            <div class="listing-price">₱24,500,000</div>
+          </div>
+        </a>
+        
+        <a href="/listing/3" class="listing-card">
+          <div class="listing-image">
+            <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=600&q=80" alt="Cebu Hillside Villa" />
+            <div class="listing-status">Active</div>
+          </div>
+          <div class="listing-body">
+            <h3 class="listing-title">Cebu Hillside Villa</h3>
+            <div class="listing-location">Cebu City, Cebu</div>
+            <div class="listing-specs">
+              <span>3 bed</span>
+              <span>3 bath</span>
+              <span>200 sqm</span>
+            </div>
+            <div class="listing-price">₱14,200,000</div>
+          </div>
+        </a>
+        
+        <a href="/listing/4" class="listing-card">
+          <div class="listing-image">
+            <img src="https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=600&q=80" alt="Makati Skyline Condo" />
+            <div class="listing-status">Active</div>
+          </div>
+          <div class="listing-body">
+            <h3 class="listing-title">Makati Skyline Condo</h3>
+            <div class="listing-location">Makati City, Metro Manila</div>
+            <div class="listing-specs">
+              <span>1 bed</span>
+              <span>1 bath</span>
+              <span>65 sqm</span>
+            </div>
+            <div class="listing-price">₱9,800,000</div>
+          </div>
+        </a>
+        
+        <a href="/listing/5" class="listing-card">
+          <div class="listing-image">
+            <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=600&q=80" alt="Alabang Garden Home" />
+            <div class="listing-status">Active</div>
+          </div>
+          <div class="listing-body">
+            <h3 class="listing-title">Alabang Garden Home</h3>
+            <div class="listing-location">Alabang, Muntinlupa</div>
+            <div class="listing-specs">
+              <span>5 bed</span>
+              <span>4 bath</span>
+              <span>350 sqm</span>
+            </div>
+            <div class="listing-price">₱28,500,000</div>
+          </div>
+        </a>
+        
+        <a href="/listing/6" class="listing-card">
+          <div class="listing-image">
+            <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=600&q=80" alt="Ortigas Penthouse" />
+            <div class="listing-status">Active</div>
+          </div>
+          <div class="listing-body">
+            <h3 class="listing-title">Ortigas Penthouse</h3>
+            <div class="listing-location">Ortigas, Pasig City</div>
+            <div class="listing-specs">
+              <span>3 bed</span>
+              <span>2 bath</span>
+              <span>150 sqm</span>
+            </div>
+            <div class="listing-price">₱16,800,000</div>
+          </div>
+        </a>
+      </div>
+      <div style="text-align: center; margin-top: 48px;">
+        <a href="/listings" class="btn btn-outline">View All Listings</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="section" id="about">
+    <div class="wrapper">
+      <div class="about-grid">
+        <div class="about-content">
+          <h2>About Our Brokerage</h2>
+          <p>With over 15 years of experience in the Philippine real estate market, we specialize in premium residential and investment properties across Metro Manila, Cebu, and key provincial markets.</p>
+          <p>Our team combines deep local expertise with a streamlined, digital-first approach to help clients find their perfect property or maximize their investment returns.</p>
+          <p>We pride ourselves on transparent communication, personalized service, and a commitment to excellence in every transaction.</p>
+        </div>
+        <div class="about-image">
+          <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80" alt="About our brokerage" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="section section-alt" id="testimonials">
+    <div class="wrapper">
+      <div class="section-header">
+        <h2>What Our Clients Say</h2>
+        <p>Real experiences from satisfied property buyers and sellers</p>
+      </div>
+      <div class="testimonial-grid">
+        <div class="testimonial">
+          <div class="testimonial-text">
+            "The entire process was smooth and professional. They helped us find our dream home in BGC within just two weeks. Clear communication every step of the way."
+          </div>
+          <div class="testimonial-author">
+            <div>
+              <strong>Ana Rodriguez</strong>
+              <span>Quezon City</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial">
+          <div class="testimonial-text">
+            "They understood the neighborhood dynamics perfectly and priced our home competitively. We closed faster than expected and got an excellent return on our investment."
+          </div>
+          <div class="testimonial-author">
+            <div>
+              <strong>Luis Martinez</strong>
+              <span>Cebu City</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial">
+          <div class="testimonial-text">
+            "Professional, knowledgeable, and always available. They made buying our first property stress-free. Highly recommend their services to anyone looking in Metro Manila."
+          </div>
+          <div class="testimonial-author">
+            <div>
+              <strong>Maria Santos</strong>
+              <span>Makati City</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section">
+    <div class="wrapper">
+      <div class="section-header">
+        <h2>Frequently Asked Questions</h2>
+        <p>Common questions about our services and the property buying process</p>
+      </div>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h3 class="faq-question">Do you assist with financing?</h3>
+          <p class="faq-answer">Yes, we work with partner banks and financial institutions to help coordinate mortgage applications and requirements. We can guide you through the entire financing process.</p>
+        </div>
+        <div class="faq-item">
+          <h3 class="faq-question">How do I schedule a property viewing?</h3>
+          <p class="faq-answer">Simply use our contact form or call us directly. We typically confirm viewing appointments within one business day and can arrange visits at your convenience.</p>
+        </div>
+        <div class="faq-item">
+          <h3 class="faq-question">Do you handle rental properties?</h3>
+          <p class="faq-answer">Yes, we manage select rental properties in Metro Manila and Cebu. Contact us to see available rental listings and discuss your requirements.</p>
+        </div>
+        <div class="faq-item">
+          <h3 class="faq-question">Can you help me list my property?</h3>
+          <p class="faq-answer">Absolutely. We'll review your property details, provide a market analysis, and propose competitive pricing and marketing strategies to maximize your sale potential.</p>
+        </div>
+        <div class="faq-item">
+          <h3 class="faq-question">What areas do you cover?</h3>
+          <p class="faq-answer">We specialize in Metro Manila (Makati, BGC, Quezon City, Ortigas) and Cebu, with select properties in other key markets. Contact us to discuss your specific area of interest.</p>
+        </div>
+        <div class="faq-item">
+          <h3 class="faq-question">What are your service fees?</h3>
+          <p class="faq-answer">Our fees are competitive and transparent. We'll discuss all costs upfront during our initial consultation. Typically, buyer representation is free, and seller fees are commission-based.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact CTA -->
+  <section class="section section-alt" id="contact">
+    <div class="wrapper">
+      <div class="contact-cta">
+        <h2>Ready to Find Your Perfect Property?</h2>
+        <p>Get in touch with our team today for personalized assistance</p>
+        <div class="contact-info">
+          <div class="contact-item">
+            <span>📞</span>
+            <span>+63 917 000 0000</span>
+          </div>
+          <div class="contact-item">
+            <span>✉️</span>
+            <span>hello@premiumrealty.com</span>
+          </div>
+        </div>
+        <a href="/contact" class="btn btn-secondary">Contact Us Now</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Map -->
+  <section class="section" style="padding-top: 0;">
+    <div class="map-container">
+      <div>📍 Google Maps Embed - Office Location</div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-brand">
+        <h3>Premium Realty</h3>
+        <p>Your trusted partner in Philippine real estate. We connect you with premium properties and provide expert guidance throughout your property journey.</p>
+        <div class="social-links">
+          <a href="#" aria-label="Facebook">📘</a>
+          <a href="#" aria-label="Instagram">📷</a>
+          <a href="#" aria-label="LinkedIn">💼</a>
+          <a href="#" aria-label="Twitter">🐦</a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#listings">All Listings</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#testimonials">Testimonials</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="#">Buy Property</a></li>
+          <li><a href="#">Sell Property</a></li>
+          <li><a href="#">Property Management</a></li>
+          <li><a href="#">Investment Consulting</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/privacy">Privacy Policy</a></li>
+          <li><a href="/terms">Terms of Service</a></li>
+          <li><a href="/disclaimer">Disclaimer</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 Premium Realty. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

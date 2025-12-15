@@ -131,50 +131,6 @@ export default function NewUserPage() {
       </div>
 
       <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-            {error}
-          </div>
-        )}
-
-        {temporaryPassword && (
-          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md mb-6">
-            <p className="font-medium mb-2">✅ User created successfully!</p>
-            <p className="text-sm mb-3">
-              Share this temporary password with the user. They should change it after logging in.
-            </p>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={temporaryPassword}
-                readOnly
-                className="w-full px-4 py-3 pr-20 border border-[#E5E7EB] rounded-md bg-white font-mono text-sm"
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="p-1.5 text-[#111111]/50 hover:text-[#111111] hover:bg-[#F9FAFB] rounded transition-colors"
-                  title="Toggle visibility"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="p-1.5 text-[#111111]/50 hover:text-[#111111] hover:bg-[#F9FAFB] rounded transition-colors"
-                  title="Copy password"
-                >
-                  {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
-                </button>
-              </div>
-            </div>
-            {copied && (
-              <p className="text-xs text-green-600 mt-1">Copied to clipboard!</p>
-            )}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name */}
           <div>
@@ -289,6 +245,51 @@ export default function NewUserPage() {
               </p>
             )}
           </div>
+
+          {/* Error/Success Messages */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+              {error}
+            </div>
+          )}
+
+          {temporaryPassword && (
+            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md mb-6">
+              <p className="font-medium mb-2">✅ User created successfully!</p>
+              <p className="text-sm mb-3">
+                Share this temporary password with the user. They should change it after logging in.
+              </p>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={temporaryPassword}
+                  readOnly
+                  className="w-full px-4 py-3 pr-20 border border-[#E5E7EB] rounded-md bg-white font-mono text-sm"
+                />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="p-1.5 text-[#111111]/50 hover:text-[#111111] hover:bg-[#F9FAFB] rounded transition-colors"
+                    title="Toggle visibility"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="p-1.5 text-[#111111]/50 hover:text-[#111111] hover:bg-[#F9FAFB] rounded transition-colors"
+                    title="Copy password"
+                  >
+                    {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
+                  </button>
+                </div>
+              </div>
+              {copied && (
+                <p className="text-xs text-green-600 mt-1">Copied to clipboard!</p>
+              )}
+            </div>
+          )}
 
           <div className="flex gap-4 pt-4">
             <button

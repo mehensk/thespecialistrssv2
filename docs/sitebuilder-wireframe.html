@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Site Builder Wireframe (MVP)</title>
+  <style>
+    /* Wireframe styling only */
+    body { margin: 0; font-family: Arial, sans-serif; background: #f5f5f5; }
+    header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #1f2937; color: #fff; }
+    header .left, header .right { display: flex; align-items: center; gap: 12px; }
+    main { display: grid; grid-template-columns: 260px 1fr 320px; gap: 12px; padding: 12px; }
+    .panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; min-height: 80vh; box-sizing: border-box; }
+    .panel h3 { margin: 0 0 8px; font-size: 14px; color: #111827; }
+    .list { display: flex; flex-direction: column; gap: 8px; }
+    .item { padding: 10px; border: 1px dashed #d1d5db; border-radius: 6px; background: #f9fafb; font-size: 13px; color: #111827; }
+    .canvas { min-height: 80vh; border: 2px dashed #d1d5db; border-radius: 10px; padding: 12px; background: #fff; }
+    .section-block { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; margin-bottom: 10px; background: #f8fafc; }
+    .section-block .label { font-weight: bold; font-size: 13px; color: #0f172a; }
+    footer { padding: 12px 16px; text-align: right; background: #fff; border-top: 1px solid #e5e7eb; }
+    .btn { padding: 8px 12px; border-radius: 6px; border: 1px solid #d1d5db; background: #111827; color: #fff; font-size: 13px; cursor: pointer; }
+    .btn.secondary { background: #fff; color: #111827; }
+  </style>
+</head>
+<body>
+  <!-- Top bar: brand, site switcher, publish -->
+  <header>
+    <div class="left">
+      <strong>Builder</strong>
+      <select>
+        <option>broker1realty.com</option>
+        <option>another-broker.com</option>
+      </select>
+    </div>
+    <div class="right">
+      <button class="btn secondary">Preview</button>
+      <button class="btn">Publish</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left: palette / pages / listings import -->
+    <aside class="panel">
+      <h3>Pages</h3>
+      <div class="list">
+        <div class="item">Homepage</div>
+        <div class="item">Listings</div>
+        <div class="item">About</div>
+        <div class="item">Contact</div>
+      </div>
+      <h3 style="margin-top:16px;">Sections</h3>
+      <div class="list">
+        <div class="item">Hero</div>
+        <div class="item">Featured Listing</div>
+        <div class="item">Listing Grid</div>
+        <div class="item">About Blurb</div>
+        <div class="item">Testimonials</div>
+        <div class="item">FAQ</div>
+        <div class="item">Contact CTA</div>
+        <div class="item">Map/Embed</div>
+        <div class="item">Footer</div>
+      </div>
+      <h3 style="margin-top:16px;">Listings</h3>
+      <div class="list">
+        <div class="item">Upload CSV / JSON</div>
+        <div class="item">Refresh data</div>
+      </div>
+    </aside>
+
+    <!-- Center: canvas -->
+    <section class="canvas">
+      <div class="section-block">
+        <div class="label">Hero</div>
+        <div class="note">Headline, subhead, CTA button, background image</div>
+      </div>
+      <div class="section-block">
+        <div class="label">Featured Listing</div>
+        <div class="note">Highlight one property (cover image, price, address, CTA)</div>
+      </div>
+      <div class="section-block">
+        <div class="label">Listing Grid</div>
+        <div class="note">N cards (e.g., 6–12) with “View all listings” link</div>
+      </div>
+      <div class="section-block">
+        <div class="label">About Blurb</div>
+        <div class="note">Text + optional portrait/logo</div>
+      </div>
+      <div class="section-block">
+        <div class="label">Testimonials</div>
+        <div class="note">List of quotes (name, role, quote)</div>
+      </div>
+      <div class="section-block">
+        <div class="label">FAQ</div>
+        <div class="note">Accordion of Q/A pairs</div>
+      </div>
+      <div class="section-block">
+        <div class="label">Contact CTA</div>
+        <div class="note">CTA button; links to contact form page</div>
+      </div>
+      <div class="section-block">
+        <div class="label">Map/Embed</div>
+        <div class="note">Map iframe or embed URL</div>
+      </div>
+      <div class="section-block">
+        <div class="label">Footer</div>
+        <div class="note">Logo, contact info, social links</div>
+      </div>
+    </section>
+
+    <!-- Right: inspector / theme / section settings -->
+    <aside class="panel">
+      <h3>Section Settings</h3>
+      <div class="list">
+        <div class="item">Background: solid / gradient / image</div>
+        <div class="item">Alignment: left / center</div>
+        <div class="item">Buttons: primary / secondary</div>
+        <div class="item">Padding: compact / comfortable</div>
+      </div>
+      <h3 style="margin-top:16px;">Theme</h3>
+      <div class="list">
+        <div class="item">Colors: primary, secondary, text, background</div>
+        <div class="item">Typography: heading + body presets</div>
+        <div class="item">Logo upload</div>
+        <div class="item">Favicon upload</div>
+      </div>
+      <h3 style="margin-top:16px;">SEO</h3>
+      <div class="list">
+        <div class="item">Meta title</div>
+        <div class="item">Meta description</div>
+        <div class="item">Open graph image</div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <button class="btn secondary">Discard</button>
+    <button class="btn">Save Draft</button>
+  </footer>
+</body>
+</html>
+

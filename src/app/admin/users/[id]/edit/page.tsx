@@ -142,18 +142,6 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
       </div>
 
       <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
-        {error && !success && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6">
-            User updated successfully! Redirecting...
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Name */}
           <div>
@@ -216,6 +204,19 @@ export default function EditUserPage({ params }: { params: Promise<{ id: string 
               Select the user's role and permissions
             </p>
           </div>
+
+          {/* Error/Success Messages */}
+          {error && !success && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6">
+              User updated successfully! Redirecting...
+            </div>
+          )}
 
           <div className="flex gap-4 pt-4">
             <button

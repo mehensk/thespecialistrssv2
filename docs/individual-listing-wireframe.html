@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coastal Luxury Estate - Premium Realty</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      background: #ffffff; 
+      color: #1a1a1a; 
+      line-height: 1.6;
+    }
+    
+    /* Header */
+    header {
+      background: #ffffff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 0;
+    }
+    nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-links a {
+      color: #475569;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover {
+      color: #0f172a;
+    }
+    
+    /* Breadcrumb */
+    .breadcrumb {
+      background: #f8fafc;
+      padding: 16px 24px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .breadcrumb-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 14px;
+      color: #64748b;
+    }
+    .breadcrumb a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Main Content */
+    .listing-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+    
+    /* Image Gallery */
+    .image-gallery {
+      margin-bottom: 48px;
+    }
+    .main-image {
+      width: 100%;
+      height: 500px;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .main-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .image-thumbnails {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+    }
+    .thumbnail {
+      width: 100%;
+      height: 100px;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .thumbnail:hover {
+      border-color: #3b82f6;
+    }
+    .thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .thumbnail.active {
+      border-color: #3b82f6;
+    }
+    
+    /* Content Grid */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+    
+    /* Main Info */
+    .main-info h1 {
+      font-size: 42px;
+      font-weight: 800;
+      margin: 0 0 12px;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
+    .listing-location {
+      font-size: 18px;
+      color: #64748b;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .listing-price {
+      font-size: 48px;
+      font-weight: 800;
+      color: #3b82f6;
+      margin: 0 0 32px;
+    }
+    .listing-specs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      padding: 32px;
+      background: #f8fafc;
+      border-radius: 16px;
+      margin-bottom: 32px;
+    }
+    .spec-item {
+      text-align: center;
+    }
+    .spec-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .spec-label {
+      font-size: 14px;
+      color: #64748b;
+    }
+    .listing-status {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    .status-active {
+      background: #10b981;
+      color: #ffffff;
+    }
+    
+    /* Description */
+    .description-section {
+      margin-bottom: 48px;
+    }
+    .description-section h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 20px;
+      color: #0f172a;
+    }
+    .description-section p {
+      font-size: 17px;
+      color: #475569;
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+    
+    /* Features */
+    .features-section {
+      margin-bottom: 48px;
+    }
+    .features-section h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 24px;
+      color: #0f172a;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+    .feature-icon {
+      font-size: 20px;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      position: sticky;
+      top: 100px;
+      height: fit-content;
+    }
+    .contact-card {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .contact-card h3 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 20px;
+      color: #0f172a;
+    }
+    .contact-info {
+      margin-bottom: 24px;
+    }
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      color: #475569;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      text-align: center;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      margin-bottom: 12px;
+    }
+    .btn-primary {
+      background: #3b82f6;
+      color: #ffffff;
+      border-color: #3b82f6;
+    }
+    .btn-primary:hover {
+      background: #2563eb;
+      border-color: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: #3b82f6;
+      border-color: #3b82f6;
+    }
+    .btn-secondary:hover {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+    
+    /* Property Details */
+    .details-card {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 32px;
+    }
+    .details-card h3 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 24px;
+      color: #0f172a;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+    .detail-label {
+      color: #64748b;
+      font-weight: 500;
+    }
+    .detail-value {
+      color: #0f172a;
+      font-weight: 600;
+    }
+    
+    /* Map Section */
+    .map-section {
+      margin-top: 48px;
+      margin-bottom: 48px;
+    }
+    .map-section h2 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 24px;
+      color: #0f172a;
+    }
+    .map-container {
+      height: 400px;
+      background: #e2e8f0;
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      border: 1px solid #cbd5e1;
+    }
+    
+    /* Similar Listings */
+    .similar-section {
+      margin-top: 80px;
+      padding-top: 48px;
+      border-top: 2px solid #e2e8f0;
+    }
+    .similar-section h2 {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0 0 32px;
+      color: #0f172a;
+    }
+    .similar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 32px;
+    }
+    .similar-card {
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transition: all 0.3s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    .similar-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+    }
+    .similar-image {
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+    }
+    .similar-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .similar-body {
+      padding: 20px;
+    }
+    .similar-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: #0f172a;
+    }
+    .similar-location {
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .similar-price {
+      font-size: 22px;
+      font-weight: 800;
+      color: #3b82f6;
+      margin: 0;
+    }
+    
+    /* Footer */
+    footer {
+      background: #0f172a;
+      color: #94a3b8;
+      padding: 60px 24px 32px;
+      margin-top: 80px;
+    }
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .footer-bottom {
+      padding-top: 32px;
+      border-top: 1px solid #1e293b;
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+    }
+    
+    @media (max-width: 968px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+      .listing-specs {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static;
+      }
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <nav>
+      <a href="/" class="logo">Premium Realty</a>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/listings">Listings</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <div class="breadcrumb-content">
+      <a href="/">Home</a>
+      <span>/</span>
+      <a href="/listings">Listings</a>
+      <span>/</span>
+      <span>Coastal Luxury Estate</span>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="listing-container">
+    <!-- Image Gallery -->
+    <div class="image-gallery">
+      <div class="main-image">
+        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80" alt="Coastal Luxury Estate" id="mainImage" />
+      </div>
+      <div class="image-thumbnails">
+        <div class="thumbnail active" onclick="changeImage('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80')">
+          <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=300&q=80" alt="Exterior" />
+        </div>
+        <div class="thumbnail" onclick="changeImage('https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1200&q=80')">
+          <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=300&q=80" alt="Living Room" />
+        </div>
+        <div class="thumbnail" onclick="changeImage('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80')">
+          <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=300&q=80" alt="Kitchen" />
+        </div>
+        <div class="thumbnail" onclick="changeImage('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80')">
+          <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=300&q=80" alt="Bedroom" />
+        </div>
+        <div class="thumbnail" onclick="changeImage('https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=1200&q=80')">
+          <img src="https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=300&q=80" alt="Bathroom" />
+        </div>
+        <div class="thumbnail" onclick="changeImage('https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1200&q=80')">
+          <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=300&q=80" alt="Garden" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+      <!-- Main Info -->
+      <div class="main-info">
+        <div class="listing-status status-active">Active</div>
+        <h1>Coastal Luxury Estate</h1>
+        <div class="listing-location">📍 123 Coastal Drive, Cebu City, Cebu 6000</div>
+        <div class="listing-price">₱12,500,000</div>
+        
+        <div class="listing-specs">
+          <div class="spec-item">
+            <div class="spec-value">3</div>
+            <div class="spec-label">Bedrooms</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-value">2</div>
+            <div class="spec-label">Bathrooms</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-value">180</div>
+            <div class="spec-label">Square Meters</div>
+          </div>
+          <div class="spec-item">
+            <div class="spec-value">2020</div>
+            <div class="spec-label">Year Built</div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="description-section">
+          <h2>Property Description</h2>
+          <p>
+            Stunning modern home with panoramic ocean views. This exceptional property features open-plan living spaces, premium finishes throughout, and a private landscaped garden perfect for entertaining or relaxation.
+          </p>
+          <p>
+            The main living area boasts floor-to-ceiling windows that flood the space with natural light and offer breathtaking views of the coastline. The gourmet kitchen features high-end appliances, custom cabinetry, and a large island perfect for meal preparation and casual dining.
+          </p>
+          <p>
+            The master suite includes a walk-in closet and luxurious ensuite bathroom with dual vanities and a soaking tub. Two additional bedrooms share a well-appointed bathroom. The property also includes a dedicated home office space and a two-car garage.
+          </p>
+          <p>
+            Located in a prestigious coastal community with 24/7 security, this home offers the perfect blend of luxury, comfort, and natural beauty. Walking distance to beaches, restaurants, and shopping.
+          </p>
+        </div>
+
+        <!-- Features -->
+        <div class="features-section">
+          <h2>Key Features</h2>
+          <div class="features-grid">
+            <div class="feature-item">
+              <span class="feature-icon">🌊</span>
+              <span>Ocean View</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🏊</span>
+              <span>Private Pool</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🚗</span>
+              <span>2-Car Garage</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🌳</span>
+              <span>Landscaped Garden</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🔒</span>
+              <span>Gated Community</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">💼</span>
+              <span>Home Office</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🍳</span>
+              <span>Gourmet Kitchen</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🛡️</span>
+              <span>24/7 Security</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="contact-card">
+          <h3>Contact Agent</h3>
+          <div class="contact-info">
+            <div class="contact-item">
+              <span>👤</span>
+              <span><strong>Maria Santos</strong><br>Licensed Real Estate Broker</span>
+            </div>
+            <div class="contact-item">
+              <span>📞</span>
+              <span>+63 917 000 0000</span>
+            </div>
+            <div class="contact-item">
+              <span>✉️</span>
+              <span>maria@premiumrealty.com</span>
+            </div>
+          </div>
+          <a href="/contact" class="btn btn-primary">Schedule Viewing</a>
+          <a href="/contact" class="btn btn-secondary">Send Message</a>
+        </div>
+
+        <div class="details-card">
+          <h3>Property Details</h3>
+          <div class="detail-row">
+            <span class="detail-label">Property Type</span>
+            <span class="detail-value">House</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status</span>
+            <span class="detail-value">Active</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Lot Size</span>
+            <span class="detail-value">250 sqm</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Floor Area</span>
+            <span class="detail-value">180 sqm</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Parking</span>
+            <span class="detail-value">2 Cars</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Year Built</span>
+            <span class="detail-value">2020</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Furnished</span>
+            <span class="detail-value">Partially</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div class="map-section">
+      <h2>Location</h2>
+      <div class="map-container">
+        📍 Google Maps Embed - 123 Coastal Drive, Cebu City
+      </div>
+    </div>
+
+    <!-- Similar Listings -->
+    <div class="similar-section">
+      <h2>Similar Properties</h2>
+      <div class="similar-grid">
+        <a href="/listing/2" class="similar-card">
+          <div class="similar-image">
+            <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&q=80" alt="Serendra Park Loft" />
+          </div>
+          <div class="similar-body">
+            <h3 class="similar-title">Serendra Park Loft</h3>
+            <div class="similar-location">BGC, Taguig City</div>
+            <div class="similar-price">₱24,500,000</div>
+          </div>
+        </a>
+        <a href="/listing/3" class="similar-card">
+          <div class="similar-image">
+            <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=600&q=80" alt="Cebu Hillside Villa" />
+          </div>
+          <div class="similar-body">
+            <h3 class="similar-title">Cebu Hillside Villa</h3>
+            <div class="similar-location">Cebu City, Cebu</div>
+            <div class="similar-price">₱14,200,000</div>
+          </div>
+        </a>
+        <a href="/listing/5" class="similar-card">
+          <div class="similar-image">
+            <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=600&q=80" alt="Alabang Garden Home" />
+          </div>
+          <div class="similar-body">
+            <h3 class="similar-title">Alabang Garden Home</h3>
+            <div class="similar-location">Alabang, Muntinlupa</div>
+            <div class="similar-price">₱28,500,000</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <p>&copy; 2025 Premium Realty. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function changeImage(src) {
+      document.getElementById('mainImage').src = src;
+      document.querySelectorAll('.thumbnail').forEach(thumb => {
+        thumb.classList.remove('active');
+      });
+      event.currentTarget.classList.add('active');
+    }
+  </script>
+</body>
+</html>
+

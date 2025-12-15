@@ -306,24 +306,6 @@ function ContactPageContent() {
                     Send us a Message
                   </h2>
                   
-                  {/* Success Message */}
-                  {submitSuccess && (
-                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-                      <CheckCircle2 size={20} className="text-green-600 flex-shrink-0" />
-                      <p className="text-green-800 text-sm">
-                        Thank you! Your message has been sent successfully. We'll get back to you soon.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Error Message */}
-                  {submitError && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
-                      <AlertCircle size={20} className="text-red-600 flex-shrink-0" />
-                      <p className="text-red-800 text-sm">{submitError}</p>
-                    </div>
-                  )}
-
                   <form className="space-y-6" onSubmit={handleSubmit}>
                     {/* Full Name */}
                     <div>
@@ -424,6 +406,23 @@ function ContactPageContent() {
                         </span>
                       </label>
                     </div>
+
+                    {/* Success/Error Messages */}
+                    {submitSuccess && (
+                      <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
+                        <CheckCircle2 size={20} className="text-green-600 flex-shrink-0" />
+                        <p className="text-green-800 text-sm">
+                          Thank you! Your message has been sent successfully. We'll get back to you soon.
+                        </p>
+                      </div>
+                    )}
+
+                    {submitError && (
+                      <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+                        <AlertCircle size={20} className="text-red-600 flex-shrink-0" />
+                        <p className="text-red-800 text-sm">{submitError}</p>
+                      </div>
+                    )}
 
                     {/* Submit Button */}
                     <div className="pt-4">
