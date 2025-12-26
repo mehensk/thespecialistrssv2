@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import { UserRole } from '@prisma/client';
 import { prisma, dbQuery } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
+import { getAuthenticatedUser, hasRequiredRole } from '@/lib/auth-helpers';
 import sharp from 'sharp';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
@@ -17,122 +16,20 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
 export async function POST(request: NextRequest) {
   try {
-    // Get token directly from JWT (more reliable than auth() in API routes)
-    // Retry multiple times for serverless cookie timing issues
-    let token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-
-    // If token not found, retry with increasing delays (serverless cookie timing)
-    if (!token || !token.id) {
-      const maxRetries = 5; // Increased retries
-      let retryCount = 0;
-      
-      while ((!token || !token.id) && retryCount < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, 200 * (retryCount + 1))); // Increasing delay: 200ms, 400ms, 600ms, 800ms, 1000ms
-        token = await getToken({
-          req: request,
-          secret: process.env.NEXTAUTH_SECRET,
-        });
-        retryCount++;
-      }
-    }
-
-    // Check if token exists - if not, try auth() as fallback (more robust for serverless)
-    let userId: string | undefined = token?.id as string | undefined;
-    let userRole: UserRole | string | undefined = token?.role as UserRole | string | undefined;
+    // Get authenticated user using centralized helper
+    const user = await getAuthenticatedUser(request);
     
-    // Log token state for debugging
-    logger.debug('Upload API: Token check', {
-      hasToken: !!token,
-      hasTokenId: !!token?.id,
-      hasTokenRole: !!token?.role,
-      tokenKeys: token ? Object.keys(token) : [],
-    });
-    
-    if (!token || !token.id) {
-      logger.debug('Upload API: Token missing after retries, trying auth() fallback');
-      try {
-        const session = await auth();
-        logger.debug('Upload API: auth() result', {
-          hasSession: !!session,
-          hasSessionUser: !!session?.user,
-          hasSessionUserId: !!session?.user?.id,
-          hasSessionUserRole: !!session?.user?.role,
-        });
-        
-        if (session?.user?.id && session.user.role) {
-          userId = session.user.id;
-          userRole = session.user.role;
-          logger.debug('Upload API: Successfully got user from auth() fallback', {
-            userId,
-            userRole,
-          });
-        } else {
-          // Log cookies for debugging
-          const cookieHeader = request.headers.get('cookie');
-          logger.debug('Upload unauthorized - missing token and auth() fallback failed:', {
-            hasToken: !!token,
-            hasTokenId: !!token?.id,
-            hasSession: !!session,
-            hasSessionUser: !!session?.user,
-            hasSessionUserId: !!session?.user?.id,
-            hasSessionUserRole: !!session?.user?.role,
-            hasCookieHeader: !!cookieHeader,
-            cookieHeaderLength: cookieHeader?.length || 0,
-          });
-          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-      } catch (authError) {
-        logger.error('Upload API: Failed to get session from auth() fallback:', authError);
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+    if (!user) {
+      logger.debug('Upload unauthorized: No valid authentication found');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // If role is missing from token/session, fetch from database
-    if (!userRole && userId) {
-      try {
-        // Use dbQuery wrapper for automatic retry on connection failures
-        const user = await dbQuery(() =>
-          prisma.user.findUnique({
-            where: { id: userId },
-            select: { role: true },
-          })
-        );
-        if (user) {
-          userRole = user.role;
-        } else {
-          logger.debug('Upload unauthorized - user not found:', {
-            userId,
-          });
-          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-      } catch (error) {
-        logger.error('Error fetching user role:', error);
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-    }
-
-    // Allow authenticated users (ADMIN, AGENT, WRITER) to upload images
-    // All these roles need to upload images for their content
+    // Check if user has required role
     const allowedRoles = [UserRole.ADMIN, UserRole.AGENT, UserRole.WRITER];
-    
-    // Check role (handle both enum and string comparisons)
-    const roleString = String(userRole || '').toUpperCase();
-    const isAllowedRole = userRole && (
-      allowedRoles.includes(userRole as UserRole) ||
-      roleString === 'ADMIN' || 
-      roleString === 'AGENT' || 
-      roleString === 'WRITER'
-    );
-    
-    if (!isAllowedRole) {
+    if (!hasRequiredRole(user, allowedRoles)) {
       logger.debug('Upload unauthorized - invalid role:', {
-        userId,
-        userRole,
-        userRoleType: typeof userRole,
-        roleString,
+        userId: user.id,
+        userRole: user.role,
         allowedRoles,
       });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -296,4 +193,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

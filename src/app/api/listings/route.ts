@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
-import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { ActivityAction, Prisma, UserRole } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
@@ -9,6 +7,7 @@ import { randomUUID } from 'crypto';
 import { logger } from '@/lib/logger';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS, getCachedListings } from '@/lib/cache';
+import { getAuthenticatedUser, hasRequiredRole } from '@/lib/auth-helpers';
 
 // Generate a unique property ID using timestamp and UUID
 function generatePropertyId(): string {
@@ -20,20 +19,17 @@ function generatePropertyId(): string {
 
 export async function GET(request: NextRequest) {
   try {
-    // Get token directly from request (more reliable in serverless environments)
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    // Try to get authenticated user, but don't fail if not present
+    // This endpoint is public - no authentication required
+    const user = await getAuthenticatedUser(request);
     
-    const user = token?.id ? { id: token.id as string, role: token.role as UserRole } : null;
     const searchParams = request.nextUrl.searchParams;
     const published = searchParams.get('published');
     const limit = searchParams.get('limit');
     const offset = searchParams.get('offset');
 
-    // Use cached data for published listings
-    if (published === 'true' || (!user || !user.id)) {
+    // Use cached data for published listings or unauthenticated users
+    if (published === 'true' || !user) {
       const take = limit ? safeParseInt(limit, 1, 100) ?? undefined : undefined;
       const skip = offset ? safeParseInt(offset, 0) ?? undefined : undefined;
       
@@ -46,7 +42,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ listings }, { headers });
     }
 
-    // For authenticated users viewing their own listings, use direct query
+    // For authenticated users, show all published listings plus their own unpublished ones
     const where: Prisma.ListingWhereInput = {
       OR: [
         { isPublished: true },
@@ -104,64 +100,32 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get token directly from request - getToken() should handle cookies automatically
-    // On Netlify, cookies are named __Secure-authjs.session-token (HTTPS)
-    // getToken() should automatically find them
-    let token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-
-    // If token not found, try auth() as fallback (works better in some serverless environments)
-    if (!token || !token.id) {
-      try {
-        const session = await auth();
-        if (session?.user?.id) {
-          // Use session data - this is more reliable on Netlify
-          token = {
-            id: session.user.id,
-            role: session.user.role,
-          } as any;
-        }
-      } catch (authError) {
-        // auth() failed, continue with token check below
-      }
-    }
-
-    // Final check - if still no token, return error with detailed logging
-    if (!token || !token.id) {
-      // Extract cookie info for debugging
-      const cookieHeader = request.headers.get('cookie') || '';
-      const cookies = cookieHeader ? cookieHeader.split(';').map(c => c.trim()) : [];
-      const sessionCookies = cookies.filter(c => 
-        c.includes('authjs.session-token') || 
-        c.includes('__Secure-authjs.session-token')
-      );
-      
-      logger.error('Listing creation unauthorized - token not found', {
-        hasToken: !!token,
-        hasTokenId: !!token?.id,
-        cookieHeaderPresent: !!cookieHeader,
-        cookieCount: cookies.length,
-        sessionCookieCount: sessionCookies.length,
-        sessionCookieNames: sessionCookies.map(c => c.split('=')[0]),
-        nodeEnv: process.env.NODE_ENV,
-        nextAuthUrl: process.env.NEXTAUTH_URL,
-        requestUrl: request.url,
-      });
-      
+    // Get authenticated user using centralized helper
+    const user = await getAuthenticatedUser(request);
+    
+    if (!user) {
+      logger.debug('Listing creation unauthorized: No valid authentication found');
       return NextResponse.json({ 
         error: 'Unauthorized',
         details: process.env.NODE_ENV === 'development' 
-          ? 'Token not found. Please ensure you are logged in and cookies are enabled.' 
+          ? 'Authentication required. Please ensure you are logged in.' 
           : undefined
       }, { status: 401 });
     }
-
-    const user = {
-      id: token.id as string,
-      role: token.role as UserRole,
-    };
+    
+    // Check if user has permission to create listings
+    const allowedRoles = [UserRole.ADMIN, UserRole.AGENT];
+    if (!hasRequiredRole(user, allowedRoles)) {
+      logger.debug('Listing creation unauthorized - insufficient permissions', {
+        userId: user.id,
+        userRole: user.role,
+        allowedRoles,
+      });
+      return NextResponse.json({ 
+        error: 'Unauthorized',
+        details: 'You do not have permission to create listings.',
+      }, { status: 403 });
+    }
 
     const body = await request.json();
 
@@ -267,4 +231,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

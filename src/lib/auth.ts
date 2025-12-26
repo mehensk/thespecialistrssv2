@@ -104,18 +104,22 @@ const authOptions = {
 
       // On initial login, set timestamps
       if (user) {
-        // Only log in development to avoid performance impact
-        if (process.env.NODE_ENV === 'development') {
-          console.log('=== JWT callback: Initial login ===', {
-            userId: user.id,
-            userRole: user.role,
-          });
-        }
+        // CRITICAL: Always set role in token to avoid database queries later
         token.id = user.id;
         token.role = user.role;
         token.iat = Math.floor(now / 1000); // Issued at time (seconds)
         token.lastActivity = now; // Last activity time (milliseconds)
         token.serverStartTime = serverStartTime; // Server start time when token was issued
+        
+        // Log successful token creation in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log('=== JWT callback: Token created ===', {
+            userId: user.id,
+            userRole: user.role,
+            iat: token.iat,
+            hasRole: !!token.role,
+          });
+        }
         return token;
       }
 
@@ -131,35 +135,39 @@ const authOptions = {
       }
 
       // Set missing timestamp fields if they don't exist (for legacy tokens)
-      // IMPORTANT: Always set lastActivity if missing to prevent middleware from redirecting
-      // This is especially important in serverless environments where tokens might not have this field
+      // IMPORTANT: Always set these fields to prevent authentication issues
       if (!token.lastActivity) {
         if (process.env.NODE_ENV === 'development') {
-          console.log('JWT callback: Setting missing lastActivity');
+          console.log('JWT callback: Setting missing lastActivity (legacy token)');
         }
-        // Set to current time to prevent immediate timeout
         token.lastActivity = now;
       }
       if (!token.serverStartTime) {
         if (process.env.NODE_ENV === 'development') {
-          console.log('JWT callback: Setting missing serverStartTime');
+          console.log('JWT callback: Setting missing serverStartTime (legacy token)');
         }
         token.serverStartTime = getServerStartTime();
       }
       if (!token.iat) {
         if (process.env.NODE_ENV === 'development') {
-          console.log('JWT callback: Setting missing iat');
+          console.log('JWT callback: Setting missing iat (legacy token)');
         }
         token.iat = Math.floor(Date.now() / 1000);
       }
 
-      // Always ensure role is set in token - refresh from database if missing
-      // OPTIMIZATION: Only query DB if role is actually missing (rare case)
-      // Most tokens will have role set during login, so this is fast path
+      // CRITICAL: Role should ALWAYS be set in token (set during initial login)
+      // Database query should only happen for very old legacy tokens
       if (!token.role && token.id) {
+        // Log warning - this should NOT happen for new logins
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('JWT callback: ROLE MISSING FROM TOKEN - This indicates a bug!', {
+            userId: token.id,
+            tokenKeys: Object.keys(token),
+          });
+        }
+
         try {
           // Use dbQuery wrapper for automatic retry on connection failures
-          // Optimize: Only select role field
           const user = await dbQuery(() =>
             prisma.user.findUnique({
               where: { id: token.id as string },
@@ -168,6 +176,12 @@ const authOptions = {
           );
           if (user) {
             token.role = user.role;
+            if (process.env.NODE_ENV === 'development') {
+              console.log('JWT callback: Fetched role from database for legacy token', {
+                userId: token.id,
+                role: user.role,
+              });
+            }
           } else {
             // User not found, invalidate token
             if (process.env.NODE_ENV === 'development') {
@@ -184,6 +198,12 @@ const authOptions = {
           // On error, invalidate token to force re-authentication
           return null;
         }
+      } else if (token.role && process.env.NODE_ENV === 'development') {
+        // Verify role is properly set (for debugging)
+        console.log('JWT callback: Token has role (fast path)', {
+          userId: token.id,
+          role: token.role,
+        });
       }
 
       // Check if server has restarted - if so, invalidate all sessions
