@@ -1,489 +1,578 @@
-# Project Overview: Real Estate Broker Website Builder SaaS
+# Project Overview: The Specialist Realty
 
 ## Executive Summary
 
-A SaaS platform that allows real estate brokers to create professional, static websites for showcasing their property listings. Each broker gets their own custom domain, drag-and-drop site builder, and automated listing page generation.
+**The Specialist Realty** is a dynamic, full-featured real estate platform built with Next.js 16, combining both a public-facing property listing website and an internal content management system for real estate professionals. The platform features advanced filtering, role-based access control, content approval workflows, and modern SEO optimization.
 
-**Target Market:** Individual real estate brokers in the Philippines  
-**Business Model:** Subscription-based (PHP 1,000-2,000/month per broker)  
-**MVP Approach:** Constrained, template-based builder for fast setup and consistent results
-
----
-
-## Core Concept
-
-### What It Is
-- **Main Platform Site:** Your marketing site + broker dashboard
-- **Broker Sites:** Static websites generated for each broker with their custom domain
-- **Site Builder:** Drag-and-drop interface to customize homepage (limited sections)
-- **Listing Management:** CSV/JSON import → auto-generated listing pages
-
-### What It's NOT
-- ❌ Full-featured website builder (like Wix/Squarespace)
-- ❌ Dynamic listing search/filtering
-- ❌ CRM or lead management system
-- ❌ Automatic lead generation platform
-- ❌ Real-time listing updates
+**Platform Type:** Dynamic Real Estate Platform  
+**Target Market:** Philippine Real Estate Market  
+**Tech Stack:** Next.js 16, TypeScript, PostgreSQL, Prisma, NextAuth.js  
+**Current Status:** Production-Ready with Advanced Features
 
 ---
 
-## MVP Scope & Limitations
+## Platform Architecture
 
-### ✅ What Brokers CAN Do
-
-**Site Builder:**
-- Drag-and-drop to reorder sections on homepage
-- Edit text content (headings, descriptions, CTAs)
-- Customize theme (colors, fonts from presets)
-- Upload logo and hero images
-- Add/edit testimonials, FAQ items
-- Configure contact information
-
-**Listings:**
-- Import listings via CSV/JSON
-- Up to 200-300 listings per broker
-- Auto-generated listing detail pages
-- Listing grid on homepage (limited preview)
-- Browse all listings page (static, no filters)
-
-**Pages:**
-- Homepage (customizable via builder)
-- About page (editable content)
-- Contact page (form submissions)
-- Browse listings page (auto-generated)
-- Individual listing pages (auto-generated per listing)
-
-**Custom Domain:**
-- Point their own domain to your platform
-- Automatic SSL certificates
-- Host-based routing to their site
-
-### ❌ What Brokers CANNOT Do (MVP)
-
-- Freeform design (no custom layouts)
-- Custom CSS/JavaScript injection
-- Dynamic filtering/search (static pages only)
-- Real-time listing updates (must re-import)
-- Advanced animations or interactions
-- Custom listing templates
-- Media library (images via external URLs only)
-- Analytics dashboard (basic form submissions only)
-
----
-
-## Architecture & Data Model
-
-### Platform Structure
+### Core Components
 
 ```
-Main Platform Site (thespecialistrealty.com)
+The Specialist Realty Platform
     │
-    ├── Landing/Marketing Pages
-    ├── Sign Up / Login
-    ├── Pricing Page
-    └── Admin Dashboard
-         │
-         └── Broker Accounts (Multi-tenant)
-              │
-              ├── Broker Account #1
-              │    ├── Custom Domain: broker1realty.com
-              │    ├── Site Configuration (theme, logo, layout)
-              │    ├── Listings (imported data)
-              │    └── Generated Static Site
-              │
-              ├── Broker Account #2
-              │    └── (same structure)
-              │
-              └── Broker Account #N
+    ├── Public-Facing Website
+    │    ├── Homepage with featured listings
+    │    ├── Browse listings (dynamic filtering & search)
+    │    ├── Individual listing detail pages
+    │    ├── Blog section with SEO optimization
+    │    └── Contact page
+    │
+    ├── Authentication System
+    │    ├── NextAuth.js v5 with JWT
+    │    ├── Role-based access (Admin, Agent, Writer)
+    │    └── Secure session management
+    │
+    ├── User Dashboard
+    │    ├── Listing management (CRUD)
+    │    ├── Blog post management
+    │    ├── Activity logs
+    │    └── Settings
+    │
+    ├── Admin Panel
+    │    ├── Listing approval workflow
+    │    ├── Blog post moderation
+    │    ├── User management
+    │    ├── System logs
+    │    └── Platform analytics
+    │
+    └── API Infrastructure
+         ├── RESTful API endpoints
+         ├── Caching layer
+         ├── Activity logging
+         ├── Rate limiting
+         └── SEO optimization
 ```
-
-### Database Schema
-
-**Users Table:**
-- id, email, password_hash, role (platform_admin | broker), timestamps
-
-**Broker Accounts Table:**
-- id, user_id, company_name, broker_name, custom_domain, origin_alias, subscription_status, subscription_tier, timestamps
-
-**Site Configurations Table:**
-- id, broker_account_id, theme (JSON), logo_url, contact_email, contact_phone, social_links (JSON), page_layout (JSON), meta_title, meta_description, timestamps
-
-**Listings Table:**
-- id, broker_account_id, listing_id, address, city, state, zip_code, price, bedrooms, bathrooms, square_feet, lot_size, property_type, status, description, images (JSON array), year_built, timestamps
-
-**Domain Mappings Table:**
-- id, broker_account_id, custom_domain, verification_token, verified, ssl_certificate_status, timestamps
-
-### Domain & Routing Model
-
-- **Shared Origin:** All broker sites deploy to one platform-controlled origin (e.g., `sites.thespecialistrealty.com`)
-- **Custom Domains:** Brokers point their domain (CNAME/ALIAS) to shared origin
-- **Host-based Routing:** Edge/CDN routes requests based on `Host` header to correct broker's static bundle
-- **SSL Automation:** Automatic certificate issuance for custom domains
 
 ---
 
-## Tech Stack
+## Current Feature Set ✅
+
+### Public Features
+
+#### Property Listings
+- **Dynamic Browse Page** (`/listings`)
+  - Real-time search by location
+  - Advanced filtering:
+    - Listing type (Sale/Rent/All)
+    - Property type (Condominium, House & Lot, Townhouse, etc.)
+    - Price range (min/max)
+    - Bedrooms & bathrooms
+    - Size range (sqm)
+  - Multi-option sorting:
+    - Newest first
+    - Price (low to high / high to low)
+    - Size (smallest to largest / largest to smallest)
+  - Pagination (12 properties per page)
+  - URL-based filter state management
+  - Responsive grid layout
+  - Property cards with:
+    - Image galleries
+    - Pricing (with per-sqm calculation for sales)
+    - Property specifications
+    - Location details
+    - Sale/Rent badges
+    - Additional details (parking, floor, year built)
+
+- **Individual Listing Pages** (`/listings/[id]`)
+  - Full property details
+  - Image galleries
+  - Contact information
+  - Similar listings
+  - SEO-optimized metadata
+
+#### Blog System
+- **Public Blog** (`/blog`)
+  - Published blog posts display
+  - SEO-optimized with structured data
+  - Social media meta tags
+  - Responsive design
+- **Individual Blog Posts** (`/blog/[slug]`)
+  - Incremental Static Regeneration (ISR)
+  - Revalidation every hour
+  - Dynamic metadata generation
+  - Schema.org markup for Google Rich Snippets
+  - Social sharing optimization
+
+#### Contact & Information
+- Contact page with form
+- reCAPTCHA integration
+- EmailJS notifications
+- Location information
+
+### Authentication & Authorization
+
+#### User Management
+- **NextAuth.js v5** integration
+- JWT-based session management
+- Secure password hashing (bcryptjs)
+- Role-based access control:
+  - **ADMIN**: Full platform access, user management, approvals
+  - **AGENT**: Create/manage listings, view own content
+  - **WRITER**: Create/manage blog posts
+
+#### Security Features
+- Protected API routes
+- Rate limiting (100 requests per 15 minutes)
+- Activity logging for audit trails
+- IP address tracking
+- User agent tracking
+- Secure session handling
+
+### Dashboard Features
+
+#### For Agents
+- **Listing Management**
+  - Create new listings
+  - Edit existing listings
+  - Delete listings
+  - View publication status
+  - Track approval workflow
+- **Blog Management**
+  - Create blog posts
+  - Edit and manage posts
+  - Rich text editor
+  - Image uploads
+- **Activity Tracking**
+  - Personal activity log
+  - Login/logout history
+  - Content creation history
+- **Settings**
+  - Profile management
+  - Password change
+
+#### For Administrators
+- **Listing Approval**
+  - Review pending listings
+  - Approve/reject functionality
+  - Bulk actions
+- **Blog Moderation**
+  - Review pending blog posts
+  - Approve/reject functionality
+  - Content management
+- **User Management**
+  - Create new users
+  - Edit user details
+  - Reset passwords
+  - Delete users
+  - Role assignment
+- **System Overview**
+  - Platform statistics
+  - Activity logs
+  - Health monitoring
+
+### Technical Features
+
+#### Performance Optimization
+- **Caching Layer**
+  - Cached listings with tag-based revalidation
+  - Blog post caching
+  - Dashboard cache for authenticated users
+- **Database Optimization**
+  - Indexed queries (userId, isPublished, composite indexes)
+  - Efficient pagination
+  - Optimized Prisma queries
+- **Image Optimization**
+  - Next.js Image component
+  - Cloudinary integration
+  - Lazy loading
+  - Responsive images
+
+#### SEO Implementation
+- Dynamic metadata generation
+- Structured data (Schema.org)
+- Open Graph tags
+- Twitter Card tags
+- XML sitemap capability
+- Optimized URLs
+- Semantic HTML
+
+#### Developer Experience
+- TypeScript for type safety
+- ESLint configuration
+- Comprehensive error logging
+- Development utilities
+- Hot reload in development
+- Environment variable management
+
+---
+
+## Database Schema
+
+### Core Models
+
+#### User Model
+```typescript
+- id: CUID
+- email: String (unique)
+- name: String
+- password: String (hashed)
+- role: ADMIN | AGENT | WRITER
+- createdAt, updatedAt: DateTime
+- Relations: listings, blogPosts, activities
+```
+
+#### Listing Model
+```typescript
+- id: CUID
+- title: String
+- description: String
+- price: Float
+- location: String
+- city: String?
+- bedrooms, bathrooms: Int?
+- size: Float? (sqm)
+- propertyType: String? (condominium, house-and-lot, etc.)
+- listingType: String? (sale, rent)
+- images: String[] (array of URLs)
+- address, yearBuilt, parking: Int?
+- floor, totalFloors: Int?
+- amenities: Json?
+- propertyId: String? (unique TSR-ID)
+- available: Boolean
+- isPublished: Boolean (requires approval)
+- userId: String (foreign key)
+- approvedBy, approvedAt: (workflow tracking)
+- Indexes: userId, isPublished, composite(userId, isPublished)
+```
+
+#### BlogPost Model
+```typescript
+- id: CUID
+- title: String
+- content: Text
+- slug: String (unique)
+- excerpt: Text?
+- images: String[]
+- isPublished: Boolean (requires approval)
+- userId: String (foreign key)
+- approvedBy, approvedAt: (workflow tracking)
+- Indexes: userId, slug, isPublished, composite(userId, isPublished)
+```
+
+#### Activity Model
+```typescript
+- id: CUID
+- userId: String (foreign key)
+- action: LOGIN | LOGOUT | CREATE | UPDATE | DELETE | APPROVE | REJECT
+- itemType: LISTING | BLOG | USER | AUTH
+- itemId: String?
+- metadata: Json?
+- ipAddress, userAgent: String?
+- timestamp: DateTime
+- Indexes: userId, timestamp, composite(itemType, itemId)
+```
+
+---
+
+## API Endpoints
+
+### Public Endpoints
+- `GET /api/listings` - Fetch published listings
+- `GET /api/listings?id={id}` - Get specific listing details
+- `GET /api/blogs` - Fetch published blog posts
+- `GET /api/blog-posts/slug/{slug}` - Get specific blog post
+- `POST /api/verify-recaptcha` - Verify reCAPTCHA
+- `GET /api/health` - Health check
+
+### Authenticated Endpoints
+- `GET/POST /api/auth/[...nextauth]` - NextAuth.js handlers
+- `POST /api/auth/logout` - Logout endpoint
+- `POST /api/user/change-password` - Change user password
+- `POST /api/upload` - Upload images to Cloudinary
+
+### Agent Endpoints
+- `POST /api/listings` - Create new listing
+- `PUT /api/listings/{id}` - Update listing
+- `DELETE /api/listings/{id}` - Delete listing
+- `POST /api/blogs` - Create blog post
+- `PUT /api/blogs/{id}` - Update blog post
+- `DELETE /api/blogs/{id}` - Delete blog post
+
+### Admin Endpoints
+- `GET /api/admin/listings` - View all listings (including pending)
+- `POST /api/admin/listings/{id}/approve` - Approve listing
+- `DELETE /api/admin/listings/{id}` - Delete any listing
+- `GET /api/admin/blogs` - View all blog posts (including pending)
+- `POST /api/admin/blogs/{id}/approve` - Approve blog post
+- `DELETE /api/admin/blogs/{id}` - Delete any blog post
+- `GET /api/admin/users` - View all users
+- `POST /api/admin/users` - Create new user
+- `PUT /api/admin/users/{id}` - Update user
+- `DELETE /api/admin/users/{id}` - Delete user
+- `POST /api/admin/users/{id}/reset-password` - Reset user password
+
+---
+
+## Tech Stack Details
 
 ### Frontend
-- **Next.js 14+** (App Router) - Main framework
-- **React 18+** - UI components
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **React Hook Form + Zod** - Forms & validation
-- **React DnD / Dnd Kit** - Drag-and-drop
-- **Shadcn/ui or Radix UI** - Component library
+- **Framework**: Next.js 16 (App Router)
+- **UI Library**: React 19
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS v4
+- **Icons**: Lucide React
+- **Fonts**: Geist Sans (body), Sora (brand/logo)
+- **Forms**: React Hook Form + Zod validation
+- **State Management**: React hooks + URL params
 
 ### Backend & Database
-- **PostgreSQL** (via Supabase or Neon)
-- **Prisma ORM** - Database access
-- **NextAuth.js** - Authentication
+- **Runtime**: Node.js
+- **API**: Next.js API Routes
+- **ORM**: Prisma 6
+- **Database**: PostgreSQL (Neon/Supabase compatible)
+- **Authentication**: NextAuth.js v5 (beta)
+- **Password Hashing**: bcryptjs
+- **Validation**: Custom validation utilities
 
-### Deployment & Infrastructure
-- **Vercel** (recommended) or **Netlify** - Hosting & CDN
-- **Next.js Static Export** - Generate static broker sites
-- **Vercel Domains API** - Custom domain management
-- **AWS S3 or Cloudflare R2** - File storage (logos)
+### Infrastructure & Services
+- **Hosting**: Netlify (primary), Vercel compatible
+- **Image Storage**: Cloudinary
+- **Email Service**: EmailJS
+- **CDN**: Next.js built-in optimization
+- **Environment**: dotenv for configuration
 
-### Additional Services
-- **Resend or SendGrid** - Email notifications
-- **GitHub Actions** - CI/CD
-- **Sentry** - Error tracking (optional)
-
-### Estimated Monthly Platform Cost
-- Vercel Pro: ~$20/month
-- PostgreSQL: Free tier or ~$25/month
-- S3 Storage: ~$1-5/month
-- Email Service: Free tier or ~$20/month
-- **Total: ~$50-100/month** (excluding broker custom domains)
-
----
-
-## Pricing Model
-
-### Cost Structure (Per Broker)
-- **Light Usage:** ~PHP 20/month (5K pageviews)
-- **Moderate Usage:** ~PHP 70/month (25K pageviews)
-- **Heavy Usage:** ~PHP 200/month (100K pageviews)
-
-### Suggested Pricing (PHP)
-- **Monthly:** PHP 1,000-2,000/month
-- **Annual:** PHP 10,000-20,000/year (2 months off)
-- **Margin:** Healthy margin over even heavy usage
-
-### Future Add-ons
-- Higher listing caps
-- Media hosting/optimization
-- Analytics dashboard
-- Lead capture upgrades
-- Domain concierge service
-- Priority support
+### Development Tools
+- **Package Manager**: npm
+- **Type Checking**: TypeScript compiler
+- **Linting**: ESLint with Next.js config
+- **Code Quality**: Custom logging and error tracking
+- **Database Tools**: Prisma Studio, migration scripts
 
 ---
 
-## Wireframes & Design
+## Deployment Architecture
 
-### Created Wireframes
+### Current Setup
+- **Primary Hosting**: Netlify
+- **Database**: PostgreSQL (Neon or Supabase)
+- **Image Storage**: Cloudinary
+- **Environment Variables**: Managed via hosting platform
 
-1. **Site Builder Interface** (`docs/sitebuilder-wireframe.html`)
-   - Left panel: Pages list, section palette
-   - Center: Canvas with drag-drop sections
-   - Right panel: Section settings, theme controls
+### Deployment Features
+- **Automatic Deployments**: Git-based deployment
+- **Environment Management**: Separate dev/prod configs
+- **Database Migrations**: Automated migration scripts
+- **Static Generation**: Hybrid SSG/SSR for optimal performance
+- **CDN Integration**: Global content delivery
 
-2. **Sample Broker Homepage** (`docs/sample-broker-site-wireframe.html`)
-   - Hero section
-   - Featured listing
-   - Listing grid
-   - About section
-   - Testimonials
-   - FAQ
-   - Contact CTA
-   - Map embed
-   - Footer
-
-3. **Browse Listings Page** (`docs/browse-listings-wireframe.html`)
-   - Static listing grid (NO filters/search in MVP)
-   - Pagination
-   - Listing cards with images, specs, price
-
-4. **Individual Listing Page** (`docs/individual-listing-wireframe.html`)
-   - Image gallery (thumbnail switching)
-   - Property details
-   - Description
-   - Features list
-   - Contact sidebar
-   - Map embed
-   - Similar listings
-
-### Design Principles
-- **Template-based:** Pre-designed sections, not freeform
-- **Professional:** Modern, clean aesthetic
-- **Mobile-first:** Responsive design
-- **Fast:** Static generation for performance
-- **SEO-friendly:** Proper meta tags, clean URLs
+### Available Scripts
+- `npm run dev` - Development server with database
+- `npm run build` - Production build
+- `npm run start` - Production server
+- `npm run db:seed` - Seed database
+- `npm run export:listings` - Export listings data
+- `npm run migrate:to-neon` - Migrate to Neon database
+- `npm run sync:to-production` - Sync to production database
+- `npm run analyze:db` - Analyze database storage
+- `npm run optimize:db` - Optimize database performance
 
 ---
 
-## Key Decisions Made
+## Key Features Implemented
 
-### 1. Static Sites (Not Dynamic)
-- **Why:** Fast, cheap, SEO-friendly, secure
-- **Trade-off:** No real-time updates, must republish for changes
+### ✅ Fully Functional
+- User authentication with role-based access
+- Dynamic property listing browsing with advanced filtering
+- Listing CRUD operations for agents
+- Content approval workflow for admins
+- Blog system with SEO optimization
+- Activity logging and audit trails
+- Contact form with reCAPTCHA
+- Image upload to Cloudinary
+- Responsive design across all devices
+- URL-based filter state management
+- Pagination for large datasets
+- Real-time search functionality
+- Admin dashboard with analytics
+- User management capabilities
 
-### 2. No Public Subdomains
-- **Why:** Brokers want their own domains for branding
-- **Solution:** Custom domain pointing to shared origin
-
-### 3. Constrained Builder (Not Freeform)
-- **Why:** Faster setup, consistent results, easier support
-- **Trade-off:** Less design flexibility, but more reliable
-
-### 4. CSV/JSON Import (Not CRUD UI)
-- **Why:** Simpler MVP, brokers likely have data in spreadsheets
-- **Trade-off:** Must re-import to update listings
-
-### 5. No Dynamic Filtering
-- **Why:** Static sites can't do server-side filtering
-- **Solution:** Pre-generated pages, or accept static grid only
-
-### 6. Limited Sections (6-10 per homepage)
-- **Why:** Performance, simplicity, faster builds
-- **Trade-off:** Less customization, but cleaner sites
-
----
-
-## User Flows
-
-### Broker Onboarding
-1. Sign up on main platform
-2. Create broker account
-3. Configure site (theme, logo, contact info)
-4. Import listings (CSV/JSON)
-5. Customize homepage (drag-drop sections)
-6. Set up custom domain (DNS instructions)
-7. Publish site (static generation)
-8. Site goes live on custom domain
-
-### Listing Update Flow
-1. Broker updates CSV/JSON file
-2. Re-uploads to platform
-3. System parses and validates
-4. Updates database
-5. Broker clicks "Publish"
-6. Static site regenerated
-7. Deployed to CDN
-8. Changes go live
-
-### Lead Capture Flow
-1. Visitor views listing on broker site
-2. Fills out contact form
-3. Form submission → API endpoint
-4. Email notification sent to broker
-5. Broker follows up with lead
+### ✅ Technical Excellence
+- Type-safe TypeScript implementation
+- Optimized database queries with indexes
+- Caching layer for performance
+- SEO optimization with structured data
+- Error handling and logging
+- Rate limiting for API protection
+- Secure password hashing
+- Session management
+- Environment-based configuration
 
 ---
 
-## MVP Features Checklist
+## Current Limitations (Not "MVP Constraints")
 
-### Main Platform Site
-- [ ] Landing page
-- [ ] Sign up / Login
-- [ ] Pricing page
-- [ ] Admin dashboard (basic)
+These are areas for future enhancement, not constraints:
 
-### Broker Dashboard
-- [ ] Login/Authentication
-- [ ] Site builder interface (drag-drop)
-- [ ] Listing import (CSV/JSON upload)
-- [ ] Theme customization
-- [ ] Logo upload
-- [ ] Contact info management
-- [ ] Custom domain setup (DNS instructions)
-- [ ] Preview site
-- [ ] Publish site (static generation)
+### Planned Enhancements
+- **Advanced Analytics**: Google Analytics integration, dashboard metrics
+- **Email Notifications**: Automated alerts for approvals, inquiries
+- **Advanced Search**: Map-based search, saved searches
+- **Lead Management**: CRM integration, lead tracking
+- **Social Sharing**: Enhanced social media integration
+- **Mobile App**: Progressive Web App (PWA) capabilities
+- **Multi-language Support**: Internationalization (i18n)
+- **Advanced Filtering**: More granular filter options
+- **Saved Listings**: User wishlist functionality
+- **Comparison Tool**: Compare multiple properties
+- **Mortgage Calculator**: Integrated calculator
+- **Virtual Tours**: 360° images/video support
 
-### Generated Broker Site
-- [ ] Homepage with listing cards
-- [ ] Individual listing detail pages
-- [ ] About page (editable)
-- [ ] Contact page with form
-- [ ] Browse listings page (static grid)
-- [ ] SEO meta tags
-- [ ] Responsive design
-
-### Infrastructure
-- [ ] Static site generator (Next.js SSG)
-- [ ] CDN deployment (Vercel/Netlify)
-- [ ] Custom domain support
-- [ ] SSL certificate automation
-- [ ] Form submission handling (serverless function)
+### Technical Debt
+- Some optimization opportunities in large datasets
+- Additional unit tests needed
+- Enhanced error boundaries
+- More comprehensive API documentation
 
 ---
 
-## Value Proposition
+## Documentation Structure
 
-### For Brokers
-- ✅ Professional website in minutes (no coding)
-- ✅ Custom domain for branding
-- ✅ SEO-friendly structure
-- ✅ Mobile-responsive design
-- ✅ Lead capture forms
-- ✅ Fast, reliable hosting
+### Setup & Configuration
+- `README.md` - Quick start guide
+- `SETUP.md` - Detailed setup instructions
+- `DATABASE_SETUP.md` - Database configuration
+- `ENV_VALUES.md` - Environment variables reference
 
-### Limitations (Be Transparent)
-- ❌ Not a lead generation platform (brokers must drive traffic)
-- ❌ No built-in marketing tools
-- ❌ Limited design flexibility
-- ❌ Manual listing updates required
-- ❌ No analytics dashboard (MVP)
+### Deployment Guides
+- `DEPLOYMENT_OVERVIEW.md` - Deployment strategies
+- `NETLIFY_CLOUDINARY_SETUP.md` - Netlify + Cloudinary setup
+- `DIGITALOCEAN_DEPLOYMENT.md` - DigitalOcean deployment
+- `CLOUDFLARE_HOSTING.md` - Cloudflare configuration
 
-### How Brokers Get Leads
-1. **SEO:** Optimize for local searches (free, takes time)
-2. **Social Media:** Share listings on Facebook/Instagram (free)
-3. **Paid Ads:** Google/Facebook ads pointing to site (costs money)
-4. **Direct Marketing:** Share website URL, business cards, etc. (free)
+### Feature Documentation
+- `SYSTEM_FEATURES.md` - Complete feature list
+- `FRONTEND_GUIDE.md` - Frontend architecture
+- `SEO_IMPLEMENTATION_GUIDE.md` - SEO details
+- `AUTH_FIXES_SUMMARY.md` - Authentication system
 
-**Reality:** Website is a tool, not a lead generator. Brokers must drive traffic themselves.
-
----
-
-## Next Steps
-
-### Phase 1: MVP Development
-1. Set up Next.js project with TypeScript
-2. Configure Prisma with PostgreSQL
-3. Set up NextAuth.js authentication
-4. Create database schema
-5. Build broker dashboard UI
-6. Implement site builder (drag-drop)
-7. Build listing import functionality
-8. Implement static site generation
-9. Set up custom domain handling
-10. Create form submission endpoint
-11. Deploy to Vercel
-12. Test end-to-end flow
-
-### Phase 2: Enhancements (Post-MVP)
-- Analytics dashboard (Google Analytics integration)
-- Email notifications for form submissions
-- WhatsApp integration
-- SMS notifications
-- Lead tracking
-- Advanced SEO tools
-- Social media auto-posting
-- Google Ads integration
-- Chatbot for basic questions
-
-### Phase 3: Scale
-- Media upload pipeline
-- Higher listing caps
-- More section templates
-- Custom CSS options
-- Blog functionality
-- Email marketing
-- CRM integration
+### Maintenance & Troubleshooting
+- `TROUBLESHOOTING.md` - Common issues
+- `PERFORMANCE_OPTIMIZATIONS.md` - Performance tips
+- `MEMORY_OPTIMIZATION.md` - Memory management
+- `STORAGE_OPTIMIZATION.md` - Database optimization
 
 ---
 
-## Documentation Files
+## Business Model
 
-All documentation is in the `/docs` folder:
+### Current Position
+- **Platform Type**: Property Listing Platform with CMS
+- **Target Audience**: Real estate professionals in the Philippines
+- **Revenue Model**: Platform for showcasing properties (can evolve into subscription model)
+- **Value Proposition**: Professional, SEO-optimized platform with advanced filtering and management tools
 
-1. **PROJECT_OVERVIEW.md** (this file) - Complete project summary
-2. **mvp-data-hierarchy.md** - Data model and architecture details
-3. **mvp-services-breakdown.md** - MVP scope and limitations
-4. **cost-model-php.md** - Pricing and cost analysis
-5. **tech-stack-recommendation.md** - Technology choices and rationale
-6. **sitebuilder-wireframe.html** - Site builder UI wireframe
-7. **sample-broker-site-wireframe.html** - Example broker homepage
-8. **browse-listings-wireframe.html** - Browse listings page
-9. **individual-listing-wireframe.html** - Individual listing page
-
----
-
-## Important Notes
-
-### Transparency with Users
-- Be clear about MVP limitations
-- Don't overpromise features
-- Set realistic expectations
-- Provide marketing guidance (SEO, social media basics)
-
-### Technical Constraints
-- Static sites = no real-time features
-- No dynamic filtering without backend
-- Build times scale with listing count
-- Custom domains require DNS setup by broker
-
-### Business Model
-- Subscription-based (not usage-based)
-- Healthy margins at suggested pricing
-- Scale costs are predictable
-- Add-ons can increase revenue
-
----
-
-## Questions to Resolve
-
-1. **Payment Processing:** Stripe/PayPal integration for subscriptions?
-2. **Support Model:** Email only, or live chat?
-3. **Onboarding:** Self-service or guided setup?
-4. **Trial Period:** Free trial or paid from day 1?
-5. **Cancellation:** What happens to broker site when they cancel?
-6. **Backups:** How to handle broker data retention?
+### Monetization Opportunities
+1. **Subscription Tiers**: Different levels for agents/brokers
+2. **Featured Listings**: Premium placement
+3. **Lead Generation**: Qualified leads to agents
+4. **Advertising**: Banner ads for related services
+5. **Value-Added Services**: Virtual tours, professional photography
 
 ---
 
 ## Success Metrics
 
-### Platform Metrics
-- Number of active broker accounts
-- Monthly recurring revenue (MRR)
-- Churn rate
-- Average listings per broker
-- Site publish frequency
+### Platform Health
+- Number of active users (agents/writers/admins)
+- Total published listings
+- Total published blog posts
+- Monthly page views
+- Average session duration
+- Bounce rate
 
-### Broker Success Metrics
-- Website traffic (pageviews)
-- Form submissions (leads)
-- Time to first publish
-- Customer satisfaction
+### Content Quality
+- Listing approval rate
+- Blog post engagement
+- Search ranking for key terms
+- Organic traffic growth
+- Social media shares
+
+### User Engagement
+- Listings created per agent
+- Blog posts published per writer
+- Dashboard login frequency
+- Filter usage patterns
+- Contact form submissions
 
 ---
 
-## Risk Assessment
+## Security & Compliance
 
-### Technical Risks
-- **Build times:** May slow down with many listings
-- **Custom domains:** DNS setup complexity for brokers
-- **Scale:** Need to monitor CDN costs as traffic grows
+### Implemented Security Measures
+- Password hashing with bcryptjs
+- JWT-based session management
+- Role-based access control (RBAC)
+- Rate limiting on API endpoints
+- Activity logging for audit trails
+- Input validation and sanitization
+- SQL injection prevention (Prisma ORM)
+- XSS protection (React escaping)
+- CSRF protection (NextAuth.js)
+- Secure headers configuration
 
-### Business Risks
-- **Adoption:** Brokers may not understand value
-- **Competition:** Other website builders exist
-- **Support:** Need to handle broker questions/issues
+### Data Protection
+- User password security
+- Personal data protection
+- Session data isolation
+- API endpoint protection
+- Environment variable security
 
-### Mitigation
-- Start with MVP, iterate based on feedback
-- Provide clear documentation and guides
-- Set realistic expectations upfront
-- Monitor costs and adjust pricing if needed
+---
+
+## Future Roadmap
+
+### Phase 1: Enhanced Analytics (Next Quarter)
+- Google Analytics integration
+- Dashboard metrics for agents
+- Listing performance tracking
+- Blog post engagement metrics
+
+### Phase 2: Lead Management (6 Months)
+- Lead capture forms on listings
+- Lead management dashboard
+- Email notifications for leads
+- Lead assignment to agents
+
+### Phase 3: Advanced Features (12 Months)
+- Saved listings for users
+- Property comparison tool
+- Mortgage calculator
+- Virtual tour support
+- Mobile app (React Native)
+
+### Phase 4: Platform Expansion (18+ Months)
+- Multi-language support
+- International expansion
+- Advanced search with maps
+- API for third-party integrations
+- White-label solution for brokers
 
 ---
 
 ## Conclusion
 
-This is a **constrained but powerful** MVP that gives brokers professional websites quickly. The limitations are intentional to keep it simple, fast, and maintainable. Focus on execution, gather user feedback, and iterate.
+**The Specialist Realty** is a **production-ready, dynamic real estate platform** with advanced features that go far beyond the original MVP concept. It combines:
 
-**Key Success Factors:**
-1. Fast, reliable site generation
-2. Easy onboarding process
-3. Clear value proposition
-4. Transparent about limitations
-5. Good support and documentation
+- ✅ **Dynamic filtering and search** (not static)
+- ✅ **Real-time updates** (not batch processing)
+- ✅ **Role-based CMS** (not just listings)
+- ✅ **SEO optimization** (blog + listings)
+- ✅ **Modern tech stack** (Next.js 16, TypeScript)
+- ✅ **Scalable architecture** (caching, optimization)
+- ✅ **Professional UX** (responsive, intuitive)
+
+The platform is **live and functional** with comprehensive documentation, deployment guides, and maintenance scripts. It's positioned for growth and ready for feature expansion.
 
 ---
 
-*Last Updated: [Current Date]*  
-*Version: 1.0 (MVP Planning Phase)*
-
+*Last Updated: December 28, 2025*  
+*Version: 2.0 (Production Platform)*  
+*Status: Live & Operational*

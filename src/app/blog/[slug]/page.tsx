@@ -6,6 +6,8 @@ import { Calendar, User, ArrowLeft } from 'lucide-react';
 import { getCachedBlogPost, getCachedBlogSlugs } from '@/lib/cache';
 import { getAbsoluteUrl, getBlogSocialImage, cleanDescription } from '@/lib/seo-utils';
 import { BlogSchema } from '@/components/seo/blog-schema';
+import { revalidateTag } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/cache';
 
 // ISR: Generate static params for top 100 blog posts
 export async function generateStaticParams() {
@@ -18,8 +20,8 @@ export async function generateStaticParams() {
   }
 }
 
-// Revalidate every hour
-export const revalidate = 3600;
+// Disable caching for development - forces rebuild on every request
+export const revalidate = 0;
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -88,13 +90,167 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 }
 
+
+
+// Helper function to parse blog content with proper HTML structure
+function parseBlogContent(content: string): string {
+  if (!content) return '';
+  
+  try {
+    let result = '';
+    
+    // Split content by existing <img> tags to handle them separately
+    const segments = content.split(/(<img[^>]+>)/gi);
+    
+    segments.forEach(segment => {
+      // Check if this segment is an <img> tag
+      if (segment.match(/<img[^>]+>/i)) {
+        // Wrap image with tight spacing (1rem)
+        result += `<div class="blog-image-wrapper">${segment}</div>`;
+      } else if (segment.trim()) {
+        // Parse the text segment
+        // Split into paragraphs based on double newlines
+        const paragraphs = segment.split(/\n\s*\n/).filter(p => p.trim());
+        
+        // Convert each paragraph to HTML <p> tags with proper Tailwind classes
+        const parsedParagraphs = paragraphs
+          .map(p => {
+            const trimmed = p.trim();
+            // Check if it's a heading (starts with #)
+            if (trimmed.startsWith('# ')) {
+              return `<h2 class="text-3xl font-semibold text-[#111111] mt-8 mb-4">${trimmed.substring(2)}</h2>`;
+            }
+            // Check if it's a subheading (starts with ##)
+            if (trimmed.startsWith('## ')) {
+              return `<h3 class="text-2xl font-semibold text-[#111111] mt-6 mb-3">${trimmed.substring(3)}</h3>`;
+            }
+            // Regular paragraph
+            return `<p class="mb-6 leading-relaxed text-[#111111]/90">${trimmed.replace(/\n/g, ' ')}</p>`;
+          })
+          .join('');
+        
+        result += parsedParagraphs;
+      }
+    });
+    
+    return result;
+  } catch (error) {
+    console.error('Error parsing blog content:', error);
+    return `<p>${content}</p>`;
+  }
+}
+
+// Helper function to distribute images smartly throughout HTML content based on word count
+function distributeImagesSmartly(content: string, images: string[]): string {
+  if (!content || images.length <= 1) {
+    return content; // No distribution needed if only featured image exists
+  }
+  
+  try {
+    // Extract plain text from HTML content for word counting
+    const plainText = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const totalWords = plainText.split(/\s+/).filter(word => word.length > 0).length;
+    
+    // Adaptive thresholds based on article length
+    let targetWordsPerImage: number;
+    let minWordsBetweenImages: number;
+    
+    if (totalWords < 600) {
+      // Short articles: distribute more frequently
+      targetWordsPerImage = 225; // ~200-250 words per image
+      minWordsBetweenImages = 150; // Minimum 150 words between images
+    } else if (totalWords < 1200) {
+      // Medium articles: standard distribution
+      targetWordsPerImage = 375; // ~350-400 words per image
+      minWordsBetweenImages = 250; // Minimum 250 words between images
+    } else {
+      // Long articles: ideal distribution for readability
+      targetWordsPerImage = 475; // ~450-500 words per image
+      minWordsBetweenImages = 350; // Minimum 350 words between images
+    }
+    
+    const imagesToDistribute = images.slice(1); // Skip featured image
+    
+    // Calculate how many images we can reasonably distribute
+    const maxImagesPossible = Math.floor(totalWords / targetWordsPerImage);
+    const numImagesToDistribute = Math.min(imagesToDistribute.length, maxImagesPossible);
+    
+    if (numImagesToDistribute === 0) {
+      return content; // Not enough content for distribution
+    }
+    
+    // Calculate distribution points based on word count milestones
+    const distributionPoints: number[] = [];
+    const wordsPerInterval = Math.floor(totalWords / (numImagesToDistribute + 1));
+    
+    for (let i = 1; i <= numImagesToDistribute; i++) {
+      distributionPoints.push(i * wordsPerInterval);
+    }
+    
+    // Rebuild content, tracking word count and inserting images at milestones
+    let result = '';
+    let imageIndex = 0;
+    let currentWordCount = 0;
+    let distributionPointIndex = 0;
+    let lastInsertionWordCount = 0;
+    
+    // Split content by paragraph and heading tags to maintain structure
+    const segments = content.split(/(<p[^>]*>.*?<\/p>|<h[2-3][^>]*>.*?<\/h[2-3]>)/gi).filter(s => s.trim());
+    
+    for (const segment of segments) {
+      // Check if segment is a paragraph or heading
+      if (segment.startsWith('<p') || segment.startsWith('<h2') || segment.startsWith('<h3')) {
+        // Extract text from element and count words
+        const elementText = segment.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        const elementWords = elementText.split(/\s+/).filter(word => word.length > 0).length;
+        
+        // Add element to result
+        result += segment;
+        currentWordCount += elementWords;
+        
+        // Check if we should insert an image after this paragraph (not after headings)
+        if (segment.startsWith('<p')) {
+          while (
+            distributionPointIndex < distributionPoints.length &&
+            currentWordCount >= distributionPoints[distributionPointIndex] &&
+            imageIndex < imagesToDistribute.length
+          ) {
+            // Calculate words since last insertion
+            const wordsSinceLastInsertion = currentWordCount - lastInsertionWordCount;
+            
+            // Only insert if we have enough words (minimum threshold)
+            if (wordsSinceLastInsertion >= minWordsBetweenImages) {
+              result += `<div class="blog-image-wrapper"><img src="${imagesToDistribute[imageIndex]}" alt="Blog image" loading="lazy" /></div>`;
+              imageIndex++;
+              lastInsertionWordCount = currentWordCount;
+            }
+            
+            distributionPointIndex++;
+          }
+        }
+      } else {
+        // Non-paragraph content (like existing images)
+        result += segment;
+      }
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Error distributing images:', error);
+    return content;
+  }
+}
+
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
   try {
+    // Clear cache for this specific blog before fetching
+    revalidateTag(CACHE_TAGS.BLOG_POST(slug), '');
+    
     const blog = await getCachedBlogPost(slug);
 
-    if (!blog || !blog.isPublished) {
+    if (!blog) {
       notFound();
     }
 
@@ -153,19 +309,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             </header>
 
             <div 
-              className="prose prose-lg max-w-none text-[#111111]/90 leading-relaxed [&_img]:mx-auto [&_img]:block"
+              className="prose prose-lg max-w-none text-[#111111]/90 leading-relaxed"
               dangerouslySetInnerHTML={{ 
-                __html: blog.content
-                  .split(/\n\s*\n/)
-                  .map(paragraph => {
-                    // If paragraph contains an img tag, return it as-is (it's already HTML)
-                    if (paragraph.trim().startsWith('<img') || paragraph.includes('<img')) {
-                      return paragraph.trim();
-                    }
-                    // Otherwise, treat as text and convert single newlines to breaks
-                    return paragraph.split('\n').map(line => line || '<br />').join('');
-                  })
-                  .join('<br /><br />')
+                __html: distributeImagesSmartly(
+                  parseBlogContent(blog.content),
+                  blog.images || []
+                )
               }}
             />
           </article>

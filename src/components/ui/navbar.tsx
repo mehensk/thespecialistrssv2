@@ -96,7 +96,7 @@ export function Navbar() {
         // #endregion
         setIsStableAuthenticated(false);
         unauthenticatedTimeoutRef.current = null;
-      }, 200);
+      }, 1000);
     }
     // Don't update during 'loading' state to prevent flickering
     // If we're already authenticated and status becomes 'loading', keep the authenticated state

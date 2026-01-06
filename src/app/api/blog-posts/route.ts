@@ -205,6 +205,7 @@ export async function POST(request: NextRequest) {
 
     // Revalidate cache when new blog post is created
     revalidateTag(CACHE_TAGS.BLOG_POSTS, '');
+    revalidateTag(CACHE_TAGS.BLOG_POST(slug), '');
 
     return NextResponse.json({ success: true, blog }, { status: 201 });
   } catch (error) {
@@ -233,4 +234,3 @@ export async function POST(request: NextRequest) {
     }
   }
 }
-

@@ -38,19 +38,6 @@ function ContactPageContent() {
     }
   }, [searchParams]);
 
-  const handleServiceClick = (serviceName: string, interestValue: string) => {
-    setMessage(`I need help with ${serviceName}. Please contact me.`);
-    setInterest(interestValue);
-    // Scroll to message field
-    setTimeout(() => {
-      const messageField = document.getElementById('message');
-      if (messageField) {
-        messageField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        messageField.focus();
-      }
-    }, 100);
-  };
-
   const handleEmailClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     const email = 'thespecialistrss@gmail.com';
@@ -232,66 +219,42 @@ function ContactPageContent() {
                       Our Services
                     </h3>
                     <div className="space-y-3">
-                      <button
-                        type="button"
-                        onClick={() => handleServiceClick('Property Buying Assistance', 'buying')}
-                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors text-left"
-                      >
+                      <div className="w-full flex items-center gap-3 p-2 rounded-lg">
                         <div className="h-8 w-8 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center flex-shrink-0">
                           <HomeIcon size={16} className="text-white" />
                         </div>
                         <span className="text-sm text-[#111111]/80">Property Buying Assistance</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleServiceClick('Property Selling & Marketing', 'selling')}
-                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors text-left"
-                      >
+                      </div>
+                      <div className="w-full flex items-center gap-3 p-2 rounded-lg">
                         <div className="h-8 w-8 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center flex-shrink-0">
                           <TrendingUp size={16} className="text-white" />
                         </div>
                         <span className="text-sm text-[#111111]/80">Property Selling & Marketing</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleServiceClick('Leasing & Rental Services', 'renting')}
-                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors text-left"
-                      >
+                      </div>
+                      <div className="w-full flex items-center gap-3 p-2 rounded-lg">
                         <div className="h-8 w-8 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center flex-shrink-0">
                           <Key size={16} className="text-white" />
                         </div>
                         <span className="text-sm text-[#111111]/80">Leasing & Rental Services</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleServiceClick('Documentation & Title Transfer', 'documentation')}
-                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors text-left"
-                      >
+                      </div>
+                      <div className="w-full flex items-center gap-3 p-2 rounded-lg">
                         <div className="h-8 w-8 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center flex-shrink-0">
                           <FileCheck size={16} className="text-white" />
                         </div>
                         <span className="text-sm text-[#111111]/80">Documentation & Title Transfer</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleServiceClick('Property Valuation', 'other')}
-                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors text-left"
-                      >
+                      </div>
+                      <div className="w-full flex items-center gap-3 p-2 rounded-lg">
                         <div className="h-8 w-8 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center flex-shrink-0">
                           <Calculator size={16} className="text-white" />
                         </div>
                         <span className="text-sm text-[#111111]/80">Property Valuation</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleServiceClick('Real Estate Advisory', 'other')}
-                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors text-left"
-                      >
+                      </div>
+                      <div className="w-full flex items-center gap-3 p-2 rounded-lg">
                         <div className="h-8 w-8 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center flex-shrink-0">
                           <Lightbulb size={16} className="text-white" />
                         </div>
                         <span className="text-sm text-[#111111]/80">Real Estate Advisory</span>
-                      </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -478,4 +441,3 @@ export default function ContactPage() {
     </>
   );
 }
-
