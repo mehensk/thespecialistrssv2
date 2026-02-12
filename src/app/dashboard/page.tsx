@@ -1,10 +1,12 @@
 import { getUserFromToken } from '@/lib/get-user-from-token';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { Home, FileText, CheckCircle, Clock, Activity } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { UserRole } from '@prisma/client';
+import MobileDashboardContent from './mobile-dashboard-content';
 
 export const dynamic = 'force-dynamic';
 
@@ -235,6 +237,13 @@ async function DashboardContent() {
 }
 
 export default async function DashboardPage() {
+  const userAgent = (await headers()).get('user-agent')?.toLowerCase() || '';
+  const isMobileDevice = /mobile|android|iphone|ipad|ipod|blackberry|opera mini|iemobile/i.test(userAgent);
+
+  if (isMobileDevice) {
+    return <MobileDashboardContent />;
+  }
+
   return (
     <Suspense fallback={
       <div className="animate-pulse">

@@ -4,14 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { isMetroManilaCity, METRO_MANILA_CITIES } from '@/lib/location-utils';
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection';
+import { ListingImagesSection } from '@/components/listings/ListingImagesSection';
 import { 
   ArrowLeft, 
   CheckCircle, 
-  Plus, 
-  X, 
-  Upload, 
-  Loader2,
   Wind,
   Sofa,
   Wifi,
@@ -42,6 +41,7 @@ import {
   AlertCircle,
   Building,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export default function NewListingPage() {
   const router = useRouter();
@@ -49,6 +49,7 @@ export default function NewListingPage() {
   const [success, setSuccess] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isOutsideMetroManila, setIsOutsideMetroManila] = useState(false);
+  const isMobile = useIsMobile();
   
   // Initialize formData first before using it in useFileUpload
   const [formData, setFormData] = useState({
@@ -81,7 +82,6 @@ export default function NewListingPage() {
   });
   
   const {
-    processFiles,
     handleImageUpload,
     handleDrop,
     handleDragOver,
@@ -177,7 +177,7 @@ export default function NewListingPage() {
   };
 
   // Essential amenities with icons (30 most important)
-  const amenitiesList: { name: string; icon: any; category: string }[] = [
+  const amenitiesList: { name: string; icon: LucideIcon; category: string }[] = [
     { name: 'Air Conditioning', icon: Wind, category: 'Interior' },
     { name: 'Fully Furnished', icon: Sofa, category: 'Services' },
     { name: 'Wi-Fi Included', icon: Wifi, category: 'Services' },
@@ -273,7 +273,7 @@ export default function NewListingPage() {
         router.push('/dashboard/listings');
         router.refresh();
       }, 2000);
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
       setLoading(false);
     }
@@ -293,12 +293,33 @@ export default function NewListingPage() {
       </div>
 
       <div className="w-full md:max-w-5xl mx-auto bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-4 sm:p-6 lg:p-8">
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8 flex flex-col">
+          {/* Mobile Sticky Actions */}
+          <div className="lg:hidden sticky top-[148px] z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/95 backdrop-blur border-b border-[#E5E7EB]">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-4 py-2 rounded-md transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Creating...' : 'Create Listing'}
+              </button>
+              <Link
+                href="/dashboard/listings"
+                className="bg-white border-2 border-[#1F2937] text-[#1F2937] px-4 py-2 rounded-md transition-all text-sm font-medium text-center"
+              >
+                Cancel
+              </Link>
+            </div>
+          </div>
+
           {/* Basic Information Section */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
-              Basic Information
-            </h2>
+          <CollapsibleSection
+            title="Basic Information"
+            isMobile={isMobile}
+            defaultOpenMobile={true}
+            className="order-2 lg:order-1"
+          >
 
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-[#111111] mb-2">
@@ -403,13 +424,10 @@ export default function NewListingPage() {
                 placeholder="e.g., 123 Ayala Avenue, Makati City"
               />
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Property Details Section */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
-              Property Details
-            </h2>
+          <CollapsibleSection title="Property Details" isMobile={isMobile} className="order-3 lg:order-2">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -587,120 +605,32 @@ export default function NewListingPage() {
                 Property is available
               </label>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Images Section */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
-              Images
-            </h2>
-
-            <div className="space-y-3">
-              <div>
-                <label
-                  htmlFor="imageUpload"
-                  className="block text-sm font-medium text-[#111111] mb-1.5"
-                >
-                  Upload Images
-                </label>
-                <div
-                  className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors cursor-pointer ${
-                    isDragging
-                      ? 'border-[#1F2937] bg-[#F3F4F6]'
-                      : 'border-[#E5E7EB] hover:border-[#1F2937]'
-                  }`}
-                  onDrop={handleFileDrop}
-                  onDragOver={handleDragOver}
-                  onDragEnter={handleDragEnter}
-                  onDragLeave={handleDragLeave}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input
-                    ref={fileInputRef}
-                    id="imageUpload"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  <div className="flex flex-col items-center gap-1.5 text-[#111111]/70 hover:text-[#111111] transition-colors">
-                    <Upload size={24} className="text-[#1F2937]" />
-                    <span className="text-sm font-medium">Click to upload images</span>
-                    <span className="text-xs">or drag and drop</span>
-                    <span className="text-[10px] text-[#111111]/50">
-                      Recommended: 2000 x 1500px (4:3 ratio), Max 20MB per image
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {uploadingImages.length > 0 && (
-                <div className="flex items-center gap-2 text-xs text-[#111111]/70">
-                  <Loader2 size={14} className="animate-spin" />
-                  <span>Uploading {uploadingImages.length} image(s)...</span>
-                </div>
-              )}
-
-              {formData.images.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium text-[#111111]">
-                      Uploaded Images ({formData.images.length})
-                    </p>
-                    <p className="text-[10px] text-[#111111]/70">
-                      Click on an image to set it as the cover photo
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {formData.images.map((image, index) => (
-                      <div 
-                        key={index} 
-                        className={`relative group cursor-pointer ${
-                          formData.coverPhotoIndex === index 
-                            ? 'ring-2 ring-[#1F2937] ring-offset-2' 
-                            : ''
-                        }`}
-                        onClick={() => setCoverPhoto(index)}
-                      >
-                        <img
-                          src={image}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-md border border-[#E5E7EB]"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23E5E7EB" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="12"%3EInvalid Image%3C/text%3E%3C/svg%3E';
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeImage(index);
-                          }}
-                          className="absolute top-1.5 right-1.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X size={14} />
-                        </button>
-                        <div className={`absolute bottom-0 left-0 right-0 text-white text-[10px] p-0.5 text-center ${
-                          formData.coverPhotoIndex === index 
-                            ? 'bg-[#1F2937] font-semibold' 
-                            : 'bg-black/50'
-                        }`}>
-                          {formData.coverPhotoIndex === index ? '✓ Cover' : `${index + 1}`}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          <div className="order-1 lg:order-3">
+            <ListingImagesSection
+              images={formData.images}
+              coverPhotoIndex={formData.coverPhotoIndex}
+              uploadingImages={uploadingImages}
+              isDragging={isDragging}
+              fileInputRef={fileInputRef}
+              onFileUpload={handleFileUpload}
+              onDrop={handleFileDrop}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onSetCoverPhoto={setCoverPhoto}
+              onRemoveImage={removeImage}
+            />
           </div>
 
           {/* Amenities and Services Section */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
-              Amenities and Services
-            </h2>
+          <CollapsibleSection
+            title="Amenities and Services"
+            isMobile={isMobile}
+            className="order-4"
+          >
             <p className="text-xs text-[#111111]/70 mb-3">
               Select all amenities and services available in this property
             </p>
@@ -727,7 +657,7 @@ export default function NewListingPage() {
                 );
               })}
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Error notification */}
           {error && (
@@ -737,17 +667,17 @@ export default function NewListingPage() {
           )}
 
           {/* Submit Buttons */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-3 border-t border-[#E5E7EB]">
+          <div className="hidden lg:flex lg:items-center gap-3 pt-3 border-t border-[#E5E7EB]">
             <button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-5 py-2 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+              className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-5 py-2 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating...' : 'Create Listing'}
             </button>
             <Link
               href="/dashboard/listings"
-              className="bg-white border-2 border-[#1F2937] text-[#1F2937] px-5 py-2 rounded-md hover:bg-[#1F2937] hover:text-white transition-all duration-300 text-sm font-medium w-full sm:w-auto text-center"
+              className="bg-white border-2 border-[#1F2937] text-[#1F2937] px-5 py-2 rounded-md hover:bg-[#1F2937] hover:text-white transition-all duration-300 text-sm font-medium text-center"
             >
               Cancel
             </Link>
@@ -765,8 +695,8 @@ export default function NewListingPage() {
 
       <div className="mt-4 bg-blue-50 border border-blue-200 rounded-md p-3">
         <p className="text-xs text-blue-800">
-          <strong>Note:</strong> Your listing will be created but marked as "Pending Approval". 
-          An admin will need to approve it before it's published and visible to the public.
+          <strong>Note:</strong> Your listing will be created but marked as &quot;Pending Approval&quot;.
+          An admin will need to approve it before it&apos;s published and visible to the public.
         </p>
       </div>
     </div>

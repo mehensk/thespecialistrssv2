@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Mobile Redesign - Task Flows</title>
+  <style>
+    :root {
+      --bg: #eaf0f7;
+      --card: #fff;
+      --line: #d8e1ee;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --brand: #15233a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg,#f5f8fc,#e5ebf3);
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      color: var(--ink);
+      padding: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 14px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .phone {
+      border: 1px solid #c7d3e2;
+      border-radius: 18px;
+      overflow: hidden;
+      background: var(--bg);
+      min-height: 620px;
+      box-shadow: 0 12px 30px rgba(15,23,42,.18);
+    }
+    .head {
+      background: var(--brand);
+      color: #fff;
+      padding: 12px 14px;
+      font-size: 18px;
+      font-weight: 700;
+      border-bottom: 1px solid #0f172a;
+    }
+    .body { padding: 12px; }
+    h3 { margin: 0 0 8px; font-size: 21px; }
+    .sub { margin: 0 0 10px; color: var(--muted); font-size: 12px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .btn {
+      border: 1px solid #1e293b;
+      background: #1e293b;
+      color: #fff;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .ghost {
+      background: #fff;
+      color: #1e293b;
+    }
+    .tabs {
+      margin-top: 16px;
+      border-top: 1px solid #cfd9e8;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      font-size: 11px;
+      text-align: center;
+      padding: 10px 0;
+      color: #334155;
+      background: #f8fafc;
+    }
+    .label { font-size: 10px; color: #475569; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .6px; }
+  </style>
+</head>
+<body>
+  <div class="grid">
+    <section class="phone">
+      <div class="head">Flow 1: Create Listing</div>
+      <div class="body">
+        <div class="label">Entry</div>
+        <div class="card">
+          <h3>Create Listing</h3>
+          <p class="sub">Launch from task hub, no hidden menu required.</p>
+          <div class="row"><span>Upload-first form</span><button class="btn">Start</button></div>
+        </div>
+        <div class="label">Step Focus</div>
+        <div class="card">
+          <div class="row"><span>1. Photos</span><button class="btn ghost">Done</button></div>
+          <div class="row"><span>2. Basics</span><button class="btn ghost">Next</button></div>
+          <div class="row"><span>3. Details</span><button class="btn ghost">Next</button></div>
+        </div>
+      </div>
+      <div class="tabs"><span>Home</span><span>Listings</span><span>Blogs</span><span>Queue</span><span>More</span></div>
+    </section>
+
+    <section class="phone">
+      <div class="head">Flow 2: Edit Listing</div>
+      <div class="body">
+        <div class="label">Entry</div>
+        <div class="card">
+          <h3>Edit Listing</h3>
+          <p class="sub">Direct access to active listings requiring updates.</p>
+          <div class="row"><span>Makati 3BR Condo</span><button class="btn">Edit</button></div>
+          <div class="row"><span>BGC Studio Loft</span><button class="btn">Edit</button></div>
+        </div>
+        <div class="label">Quick Actions</div>
+        <div class="card">
+          <div class="row"><span>Replace cover photo</span><button class="btn ghost">Apply</button></div>
+          <div class="row"><span>Update price</span><button class="btn ghost">Save</button></div>
+          <div class="row"><span>Change status</span><button class="btn ghost">Save</button></div>
+        </div>
+      </div>
+      <div class="tabs"><span>Home</span><span>Listings</span><span>Blogs</span><span>Queue</span><span>More</span></div>
+    </section>
+
+    <section class="phone">
+      <div class="head">Flow 3: Approve Listings</div>
+      <div class="body">
+        <div class="label">Entry</div>
+        <div class="card">
+          <h3>Approval Queue</h3>
+          <p class="sub">Moderation-first queue with explicit decisions.</p>
+          <div class="row"><span>QC Townhouse (Pending)</span><button class="btn">Review</button></div>
+          <div class="row"><span>Pasig Condo (Flagged)</span><button class="btn">Review</button></div>
+        </div>
+        <div class="label">Decision Panel</div>
+        <div class="card">
+          <div class="row"><span>Approve listing</span><button class="btn">Approve</button></div>
+          <div class="row"><span>Request changes</span><button class="btn ghost">Request</button></div>
+          <div class="row"><span>Reject listing</span><button class="btn ghost">Reject</button></div>
+        </div>
+      </div>
+      <div class="tabs"><span>Home</span><span>Listings</span><span>Blogs</span><span>Queue</span><span>More</span></div>
+    </section>
+  </div>
+</body>
+</html>

@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import { use } from 'react';
 import Link from 'next/link';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { isMetroManilaCity, METRO_MANILA_CITIES } from '@/lib/location-utils';
+import { CollapsibleSection } from '@/components/shared/CollapsibleSection';
+import { ListingImagesSection } from '@/components/listings/ListingImagesSection';
 import { 
   ArrowLeft, 
   CheckCircle, 
-  X, 
-  Upload, 
   Loader2,
   Wind,
   Sofa,
@@ -42,6 +43,13 @@ import {
   AlertCircle,
   Building,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+type LegacyAmenities = {
+  interior?: string[];
+  building?: string[];
+  nearby?: string[];
+};
 
 export default function EditListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -51,6 +59,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
   const [success, setSuccess] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isOutsideMetroManila, setIsOutsideMetroManila] = useState(false);
+  const isMobile = useIsMobile();
   
   // Initialize formData first before using it in useFileUpload
   const [formData, setFormData] = useState({
@@ -83,7 +92,6 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
   });
   
   const {
-    processFiles,
     handleImageUpload,
     handleDrop,
     handleDragOver,
@@ -113,7 +121,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
   ];
 
   // Essential amenities with icons (30 most important)
-  const amenitiesList: { name: string; icon: any; category: string }[] = [
+  const amenitiesList: { name: string; icon: LucideIcon; category: string }[] = [
     { name: 'Air Conditioning', icon: Wind, category: 'Interior' },
     { name: 'Fully Furnished', icon: Sofa, category: 'Services' },
     { name: 'Wi-Fi Included', icon: Wifi, category: 'Services' },
@@ -167,7 +175,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
           amenitiesArray = listing.amenities;
         } else if (listing.amenities && typeof listing.amenities === 'object') {
           // Convert old format to new format
-          const oldAmenities = listing.amenities as any;
+          const oldAmenities = listing.amenities as LegacyAmenities;
           if (oldAmenities.interior) {
             oldAmenities.interior.forEach((amenity: string) => {
               amenitiesArray.push(`Interior:${amenity}`);
@@ -213,16 +221,16 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         
         // Set outside Metro Manila state
         setIsOutsideMetroManila(isOutside);
-      } catch (err) {
+      } catch (_error) {
         setError('Failed to load listing data');
-        console.error('Error fetching listing:', err);
+        console.error('Error fetching listing:', _error);
       } finally {
         setFetching(false);
       }
     };
 
     fetchListing();
-  }, [id]);
+  }, [id, setError]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     await handleImageUpload(e, formData.images.length);
@@ -352,7 +360,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         router.push('/dashboard/listings');
         router.refresh();
       }, 2000);
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
       setLoading(false);
     }
@@ -394,13 +402,34 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         <h1 className="text-3xl font-semibold text-[#111111]">Edit Listing</h1>
       </div>
 
-      <div className="w-full md:max-w-5xl mx-auto bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
-        <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="w-full md:max-w-5xl mx-auto bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-4 sm:p-6 lg:p-8">
+        <form onSubmit={handleSubmit} className="space-y-8 flex flex-col">
+          {/* Mobile Sticky Actions */}
+          <div className="lg:hidden sticky top-[148px] z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-white/95 backdrop-blur border-b border-[#E5E7EB]">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-4 py-2 rounded-md transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Updating...' : 'Update Listing'}
+              </button>
+              <Link
+                href="/dashboard/listings"
+                className="bg-white border-2 border-[#1F2937] text-[#1F2937] px-4 py-2 rounded-md transition-all text-sm font-medium text-center"
+              >
+                Cancel
+              </Link>
+            </div>
+          </div>
+
           {/* Basic Information Section */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
-              Basic Information
-            </h2>
+          <CollapsibleSection
+            title="Basic Information"
+            isMobile={isMobile}
+            defaultOpenMobile={true}
+            className="order-2 lg:order-1"
+          >
 
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-[#111111] mb-2">
@@ -505,13 +534,10 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                 placeholder="e.g., 123 Ayala Avenue, Makati City"
               />
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Property Details Section */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
-              Property Details
-            </h2>
+          <CollapsibleSection title="Property Details" isMobile={isMobile} className="order-3 lg:order-2">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -689,123 +715,32 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                 Property is available
               </label>
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Images Section */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
-              Images
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="imageUpload"
-                  className="block text-sm font-medium text-[#111111] mb-2"
-                >
-                  Upload Images
-                </label>
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
-                    isDragging
-                      ? 'border-[#1F2937] bg-[#F3F4F6]'
-                      : 'border-[#E5E7EB] hover:border-[#1F2937]'
-                  }`}
-                  onDrop={handleFileDrop}
-                  onDragOver={handleDragOver}
-                  onDragEnter={handleDragEnter}
-                  onDragLeave={handleDragLeave}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input
-                    ref={fileInputRef}
-                    id="imageUpload"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  <div className="flex flex-col items-center gap-2 text-[#111111]/70 hover:text-[#111111] transition-colors">
-                    <Upload size={32} className="text-[#1F2937]" />
-                    <span className="font-medium">Click to upload images</span>
-                    <span className="text-sm">or drag and drop</span>
-                    <span className="text-xs text-[#111111]/50">
-                      Recommended: 2000 x 1500px (4:3 ratio), Max 20MB per image
-                    </span>
-                    <span className="text-xs text-[#111111]/50 mt-1">
-                      Images will be automatically resized to meet industry standards
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {uploadingImages.length > 0 && (
-                <div className="flex items-center gap-2 text-sm text-[#111111]/70">
-                  <Loader2 size={16} className="animate-spin" />
-                  <span>Uploading {uploadingImages.length} image(s)...</span>
-                </div>
-              )}
-
-              {formData.images.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-[#111111]">
-                      Uploaded Images ({formData.images.length})
-                    </p>
-                    <p className="text-xs text-[#111111]/70">
-                      Click on an image to set it as the cover photo
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {formData.images.map((image, index) => (
-                      <div 
-                        key={index} 
-                        className={`relative group cursor-pointer ${
-                          formData.coverPhotoIndex === index 
-                            ? 'ring-2 ring-[#1F2937] ring-offset-2' 
-                            : ''
-                        }`}
-                        onClick={() => setCoverPhoto(index)}
-                      >
-                        <img
-                          src={image}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-md border border-[#E5E7EB]"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23E5E7EB" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="12"%3EInvalid Image%3C/text%3E%3C/svg%3E';
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeImage(index);
-                          }}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X size={16} />
-                        </button>
-                        <div className={`absolute bottom-0 left-0 right-0 text-white text-xs p-1 text-center ${
-                          formData.coverPhotoIndex === index 
-                            ? 'bg-[#1F2937] font-semibold' 
-                            : 'bg-black/50'
-                        }`}>
-                          {formData.coverPhotoIndex === index ? '✓ Cover Photo' : `Image ${index + 1}`}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          <div className="order-1 lg:order-3">
+            <ListingImagesSection
+              images={formData.images}
+              coverPhotoIndex={formData.coverPhotoIndex}
+              uploadingImages={uploadingImages}
+              isDragging={isDragging}
+              fileInputRef={fileInputRef}
+              onFileUpload={handleFileUpload}
+              onDrop={handleFileDrop}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onSetCoverPhoto={setCoverPhoto}
+              onRemoveImage={removeImage}
+            />
           </div>
 
           {/* Amenities and Services Section */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-[#111111] border-b border-[#E5E7EB] pb-2">
-              Amenities and Services
-            </h2>
+          <CollapsibleSection
+            title="Amenities and Services"
+            isMobile={isMobile}
+            className="order-4"
+          >
             <p className="text-sm text-[#111111]/70 mb-4">
               Select all amenities and services available in this property
             </p>
@@ -832,7 +767,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                 );
               })}
             </div>
-          </div>
+          </CollapsibleSection>
 
           {/* Notification bars */}
           {success && (
@@ -848,7 +783,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
           )}
 
           {/* Submit Buttons */}
-          <div className="flex items-center gap-4 pt-4 border-t border-[#E5E7EB]">
+          <div className="hidden lg:flex lg:items-center gap-4 pt-4 border-t border-[#E5E7EB]">
             <button
               type="submit"
               disabled={loading}
@@ -868,3 +803,4 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
     </div>
   );
 }
+

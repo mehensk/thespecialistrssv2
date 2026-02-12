@@ -1,9 +1,18 @@
 import { Suspense } from 'react';
+import { headers } from 'next/headers';
 import DashboardContent from './dashboard-content';
+import MobileDashboardContent from './mobile-dashboard-content';
 
 export const dynamic = 'force-dynamic';
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const userAgent = (await headers()).get('user-agent')?.toLowerCase() || '';
+  const isMobileDevice = /mobile|android|iphone|ipad|ipod|blackberry|opera mini|iemobile/i.test(userAgent);
+
+  if (isMobileDevice) {
+    return <MobileDashboardContent />;
+  }
+
   // Use Suspense to render page immediately with loading state
   // Data will stream in as it becomes available
   return (

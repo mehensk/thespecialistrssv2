@@ -5,42 +5,17 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  LayoutDashboard, 
-  Users, 
-  Home, 
-  FileText, 
-  Activity,
-  Settings,
   LogOut,
-  Menu,
-  X,
-  ArrowLeft
 } from 'lucide-react';
-import { useState, useMemo, useCallback, memo, useEffect, useTransition } from 'react';
+import { useMemo, useCallback, memo, useEffect } from 'react';
 import { ActivityTracker } from '@/components/activity-tracker';
 import { broadcastLogout } from '@/components/providers/LogoutSync';
-
-// Memoize nav items to prevent recreation on every render
-const navItems: Array<{
-  href: string;
-  label: string;
-  icon: any;
-  section?: 'personal';
-}> = [
-  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/listings', label: 'All Listings', icon: Home },
-  { href: '/admin/blogs', label: 'All Blogs', icon: FileText },
-  { href: '/admin/logs', label: 'Activity Logs', icon: Activity },
-  // Personal management sections
-  { href: '/dashboard/listings', label: 'My Listings', icon: Home, section: 'personal' },
-  { href: '/dashboard/blogs', label: 'My Blogs', icon: FileText, section: 'personal' },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings, section: 'personal' },
-];
+import { MobileDashboardNav } from '@/components/navigation/MobileDashboardNav';
+import { adminDesktopNav, adminMobilePrimaryNav, adminMobileSecondaryNav } from '@/components/navigation/nav-config';
 
 // Memoize navigation item component to prevent unnecessary re-renders
 const NavItem = memo(({ item, isActive, onMobileClick, onPrefetch }: { 
-  item: typeof navItems[number]; 
+  item: typeof adminDesktopNav[number]; 
   isActive: boolean;
   onMobileClick?: () => void;
   onPrefetch?: (href: string) => void;
@@ -75,15 +50,9 @@ const NavItem = memo(({ item, isActive, onMobileClick, onPrefetch }: {
 NavItem.displayName = 'NavItem';
 
 export const AdminLayout = memo(function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { data: session, status, update } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isNavigating, startTransition] = useTransition();
-  
-  // Cache session data to avoid unnecessary re-renders
-  // useSession() already handles caching, but we memoize the session check
-  const sessionMemo = useMemo(() => session, [session?.user?.id, session?.user?.role]);
 
   // Client-side check: If session becomes null (server restart, logout, etc.), redirect to home immediately
   // Redirect immediately when session is null, even if status is 'loading'
@@ -141,14 +110,11 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
 
   // Memoize active state calculation
   const activeStates = useMemo(() => {
-    return navItems.map(item => ({
+    return adminDesktopNav.map(item => ({
       item,
       isActive: pathname === item.href || (item.href !== '/admin/dashboard' && pathname?.startsWith(item.href))
     }));
   }, [pathname]);
-
-  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
-  const toggleSidebar = useCallback(() => setSidebarOpen(prev => !prev), []);
   
   // Aggressive prefetching on hover
   const handlePrefetch = useCallback((href: string) => {
@@ -163,8 +129,8 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
         <aside className="hidden lg:flex w-64 bg-[#1F2937] text-white flex-col min-h-[calc(100vh-84px)]">
           <div className="p-6 border-b border-[#374151]">
             <h2 className="text-xl font-semibold">Admin Panel</h2>
-            {sessionMemo?.user && (
-              <p className="text-sm text-white/70 mt-1">{sessionMemo.user.email}</p>
+            {session?.user && (
+              <p className="text-sm text-white/70 mt-1">{session.user.email}</p>
             )}
           </div>
           <nav className="flex-1 p-4 space-y-2">
@@ -196,83 +162,17 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
           </div>
         </aside>
 
-        {/* Mobile Sidebar Toggle */}
-        <div className="lg:hidden fixed top-[84px] left-0 right-0 bg-[#1F2937] text-white p-4 z-40 border-b border-[#374151]">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Admin Panel</h2>
-            <button
-              onClick={toggleSidebar}
-              className="p-2 hover:bg-[#374151] rounded-md"
-              aria-label="Toggle sidebar"
-            >
-              {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Sidebar */}
-        {sidebarOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 pt-[140px]">
-            <div className="bg-[#1F2937] text-white w-64 h-full overflow-y-auto">
-              <nav className="p-4 space-y-2">
-                <div className="mb-4">
-                  <p className="text-xs text-white/50 uppercase tracking-wider px-4 mb-2">Admin</p>
-                  {activeStates
-                    .filter(({ item }) => !item.section)
-                    .map(({ item, isActive }) => (
-                      <NavItem 
-                        key={item.href} 
-                        item={item} 
-                        isActive={isActive}
-                        onMobileClick={closeSidebar}
-                        onPrefetch={handlePrefetch}
-                      />
-                    ))}
-                </div>
-                <div className="mt-6">
-                  <p className="text-xs text-white/50 uppercase tracking-wider px-4 mb-2">Personal</p>
-                  {activeStates
-                    .filter(({ item }) => item.section === 'personal')
-                    .map(({ item, isActive }) => (
-                      <NavItem 
-                        key={item.href} 
-                        item={item} 
-                        isActive={isActive}
-                        onMobileClick={closeSidebar}
-                        onPrefetch={handlePrefetch}
-                      />
-                    ))}
-                </div>
-                <div className="mt-6 pt-4 border-t border-[#374151]">
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      closeSidebar();
-                    }}
-                    className="flex items-center gap-3 px-4 py-3 rounded-md text-white/70 hover:bg-[#374151] hover:text-white transition-colors w-full"
-                  >
-                    <LogOut size={20} />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </nav>
-            </div>
-            <div
-              className="flex-1 bg-black/50"
-              onClick={closeSidebar}
-            />
-          </div>
-        )}
+        <MobileDashboardNav
+          primaryItems={adminMobilePrimaryNav}
+          secondaryItems={adminMobileSecondaryNav}
+          pathname={pathname ?? ''}
+          panelTitle="Admin Panel"
+          onLogout={handleLogout}
+        />
 
         {/* Main Content */}
         <main className="flex-1 lg:ml-0 relative">
-          {/* Navigation loading indicator */}
-          {isNavigating && (
-            <div className="absolute top-0 left-0 right-0 h-1 bg-[#E5E7EB] overflow-hidden z-50">
-              <div className="h-full bg-gradient-to-r from-[#1F2937] to-[#111111] animate-pulse" style={{ width: '30%' }}></div>
-            </div>
-          )}
-          <div className="p-4 sm:p-6 lg:p-8">
+          <div className="p-4 sm:p-6 pb-24 lg:pb-8 lg:p-8">
             {children}
           </div>
         </main>

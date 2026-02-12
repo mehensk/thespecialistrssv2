@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import './globals.css';
 import { GeistSans, GeistMono } from 'geist/font';
 import { Navbar } from '@/components/ui/navbar';
-import { Footer } from '@/components/ui/footer';
+import { ConditionalFooter } from '@/components/ui/conditional-footer';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { LogoutSync } from '@/components/providers/LogoutSync';
 import { ToastProvider } from '@/components/ui/toast';
@@ -31,13 +30,13 @@ export default function RootLayout({
         className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
       >
         <SessionProvider>
-          <LogoutSync />
-          <ToastProvider>
-            <Navbar />
-            <main>{children}</main>
-            <Footer />
-          </ToastProvider>
-        </SessionProvider>
+            <LogoutSync />
+            <ToastProvider>
+              <Navbar />
+              <main>{children}</main>
+              <ConditionalFooter />
+            </ToastProvider>
+          </SessionProvider>
       </body>
     </html>
   );
