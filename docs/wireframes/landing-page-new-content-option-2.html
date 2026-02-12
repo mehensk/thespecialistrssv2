@@ -1,0 +1,1346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Specialist Realty - Landing Page Wireframe</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap");
+
+    :root {
+      --ink: #0d0f12;
+      --steel: #1e2a36;
+      --mist: #f0f2f4;
+      --slate: #dde2e7;
+      --accent: #2f5f8f;
+      --accent-light: #4d7bb0;
+      --gold: #D4AF37;
+      --grid: rgba(13, 15, 18, 0.08);
+      --shadow: 0 20px 50px rgba(13, 15, 18, 0.18);
+      --shadow-sm: 0 10px 24px rgba(13, 15, 18, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--mist);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1160px, 92vw);
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      background: rgba(240, 242, 244, 0.95);
+      border-bottom: 1px solid var(--slate);
+      z-index: 10;
+    }
+
+    .header-inner {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 0;
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-size: 14px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--steel);
+    }
+
+    .header-cta {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .header-cta a {
+      padding: 10px 16px;
+      border-radius: 4px;
+      border: 1px solid var(--ink);
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: var(--ink);
+      color: #fff;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 90px 0 100px;
+      min-height: 100vh;
+      background: linear-gradient(120deg, #f0f2f4 0%, #e7ecef 50%, #dfe5ea 100%);
+      border-bottom: 1px solid var(--slate);
+      position: relative;
+    }
+
+    .hero::before {
+      content: none;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+      position: relative;
+    }
+
+    .hero-split {
+      background-image: url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80");
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .hero-split::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(8, 12, 18, 0.88) 0%, rgba(10, 16, 22, 0.82) 55%, rgba(13, 19, 26, 0.78) 100%);
+    }
+
+    .hero-split-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: stretch;
+    }
+
+    .hero-panel {
+      background: rgba(12, 18, 24, 0.78);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 32px 36px;
+      box-shadow: var(--shadow);
+      animation: fadeInUp 0.6s ease-out;
+      align-self: stretch;
+      height: 100%;
+    }
+
+    .hero-actions-card {
+      background: rgba(12, 18, 24, 0.88);
+      border-radius: 16px;
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      padding: 28px 32px;
+      box-shadow: 0 20px 50px rgba(13, 15, 18, 0.3), 0 0 30px rgba(212, 175, 55, 0.08);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      align-self: stretch;
+      animation: fadeInUp 0.6s ease-out 0.2s both;
+      height: 100%;
+    }
+
+    .hero-actions-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 25px 60px rgba(13, 15, 18, 0.4), 0 0 40px rgba(212, 175, 55, 0.12);
+      border-color: rgba(212, 175, 55, 0.4);
+    }
+
+    .hero-actions-sell {
+      margin-top: auto;
+      padding-top: 18px;
+    }
+
+    .hero-actions-header {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: rgba(212, 175, 55, 0.95);
+      margin: 0 0 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid rgba(212, 175, 55, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-icon {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .action-divider {
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      margin: 24px 0;
+    }
+
+    .enlist-message {
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(245, 247, 250, 0.9);
+      text-align: center;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .hero-actions-intro {
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(245, 247, 250, 0.9);
+      text-align: center;
+      margin: 0 0 8px;
+      line-height: 1.5;
+    }
+
+    .enlist-button {
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 12px 20px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .enlist-button:hover {
+      background: var(--gold);
+      color: #111;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .enlist-button:focus {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 0;
+    }
+
+    .hero-panel h1 {
+      margin: 0 0 24px;
+      color: #f5f7fa;
+    }
+
+    .hero-panel p {
+      margin: 0 0 16px;
+      line-height: 1.9;
+      color: rgba(245, 247, 250, 0.88);
+    }
+
+    .hero-panel p:last-child {
+      margin-bottom: 0;
+    }
+
+    .hero-split h1,
+    .hero-split .lead,
+    .hero-split .hero-form-title {
+      color: #f5f7fa;
+    }
+
+    .hero-split .lead {
+      color: rgba(245, 247, 250, 0.88);
+    }
+
+    .hero-split .cta-row a {
+      border-color: rgba(255, 255, 255, 0.7);
+      color: #fff;
+    }
+
+    .hero-split .cta-row a:first-child {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #111;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(47, 95, 143, 0.12);
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .hero-stat {
+      background: rgba(10, 16, 22, 0.75);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 12px 14px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: rgba(245, 247, 250, 0.9);
+      box-shadow: var(--shadow-sm);
+    }
+
+
+
+    .eyebrow {
+      font-family: "Space Mono", "Courier New", monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1, h2, h3 {
+      margin: 12px 0 16px;
+      line-height: 1.2;
+    }
+
+    h1 {
+      font-size: clamp(28px, 3.5vw, 48px);
+    }
+
+    h2 {
+      font-size: clamp(28px, 3vw, 42px);
+    }
+
+    h3 {
+      font-size: 20px;
+      margin: 0 0 10px;
+    }
+
+    .lead {
+      font-size: 18px;
+      color: var(--steel);
+      line-height: 1.7;
+      max-width: 480px;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .cta-row a {
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--ink);
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .cta-row a:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .cta-row a:focus {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .cta-row a:first-child {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .hero-search {
+      margin-top: 24px;
+      padding-top: 15px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .search-header {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #ffffff;
+      margin-bottom: 16px;
+    }
+
+    .search-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      background: #fff;
+      padding: 14px;
+      border-radius: 6px;
+      border: 1px solid var(--slate);
+      box-shadow: var(--shadow);
+    }
+
+    .search-bar input,
+    .search-bar select {
+      padding: 12px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--slate);
+      font-family: inherit;
+    }
+
+    .search-bar button {
+      padding: 12px 16px;
+      border-radius: 4px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* Sections */
+    .section {
+      padding: 72px 0;
+    }
+
+    .grid-section {
+      background: #fff;
+      border-top: 1px solid var(--slate);
+      border-bottom: 1px solid var(--slate);
+      position: relative;
+    }
+
+    /* Background pattern for grid sections */
+    .grid-section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(300px, 2fr);
+      gap: 32px;
+      align-items: start;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cards-3,
+    .cards-4,
+    .cards-5,
+    .cards-6,
+    .listing-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .cards-3 {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .cards-4 {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .cards-5 {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .cards-6 {
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+
+    .card {
+      background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+      border: 1px solid var(--slate);
+      border-radius: 12px;
+      padding: 32px 28px;
+      min-height: 200px;
+      box-shadow: var(--shadow-sm), inset 0 1px 2px rgba(0,0,0,0.02);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15), 0 10px 30px rgba(13, 15, 18, 0.1);
+      transform: translateY(-4px);
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold) 0%, rgba(212, 175, 55, 0.6) 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-icon {
+      width: 52px;
+      height: 52px;
+      background: var(--gold);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 20px;
+      color: #111;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover .card-icon {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(212, 175, 55, 0.35);
+    }
+
+    .card-icon svg {
+      width: 28px;
+      height: 28px;
+      stroke-width: 2;
+    }
+
+    .card-number {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      font-family: "Space Mono", monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: rgba(212, 175, 55, 0.3);
+      letter-spacing: 2px;
+    }
+
+    .card h3 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 12px;
+      color: var(--steel);
+      letter-spacing: 0.3px;
+      position: relative;
+    }
+
+    .card h3::after {
+      content: "";
+      display: block;
+      width: 40px;
+      height: 2px;
+      background: var(--gold);
+      margin-top: 8px;
+      opacity: 0.6;
+      border-radius: 1px;
+    }
+
+    .card-content p {
+      font-size: 14px;
+      color: var(--steel);
+      line-height: 1.8;
+      margin: 0;
+      opacity: 0.85;
+    }
+
+    /* Why Choose Us specific styles */
+    .why-choose-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    @media (min-width: 1200px) {
+      .why-choose-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .section-header a {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .section-header-centered {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto 40px auto;
+    }
+
+    .section-header-centered .eyebrow {
+      margin-bottom: 8px;
+    }
+
+    .section-header-centered h2 {
+      margin: 0 0 12px;
+    }
+
+    .section-header-centered p {
+      color: var(--steel);
+      font-size: 16px;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .listing-grid {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 300px));
+      justify-content: center;
+    }
+
+    .listing-card {
+      background: linear-gradient(135deg, #fff 0%, #f8f9fb 100%);
+      border: 1px solid var(--slate);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .listing-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 26px rgba(13, 15, 18, 0.14), 0 0 0 1px rgba(212, 175, 55, 0.25);
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+
+    .listing-card .media {
+      position: relative;
+      height: 224px;
+      background: #e6eaef;
+      overflow: hidden;
+    }
+
+    .listing-card .badge-row {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .listing-card .badge {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      background: rgba(13, 15, 18, 0.85);
+    }
+
+    .listing-card .badge.gold {
+      background: rgba(212, 175, 55, 0.92);
+      color: #111;
+    }
+
+    .listing-card .media-label {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      background: linear-gradient(135deg, rgba(13, 15, 18, 0.45), rgba(13, 15, 18, 0.15));
+    }
+
+    .listing-card .content {
+      padding: 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .listing-card .title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--steel);
+      line-height: 1.4;
+    }
+
+    .listing-card .price {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .listing-card .price small {
+      font-size: 12px;
+      font-weight: 500;
+      color: #5a606b;
+    }
+
+    .listing-card .meta-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--steel);
+      border-top: 1px solid var(--slate);
+      padding-top: 10px;
+    }
+
+    .listing-card .meta-line span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--mist);
+      padding: 5px 8px;
+      border-radius: 6px;
+    }
+
+    .listing-card .location {
+      font-size: 13px;
+      color: #4f5a68;
+    }
+
+    @media (max-width: 720px) {
+      .listing-card .media {
+        height: 200px;
+      }
+    }
+
+    /* About Section */
+    .about-content {
+      background: #fff;
+      padding: 32px;
+      border-radius: 10px;
+      border: 1px solid var(--slate);
+    }
+
+    .about-text p {
+      margin: 0 0 16px;
+      color: var(--steel);
+      line-height: 1.8;
+    }
+
+    .stats {
+      background: var(--steel);
+      color: #fff;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 18px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 12px;
+    }
+
+    /* CTA */
+    .cta {
+      background: #0d0f12;
+      color: #fff;
+    }
+
+    .cta-inner {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      align-items: center;
+    }
+
+    .cta a {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 12px 18px;
+      border-radius: 6px;
+      background: var(--accent-light);
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 12px;
+    }
+
+    .cta-image {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Footer */
+    .site-footer {
+      background: #1F2937;
+      border-top: 1px solid #374151;
+      color: #fff;
+      padding: 48px 0 40px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    .footer-brand h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+      margin: 0 0 8px;
+    }
+
+    .footer-brand .license {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0 0 16px;
+    }
+
+    .footer-brand .social-icons {
+      display: flex;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .footer-brand .social-icons a {
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.3s ease;
+      font-size: 12px;
+    }
+
+    .footer-brand .social-icons a:hover {
+      color: #fff;
+    }
+
+    .footer-links h4,
+    .footer-services h4,
+    .footer-contact h4 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      margin: 0 0 16px;
+    }
+
+    .footer-links ul,
+    .footer-services ul,
+    .footer-contact ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-links li,
+    .footer-services li,
+    .footer-contact li {
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .footer-links li a {
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.3s ease;
+    }
+
+    .footer-links li a:hover {
+      color: #fff;
+    }
+
+    .footer-contact li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .footer-contact li svg {
+      flex-shrink: 0;
+      color: #fff;
+    }
+
+    .footer-contact .contact-btn {
+      display: inline-block;
+      background: #fff;
+      color: #1F2937;
+      padding: 12px 24px;
+      border-radius: 6px;
+      margin-top: 24px;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .footer-contact .contact-btn:hover {
+      background: rgba(255, 255, 255, 0.9);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid #374151;
+      padding: 24px 0;
+      text-align: center;
+    }
+
+    .footer-bottom p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .header-inner {
+        grid-template-columns: 1fr;
+        justify-items: start;
+      }
+      .nav {
+        display: none;
+      }
+      .header-cta {
+        display: none;
+      }
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-split-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+      .hero-actions-card {
+        align-self: stretch;
+        margin-top: 0;
+      }
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
+      .hero-split .cta-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero {
+        padding: 60px 0 40px;
+      }
+      .hero-panel {
+        padding: 24px 20px;
+      }
+      .hero-actions-card {
+        padding: 20px 20px;
+      }
+      .hero-actions-header {
+        font-size: 13px;
+      }
+      .cta-row {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .cta-row a {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header header-grid">
+    <div class="container header-inner">
+      <div class="brand">The Specialist Realty</div>
+      <nav class="nav">
+        <a href="#">Home</a>
+        <a href="#">How We Work</a>
+        <a href="#">Listings</a>
+        <a href="#">Contact</a>
+      </nav>
+      <div class="header-cta">
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero hero-split">
+      <div class="container hero-split-grid">
+        <div class="hero-panel">
+          <h1>Meet The Specialist</h1>
+          <p class="lead">Welcome to The Specialist Realty Solutions and Services—where elevated real estate guidance meets genuine client care.</p>
+          <p class="lead">With over 10 years of expertise in developer selling, title transfers, and appraisals, we help you make confident property decisions through expert support and a refreshingly honest approach.</p>
+          <p class="lead">Whether you're searching for a condominium, family home, or investment property, we make your journey smooth, informed, and truly rewarding.</p>
+        </div>
+        <div class="hero-actions-card">
+          
+          
+          <div class="hero-actions-header">
+            <span class="section-icon">✦</span>
+            Quick Actions
+          </div>
+          <p class="hero-actions-intro">Ready to explore your next home? Browse our curated listings or book a personalized tour today.</p>
+          <div class="cta-row">
+            <a href="#">View Listings</a>
+            <a href="#">Schedule Tour</a>
+          </div>
+          <div class="hero-actions-sell">
+            <div class="hero-actions-header">
+              <span class="section-icon">⌂</span>
+              Sell Your Property
+            </div>
+            <p class="enlist-message">LIST YOUR PROPERTIES WITH US</p>
+            <div class="cta-row">
+              <a href="#" class="enlist-button">Enlist Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container hero-search">
+        <div class="search-header">Search our Properties</div>
+        <form class="search-bar">
+          <input type="text" placeholder="Location" />
+          <select>
+            <option value="">All Property Types</option>
+            <option value="condominium">Condominium</option>
+            <option value="house-and-lot">House and Lot</option>
+            <option value="townhouse">Townhouse</option>
+            <option value="apartment">Apartment</option>
+            <option value="penthouse">Penthouse</option>
+            <option value="lot">Lot</option>
+            <option value="building">Building</option>
+            <option value="commercial">Commercial Space</option>
+          </select>
+          <select>
+            <option value="sale">Sale</option>
+            <option value="rent">Rent</option>
+          </select>
+          <button type="submit">Search</button>
+        </form>
+      </div>
+    </section>
+
+
+    <!-- Why Choose Us Section (Enhanced) -->
+    <section class="section grid-section">
+      <div class="container">
+        <div class="section-header-centered">
+          <p class="eyebrow">Our Difference</p>
+          <h2>Why Choose The Specialist Realty</h2>
+          <p>Expertise You Can Trust, Service You Can Feel</p>
+        </div>
+        <div class="why-choose-grid">
+            <article class="card">
+              <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+              </div>
+              <h3>Expert Guidance</h3>
+              <div class="card-content">
+                <p>From property selection to final turnover, we guide you with clarity and confidence throughout the entire process.</p>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+              </div>
+              <h3>Personalized Experience</h3>
+              <div class="card-content">
+                <p>No two clients are the same. We listen closely to what matters most and align you with the right property opportunities.</p>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <path d="M3 3v5h5"/>
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                  <path d="M16 21h5v-5"/>
+                </svg>
+              </div>
+              <h3>Life Transitions</h3>
+              <div class="card-content">
+                <p>Real estate is tied to life's biggest turning points. We offer steady support through every transition.</p>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+              <h3>Elevated Marketing</h3>
+              <div class="card-content">
+                <p>Your property gets polished, high-quality presentation and strategic exposure to attract serious buyers.</p>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                </svg>
+              </div>
+              <h3>Trust & Integrity</h3>
+              <div class="card-content">
+                <p>Our approach is refreshingly honest, calm, and pressure-free, built on trust and long-term relationships.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="section grid-section">
+      <div class="container">
+        <div class="section-header-centered">
+          <p class="eyebrow">What We Do</p>
+          <h2>Our Services</h2>
+          <p>Comprehensive real estate solutions for all your needs</p>
+        </div>
+        <div class="cards-5">
+            <article class="card">
+              <h3>Buying</h3>
+              <p class="text-sm">Property search, negotiation, and purchase assistance</p>
+            </article>
+            <article class="card">
+              <h3>Selling</h3>
+              <p class="text-sm">Marketing, pricing strategy, and buyer qualification</p>
+            </article>
+            <article class="card">
+              <h3>Leasing</h3>
+              <p class="text-sm">Unit showcasing, tenant screening, and lease agreements</p>
+            </article>
+            <article class="card">
+              <h3>Documentation</h3>
+              <p class="text-sm">Title transfer, deed preparation, and BIR coordination</p>
+            </article>
+            <article class="card">
+              <h3>Valuation</h3>
+              <p class="text-sm">Market-based property assessments for informed decisions</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Listings -->
+    <section class="section featured">
+      <div class="container">
+        <div class="section-header">
+          <p class="eyebrow">Available Now</p>
+          <h2>Featured Listings</h2>
+          <a href="#">Browse all listings →</a>
+        </div>
+        <div class="listing-grid">
+          <article class="listing-card">
+            <div class="media">
+              <div class="badge-row">
+                <span class="badge gold">Townhouse</span>
+                <span class="badge">Rent</span>
+              </div>
+              <div class="media-label">Listing Photo</div>
+            </div>
+            <div class="content">
+              <div class="title">4 Bedroom Townhouse for Rent</div>
+              <div class="price">PHP 90,000 <small>/mo</small></div>
+              <div class="meta-line">
+                <span>4 Beds</span>
+                <span>3 Baths</span>
+                <span>70 sqm</span>
+              </div>
+              <div class="location">San Antonio, Makati</div>
+            </div>
+          </article>
+          <article class="listing-card">
+            <div class="media">
+              <div class="badge-row">
+                <span class="badge gold">Condominium</span>
+                <span class="badge">Rent</span>
+              </div>
+              <div class="media-label">Listing Photo</div>
+            </div>
+            <div class="content">
+              <div class="title">2 Bedroom Condominium for Rent</div>
+              <div class="price">PHP 30,000 <small>/mo</small></div>
+              <div class="meta-line">
+                <span>2 Beds</span>
+                <span>2 Baths</span>
+                <span>54 sqm</span>
+              </div>
+              <div class="location">Larsen Tower, Eastbay Residences, Muntinlupa City</div>
+            </div>
+          </article>
+          <article class="listing-card">
+            <div class="media">
+              <div class="badge-row">
+                <span class="badge gold">Condominium</span>
+                <span class="badge">Rent</span>
+              </div>
+              <div class="media-label">Listing Photo</div>
+            </div>
+            <div class="content">
+              <div class="title">2 Bedroom Condominium for Rent</div>
+              <div class="price">PHP 35,000 <small>/mo</small></div>
+              <div class="meta-line">
+                <span>2 Beds</span>
+                <span>1 Bath</span>
+                <span>57.5 sqm</span>
+              </div>
+              <div class="location">Brio Towers, Makati</div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="section stats">
+      <div class="container stats-row">
+        <div class="stat">10+ Years Experience</div>
+        <div class="stat">Licensed PRC Broker</div>
+        <div class="stat">Metro Manila & Beyond</div>
+        <div class="stat">Developer Selling Specialist</div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section cta">
+      <div class="container cta-inner">
+        <div class="cta-text">
+          <p class="eyebrow" style="color: var(--gold);">Ready to Find Your Perfect Property?</p>
+          <h2>Let's find the right property for you—beautifully and professionally.</h2>
+          <p>With The Specialist, you're not just choosing a real estate service—you're choosing a trusted real estate specialist who listens, understands your goals, and represents your best interest every step of the way.</p>
+          <a href="#">Contact Us Today</a>
+        </div>
+        <div class="cta-media">
+          <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" alt="Real Estate Property" class="cta-image" />
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3>The Specialist - Realty Solutions & Services</h3>
+          <p class="license">REBL PRC License # 33422</p>
+          <div class="social-icons">
+            <a href="#" aria-label="Facebook">Facebook</a>
+            <a href="#" aria-label="Twitter">Twitter</a>
+            <a href="#" aria-label="Instagram">Instagram</a>
+            <a href="#" aria-label="LinkedIn">LinkedIn</a>
+          </div>
+        </div>
+
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Listings</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Services</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-services">
+          <h4>Services</h4>
+          <ul>
+            <li>Buying Assistance</li>
+            <li>Selling & Marketing</li>
+            <li>Rentals</li>
+            <li>Documentation</li>
+            <li>Title Transfer</li>
+            <li>Valuation</li>
+          </ul>
+        </div>
+
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <ul>
+            <li>+63 921 2303011</li>
+            <li>thespecialistrss@gmail.com</li>
+            <li>Las Pinas City</li>
+          </ul>
+          <a href="#" class="contact-btn">Contact Us</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© The Specialist - Realty Solutions & Services. All rights reserved 2025.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

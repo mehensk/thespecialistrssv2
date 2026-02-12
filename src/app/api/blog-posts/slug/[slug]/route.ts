@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { getCachedBlogPost } from '@/lib/cache';
+import { UserRole } from '@prisma/client';
 
 export async function GET(
   request: NextRequest,
@@ -8,16 +10,36 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    
-    // Use cached data for published blog posts
-    const blog = await getCachedBlogPost(slug);
 
-    if (!blog) {
-      return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
+    const user = await getAuthenticatedUser(request);
+
+    if (user) {
+      const blog = await prisma.blogPost.findUnique({
+        where: { slug },
+        include: {
+          user: {
+            select: { name: true, email: true },
+          },
+        },
+      });
+
+      if (!blog) {
+        return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
+      }
+
+      if (!blog.isPublished) {
+        if (blog.userId !== user.id && user.role !== UserRole.ADMIN) {
+          return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
+        }
+      }
+
+      return NextResponse.json({ blog });
     }
 
-    // Only return published blogs for public access
-    if (!blog.isPublished) {
+    // Use cached data for published blog posts (public access only)
+    const blog = await getCachedBlogPost(slug);
+
+    if (!blog || !blog.isPublished) {
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
     }
 

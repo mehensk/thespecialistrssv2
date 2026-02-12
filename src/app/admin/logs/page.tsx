@@ -37,9 +37,57 @@ export default async function AdminLogsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-semibold text-[#111111] mb-8">Activity Logs</h1>
+      <h1 className="text-2xl sm:text-3xl font-semibold text-[#111111] mb-8">Activity Logs</h1>
 
-      <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden">
+      <div className="md:hidden space-y-3">
+        {activities.map((activity) => {
+          const metadata = activity.metadata && typeof activity.metadata === 'object' && !Array.isArray(activity.metadata) ? activity.metadata as Record<string, any> : null;
+          const uploadedByName = metadata?.uploadedByName || null;
+          const uploadedByEmail = metadata?.uploadedByEmail || null;
+          const approvedByName = metadata?.approvedByName || null;
+          const approvedByEmail = metadata?.approvedByEmail || null;
+          const showUploaderApprover = activity.itemType === 'BLOG' || activity.itemType === 'LISTING';
+
+          return (
+            <div key={activity.id} className="bg-white rounded-xl shadow-sm border border-[#E5E7EB] p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="text-sm text-[#111111]/70">
+                  {new Date(activity.timestamp).toLocaleString()}
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getActionColor(activity.action)}`}>
+                  {activity.action}
+                </span>
+              </div>
+              <div className="mt-2 text-sm text-[#111111]">
+                {activity.user.name} ({activity.user.email})
+              </div>
+              <div className="mt-2 text-sm text-[#111111]/70">
+                {activity.itemType} · {activity.itemId || 'N/A'}
+              </div>
+              <div className="mt-2 text-xs text-[#111111]/60 space-y-1">
+                <div>
+                  Uploaded By: {showUploaderApprover && uploadedByName 
+                    ? `${uploadedByName}${uploadedByEmail ? ` (${uploadedByEmail})` : ''}` 
+                    : 'N/A'}
+                </div>
+                <div>
+                  Approved By: {showUploaderApprover && approvedByName 
+                    ? `${approvedByName}${approvedByEmail ? ` (${approvedByEmail})` : ''}` 
+                    : 'N/A'}
+                </div>
+                <div>IP: {activity.ipAddress || 'N/A'}</div>
+              </div>
+            </div>
+          );
+        })}
+        {activities.length === 0 && (
+          <div className="p-12 text-center text-[#111111]/70 bg-white rounded-xl border border-[#E5E7EB]">
+            No activity logs found
+          </div>
+        )}
+      </div>
+
+      <div className="hidden md:block bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-[#F9FAFB] border-b border-[#E5E7EB]">

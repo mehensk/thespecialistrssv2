@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromToken } from '@/lib/get-user-from-token';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { prisma } from '@/lib/prisma';
 import { UserRole, ActivityAction } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
 import { safeParseInt, safeParseFloat } from '@/lib/validation';
 import { logger } from '@/lib/logger';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { CACHE_TAGS, getCachedListing } from '@/lib/cache';
 
 export async function GET(
@@ -13,7 +13,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getUserFromToken();
+    // Try to get authenticated user, but don't require it for published content
+    // Anonymous users can view published listings
+    const user = await getAuthenticatedUser(request);
     const { id } = await params;
     
     // Try to get from cache if published
@@ -58,12 +60,16 @@ export async function GET(
       return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
 
-    // Check if listing is published or user has access
+    // Published content is publicly accessible
+    // Unpublished content requires authentication + ownership or admin role
     if (!listing.isPublished) {
-      // If not published, only allow access if:
-      // 1. User is authenticated and owns the listing, OR
-      // 2. User is an admin
-      if (!user || (listing.userId !== user.id && user.role !== UserRole.ADMIN)) {
+      // Not published - check if user is authorized to view
+      if (!user) {
+        return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
+      }
+
+      // User must own the listing or be admin
+      if (listing.userId !== user.id && user.role !== UserRole.ADMIN) {
         return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
       }
     }
@@ -94,9 +100,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getUserFromToken();
+    const user = await getAuthenticatedUser(request);
 
-    if (!user || !user.id) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -177,9 +183,10 @@ export async function PUT(
     }
 
     // Revalidate cache when listing is updated
-    revalidateTag(CACHE_TAGS.LISTING(id), '');
-    revalidateTag(CACHE_TAGS.LISTINGS, '');
-
+    revalidateTag(CACHE_TAGS.LISTING(id), 'max');
+    revalidateTag(CACHE_TAGS.LISTINGS, 'max');
+    revalidatePath('/listings');
+    revalidatePath(`/listings/${id}`, 'page');
     return NextResponse.json({ success: true, listing: updated });
   } catch (error) {
     logger.error('Error updating listing:', error);
@@ -195,4 +202,3 @@ export async function PUT(
     );
   }
 }
-

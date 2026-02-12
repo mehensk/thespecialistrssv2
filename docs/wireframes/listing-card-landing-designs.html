@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Listing Card Landing Designs - Matched Size</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #0d0f12;
+      --steel: #1e2a36;
+      --mist: #f0f2f4;
+      --slate: #dde2e7;
+      --accent: #2f5f8f;
+      --accent-light: #4d7bb0;
+      --gold: #d4af37;
+      --gold-soft: rgba(212, 175, 55, 0.16);
+      --grid: rgba(13, 15, 18, 0.08);
+      --shadow: 0 18px 40px rgba(13, 15, 18, 0.14);
+      --shadow-sm: 0 8px 20px rgba(13, 15, 18, 0.08);
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--mist);
+      line-height: 1.6;
+      padding: 40px 18px 70px;
+    }
+
+    .container {
+      width: min(1200px, 94vw);
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: clamp(24px, 3vw, 34px);
+      margin: 0 0 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #606775;
+      margin: 0 auto 36px;
+      max-width: 760px;
+      font-size: 14px;
+    }
+
+    .section {
+      margin-bottom: 56px;
+      position: relative;
+      padding: 28px 24px;
+      background: #fff;
+      border: 1px solid var(--slate);
+      border-radius: 14px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .section-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      font-family: "Space Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--steel);
+    }
+
+    .section-desc {
+      margin: 0;
+      font-size: 13px;
+      color: #556070;
+      max-width: 760px;
+    }
+
+    .card-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 300px));
+      gap: 18px;
+      justify-content: center;
+    }
+
+    .card {
+      background: linear-gradient(135deg, #fff 0%, #f8f9fb 100%);
+      border: 1px solid var(--slate);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 26px rgba(13, 15, 18, 0.14), 0 0 0 1px rgba(212, 175, 55, 0.25);
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+
+    .media {
+      position: relative;
+      height: 224px;
+      background: #e6eaef;
+      overflow: hidden;
+    }
+
+    .media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .card:hover .media img {
+      transform: scale(1.06);
+    }
+
+    .badge-row {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .badge {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      background: rgba(13, 15, 18, 0.85);
+    }
+
+    .badge.gold {
+      background: rgba(212, 175, 55, 0.92);
+      color: #111;
+    }
+
+    .content {
+      padding: 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--steel);
+      line-height: 1.4;
+    }
+
+    .price {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .price small {
+      font-size: 12px;
+      font-weight: 500;
+      color: #5a606b;
+    }
+
+    .meta-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--steel);
+      border-top: 1px solid var(--slate);
+      padding-top: 10px;
+    }
+
+    .meta-line span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--mist);
+      padding: 5px 8px;
+      border-radius: 6px;
+    }
+
+    .location {
+      font-size: 13px;
+      color: #4f5a68;
+    }
+
+    .variant-highlight .price {
+      color: var(--accent);
+    }
+
+    .variant-highlight .meta-line span {
+      background: #edf2f7;
+    }
+
+
+    .variant-heritage .title {
+      font-size: 16px;
+      letter-spacing: 0.2px;
+    }
+
+    .variant-heritage .price {
+      color: #111;
+    }
+
+    .variant-heritage .meta-line span {
+      background: rgba(212, 175, 55, 0.12);
+    }
+
+    .media-label {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      background: linear-gradient(135deg, rgba(13, 15, 18, 0.45), rgba(13, 15, 18, 0.15));
+    }
+
+    .variant-heritage .badge.gold {
+      background: rgba(212, 175, 55, 0.95);
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 28px 14px 40px;
+      }
+
+      .section {
+        padding: 20px 16px;
+      }
+
+      .media {
+        height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Listing Cards Matched to Current Size</h1>
+    <p class="subtitle">
+      These samples match the refactored `ListingCard` dimensions: 224px image height with 20px padding,
+      in the Space Grotesk + Space Mono, gold-accented theme used by the landing page option 2.
+    </p>
+
+    <section class="section">
+      <div class="section-header">
+        <span class="eyebrow">Variant 01</span>
+        <h2 class="section-title">Classic Grid</h2>
+        <p class="section-desc">Neutral, minimal card with clear pricing and a soft data grid.</p>
+      </div>
+      <div class="card-grid">
+        <article class="card">
+          <div class="media">
+            <div class="badge-row">
+              <span class="badge gold">Townhouse</span>
+              <span class="badge">Rent</span>
+            </div>
+            <div class="media-label">Listing Photo</div>
+          </div>
+          <div class="content">
+            <div class="title">4 Bedroom Townhouse for Rent</div>
+            <div class="price">PHP 90,000 <small>/mo</small></div>
+            <div class="meta-line">
+              <span>4 Beds</span>
+              <span>3 Baths</span>
+              <span>70 sqm</span>
+            </div>
+            <div class="location">San Antonio, Makati</div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="media">
+            <div class="badge-row">
+              <span class="badge gold">Condominium</span>
+              <span class="badge">Rent</span>
+            </div>
+            <div class="media-label">Listing Photo</div>
+          </div>
+          <div class="content">
+            <div class="title">2 Bedroom Condominium for Rent</div>
+            <div class="price">PHP 30,000 <small>/mo</small></div>
+            <div class="meta-line">
+              <span>2 Beds</span>
+              <span>2 Baths</span>
+              <span>54 sqm</span>
+            </div>
+            <div class="location">Larsen Tower, Eastbay Residences, Muntinlupa City</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <span class="eyebrow">Variant 02</span>
+        <h2 class="section-title">Highlight Metric</h2>
+        <p class="section-desc">Accent-led pricing with a strong primary metric and structured detail line.</p>
+      </div>
+      <div class="card-grid">
+        <article class="card variant-highlight">
+          <div class="media">
+            <div class="badge-row">
+              <span class="badge gold">Condominium</span>
+              <span class="badge">Rent</span>
+            </div>
+            <div class="media-label">Listing Photo</div>
+          </div>
+          <div class="content">
+            <div class="title">2 Bedroom Condominium for Rent</div>
+            <div class="price">PHP 35,000 <small>/mo</small></div>
+            <div class="meta-line">
+              <span>2 Beds</span>
+              <span>1 Bath</span>
+              <span>57.5 sqm</span>
+            </div>
+            <div class="location">Brio Towers, Makati</div>
+          </div>
+        </article>
+
+        <article class="card variant-highlight">
+          <div class="media">
+            <div class="badge-row">
+              <span class="badge gold">Townhouse</span>
+              <span class="badge">Rent</span>
+            </div>
+            <div class="media-label">Listing Photo</div>
+          </div>
+          <div class="content">
+            <div class="title">4 Bedroom Townhouse for Rent</div>
+            <div class="price">PHP 90,000 <small>/mo</small></div>
+            <div class="meta-line">
+              <span>4 Beds</span>
+              <span>3 Baths</span>
+              <span>70 sqm</span>
+            </div>
+            <div class="location">San Antonio, Makati</div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <span class="eyebrow">Variant 03</span>
+        <h2 class="section-title">Heritage Luxe</h2>
+        <p class="section-desc">Slightly richer accents with a warmer detail band and classic title treatment.</p>
+      </div>
+      <div class="card-grid">
+        <article class="card variant-heritage">
+          <div class="media">
+            <div class="badge-row">
+              <span class="badge gold">Condominium</span>
+              <span class="badge">Rent</span>
+            </div>
+            <div class="media-label">Listing Photo</div>
+          </div>
+          <div class="content">
+            <div class="title">2 Bedroom Condominium for Rent</div>
+            <div class="price">PHP 30,000 <small>/mo</small></div>
+            <div class="meta-line">
+              <span>2 Beds</span>
+              <span>2 Baths</span>
+              <span>54 sqm</span>
+            </div>
+            <div class="location">Larsen Tower, Eastbay Residences, Muntinlupa City</div>
+          </div>
+        </article>
+
+        <article class="card variant-heritage">
+          <div class="media">
+            <div class="badge-row">
+              <span class="badge gold">Condominium</span>
+              <span class="badge">Rent</span>
+            </div>
+            <div class="media-label">Listing Photo</div>
+          </div>
+          <div class="content">
+            <div class="title">2 Bedroom Condominium for Rent</div>
+            <div class="price">PHP 35,000 <small>/mo</small></div>
+            <div class="meta-line">
+              <span>2 Beds</span>
+              <span>1 Bath</span>
+              <span>57.5 sqm</span>
+            </div>
+            <div class="location">Brio Towers, Makati</div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Navbar Wireframe - The Specialist Realty</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap");
+
+    :root {
+      --ink: #0d0f12;
+      --steel: #1e2a36;
+      --mist: #f0f2f4;
+      --slate: #dde2e7;
+      --accent: #2f5f8f;
+      --accent-light: #4d7bb0;
+      --gold: #D4AF37;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--mist);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1160px, 92vw);
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      background: rgba(240, 242, 244, 0.95);
+      border-bottom: 1px solid var(--slate);
+      z-index: 10;
+    }
+
+    .header-inner {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 0;
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-size: 14px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--steel);
+      align-items: center;
+    }
+
+    .nav-item {
+      position: relative;
+    }
+
+    .nav-link {
+      padding: 8px 12px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--accent);
+    }
+
+    /* Dropdown Menu */
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-toggle {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      transition: all 0.3s ease;
+    }
+
+    .dropdown-toggle::after {
+      content: "▼";
+      font-size: 8px;
+      margin-left: 4px;
+      transition: transform 0.3s ease;
+    }
+
+    .dropdown:hover .dropdown-toggle::after {
+      transform: rotate(180deg);
+    }
+
+    .dropdown:hover .dropdown-toggle {
+      color: var(--accent);
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: white;
+      min-width: 180px;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(13, 15, 18, 0.15);
+      border: 1px solid var(--slate);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      padding: 8px 0;
+      z-index: 100;
+    }
+
+    .dropdown:hover .dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .dropdown-item {
+      display: block;
+      padding: 10px 20px;
+      font-size: 13px;
+      text-transform: none;
+      letter-spacing: normal;
+      color: var(--steel);
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .dropdown-item:hover {
+      background: var(--mist);
+      color: var(--accent);
+      border-left-color: var(--gold);
+      padding-left: 24px;
+    }
+
+    /* Gold accent line at top of dropdown */
+    .dropdown-menu::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 12px;
+      right: 12px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold) 0%, rgba(212, 175, 55, 0.3) 100%);
+      border-radius: 0 0 2px 2px;
+    }
+
+    .header-cta {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .login-btn {
+      padding: 10px 16px;
+      border-radius: 4px;
+      border: 1px solid var(--ink);
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--ink);
+      transition: all 0.3s ease;
+    }
+
+    .login-btn:hover {
+      background: var(--mist);
+    }
+
+    .contact-cta {
+      padding: 10px 16px;
+      border-radius: 4px;
+      border: none;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: var(--ink);
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    .contact-cta:hover {
+      background: var(--steel);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(13, 15, 18, 0.2);
+    }
+
+    /* Hamburger Menu Button */
+    .hamburger-container {
+      display: none;
+    }
+
+    .hamburger-btn {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid var(--slate);
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger-btn:hover {
+      background: var(--mist);
+    }
+
+    .hamburger-icon {
+      width: 22px;
+      height: 22px;
+    }
+
+    /* Mobile Drawer */
+    .mobile-drawer {
+      display: none;
+      background: white;
+      border-top: 1px solid var(--slate);
+      padding: 24px 16px;
+      box-shadow: 0 10px 30px rgba(13, 15, 18, 0.1);
+    }
+
+    .mobile-drawer.open {
+      display: block;
+    }
+
+    .mobile-drawer-link {
+      display: block;
+      padding: 12px 0;
+      color: var(--steel);
+      font-size: 16px;
+      font-family: "Space Grotesk", sans-serif;
+      border-bottom: 1px solid var(--slate);
+      transition: all 0.2s ease;
+    }
+
+    .mobile-drawer-link:hover {
+      color: var(--accent);
+      padding-left: 8px;
+    }
+
+    .mobile-drawer-link:last-child {
+      border-bottom: none;
+    }
+
+    .mobile-sublink {
+      display: block;
+      padding: 8px 0 8px 16px;
+      color: var(--steel);
+      font-size: 14px;
+      border-left: 2px solid var(--slate);
+      margin-left: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .mobile-sublink:hover {
+      border-left-color: var(--gold);
+      color: var(--accent);
+      padding-left: 20px;
+    }
+
+    .mobile-cta {
+      background: var(--ink);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 6px;
+      text-align: center;
+      margin-top: 16px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .mobile-cta:hover {
+      background: var(--steel);
+    }
+
+    /* Demo Section */
+    .demo-section {
+      padding: 60px 0;
+      text-align: center;
+    }
+
+    .demo-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: var(--steel);
+    }
+
+    .demo-note {
+      color: var(--steel);
+      opacity: 0.7;
+      font-size: 14px;
+    }
+
+    .arrow-indicator {
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-left: 1px solid var(--slate);
+      border-top: 1px solid var(--slate);
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .nav {
+        display: none;
+      }
+      .header-inner {
+        grid-template-columns: 1fr auto;
+        justify-items: center;
+      }
+      .header-cta {
+        display: none;
+      }
+      .hamburger-container {
+        display: flex !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">The Specialist Realty</div>
+      
+      <nav class="nav">
+        <a href="#" class="nav-link">Home</a>
+        <a href="#" class="nav-link">How We Work</a>
+        
+        <!-- Services Dropdown -->
+        <div class="dropdown">
+          <div class="dropdown-toggle">Services</div>
+          <div class="dropdown-menu">
+            <div class="arrow-indicator"></div>
+            <a href="#" class="dropdown-item">Listings</a>
+            <a href="#" class="dropdown-item">Investor Relations</a>
+            <a href="#" class="dropdown-item">Developer Selling</a>
+          </div>
+        </div>
+        
+        <a href="#" class="nav-link">Contact</a>
+      </nav>
+      
+      <div class="header-cta">
+        <a href="#" class="login-btn">Login</a>
+        <a href="#" class="contact-cta">Contact Us</a>
+      </div>
+
+      <!-- Hamburger Menu Button (Mobile Only) -->
+      <div class="hamburger-container">
+        <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+          <svg class="hamburger-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div id="mobileDrawer" class="mobile-drawer">
+      <a href="#" class="mobile-drawer-link">Home</a>
+      <a href="#" class="mobile-drawer-link">How We Work</a>
+      
+      <!-- Services (Expanded in Mobile Drawer) -->
+      <div class="mobile-drawer-link" style="font-weight: 600;">Services</div>
+      <a href="#" class="mobile-sublink">Listings</a>
+      <a href="#" class="mobile-sublink">Investor Relations</a>
+      <a href="#" class="mobile-sublink">Developer Selling</a>
+      
+      <a href="#" class="mobile-drawer-link">Contact</a>
+      
+      <a href="#" class="mobile-drawer-link" style="margin-top: 16px;">Login</a>
+      <a href="#" class="mobile-cta">Contact Us</a>
+    </div>
+  </header>
+
+  <main class="demo-section">
+    <div class="container">
+      <h1 class="demo-title">Navigation Bar Wireframe</h1>
+      <p class="demo-note">Hover over "Services" to see dropdown menu</p>
+      <p class="demo-note" style="margin-top: 20px;">
+        <strong>Navigation Links:</strong><br>
+        • Home<br>
+        • How We Work<br>
+        • Services (dropdown: Listings, Investor Relations, Developer Selling)<br>
+        • Contact
+      </p>
+      <p class="demo-note" style="margin-top: 20px;">
+        <strong>Right Side:</strong><br>
+        • Login button (for testing - will be removed in production)<br>
+        • Contact Us CTA button
+      </p>
+      <p class="demo-note" style="margin-top: 20px;">
+        <strong>Mobile View (≤860px):</strong><br>
+        • Desktop navigation hidden<br>
+        • Hamburger menu appears (click to toggle)<br>
+        • Mobile drawer shows all navigation links<br>
+        • Services dropdown shown as expanded sub-links
+      </p>
+      <p class="demo-note" style="margin-top: 20px;">
+        <strong>Styling Notes:</strong><br>
+        • Dropdown appears on hover with smooth fade-in animation<br>
+        • Gold accent line at top of dropdown menu<br>
+        • Dropdown items slide slightly right and show gold border on hover<br>
+        • Arrow indicator points up from dropdown menu<br>
+        • Matches to wireframe's clean, minimalist aesthetic
+      </p>
+    </div>
+  </main>
+
+  <script>
+    function toggleMobileMenu() {
+      const drawer = document.getElementById('mobileDrawer');
+      drawer.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

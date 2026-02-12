@@ -5,7 +5,7 @@ import { logListingActivity } from '@/lib/activity-logger';
 import { safeParseInt, safeParseFloat, validateListingInput } from '@/lib/validation';
 import { randomUUID } from 'crypto';
 import { logger } from '@/lib/logger';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { CACHE_TAGS, getCachedListings } from '@/lib/cache';
 import { getAuthenticatedUser, hasRequiredRole } from '@/lib/auth-helpers';
 
@@ -214,8 +214,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Revalidate cache when new listing is created
-    revalidateTag(CACHE_TAGS.LISTINGS, '');
-
+    revalidateTag(CACHE_TAGS.LISTINGS, 'max');
+    revalidateTag(CACHE_TAGS.LISTING(listing.id), 'max');
+    revalidatePath('/listings');
+    revalidatePath(`/listings/${listing.id}`, 'page');
     return NextResponse.json({ success: true, listing }, { status: 201 });
   } catch (error) {
     logger.error('Error creating listing:', error);

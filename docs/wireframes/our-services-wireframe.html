@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Specialist Realty - Our Services</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap");
+
+    :root {
+      --ink: #0d0f12;
+      --steel: #1e2a36;
+      --mist: #f0f2f4;
+      --slate: #dde2e7;
+      --accent: #2f5f8f;
+      --accent-light: #4d7bb0;
+      --gold: #D4AF37;
+      --grid: rgba(13, 15, 18, 0.08);
+      --shadow: 0 20px 50px rgba(13, 15, 18, 0.18);
+      --shadow-sm: 0 10px 24px rgba(13, 15, 18, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--mist);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1160px, 92vw);
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      background: rgba(240, 242, 244, 0.95);
+      border-bottom: 1px solid var(--slate);
+      z-index: 10;
+    }
+
+    .header-inner {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 0;
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-size: 14px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--steel);
+    }
+
+    .nav a {
+      transition: color 0.3s ease;
+    }
+
+    .nav a:hover {
+      color: var(--accent);
+    }
+
+    .nav a.active {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .header-cta {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .header-cta a {
+      padding: 10px 16px;
+      border-radius: 4px;
+      border: 1px solid var(--ink);
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: var(--ink);
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    .header-cta a:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    /* Page Header */
+    .page-header {
+      background-image: url("https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1920&q=80");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      position: relative;
+      border-bottom: 1px solid var(--slate);
+      padding: 80px 0 60px;
+    }
+
+    .page-header::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(13, 15, 18, 0.92) 0%, rgba(13, 15, 18, 0.88) 50%, rgba(30, 42, 54, 0.85) 100%);
+    }
+
+    .page-header .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      font-family: "Space Mono", "Courier New", monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .page-header .eyebrow {
+      color: var(--accent-light);
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      color: #fff;
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+    }
+
+    .page-header p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 18px;
+      max-width: 700px;
+      line-height: 1.7;
+    }
+
+    /* Section Styles */
+    .section {
+      padding: 80px 0;
+    }
+
+    h2 {
+      font-size: clamp(28px, 3vw, 42px);
+      margin: 0 0 16px;
+      line-height: 1.2;
+    }
+
+    /* Section Header Centered */
+    .section-header-centered {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto 40px auto;
+    }
+
+    .section-header-centered .eyebrow {
+      margin-bottom: 8px;
+    }
+
+    .section-header-centered h2 {
+      margin: 0 0 12px;
+    }
+
+    .section-header-centered p {
+      color: var(--steel);
+      font-size: 16px;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* Services Section */
+    .services-section {
+      background: #fff;
+      border-top: 1px solid var(--slate);
+      border-bottom: 1px solid var(--slate);
+      position: relative;
+    }
+
+    .services-section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(var(--grid) 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .services-steps {
+      margin-top: 32px;
+    }
+
+    .step-card {
+      background: #fff;
+      border: 1px solid var(--slate);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 16px;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .step-card:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+
+    .step-number {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      width: 44px;
+      height: 44px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 16px;
+      box-shadow: 0 4px 12px rgba(47, 95, 143, 0.3);
+    }
+
+    .step-content {
+      margin-left: 64px;
+    }
+
+    .step-content h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      color: var(--ink);
+    }
+
+    .step-content p {
+      margin: 0;
+      color: var(--steel);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* Listing Archive Section */
+    .listing-archive-section {
+      background: var(--mist);
+      border-top: 1px solid var(--slate);
+      border-bottom: 1px solid var(--slate);
+    }
+
+    .listing-archive-content {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .listing-archive-description {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--steel);
+      margin: 24px 0 40px;
+    }
+
+    .listing-cta-row {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .listing-cta-row a {
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      min-width: 200px;
+      text-align: center;
+    }
+
+    .listing-cta-row a:first-child {
+      background: var(--ink);
+      color: #fff;
+      border: 1px solid var(--ink);
+    }
+
+    .listing-cta-row a:first-child:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .listing-cta-row a:nth-child(2) {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--ink);
+    }
+
+    .listing-cta-row a:nth-child(2):hover {
+      background: var(--ink);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    /* Developer Selling Section */
+    .developer-selling-section {
+      background: #fff;
+      border-top: 1px solid var(--slate);
+      border-bottom: 1px solid var(--slate);
+    }
+
+    .developer-selling-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .developer-selling-description {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--steel);
+      margin-bottom: 32px;
+    }
+
+    .developer-benefits {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 40px;
+    }
+
+    .developer-benefits li {
+      padding: 12px 0 12px 32px;
+      font-size: 15px;
+      color: var(--steel);
+      position: relative;
+      line-height: 1.6;
+    }
+
+    .developer-benefits li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      top: 12px;
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .developer-cta {
+      text-align: center;
+    }
+
+    .developer-cta a {
+      display: inline-block;
+      padding: 14px 32px;
+      border-radius: 8px;
+      background: var(--accent-light);
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .developer-cta a:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    /* Investor Relations Section */
+    .investor-relations-section {
+      background: var(--mist);
+      border-top: 1px solid var(--slate);
+      border-bottom: 1px solid var(--slate);
+    }
+
+    .investor-relations-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .investor-relations-description {
+      font-size: 16px;
+      line-height: 1.8;
+      color: var(--steel);
+      margin-bottom: 32px;
+    }
+
+    .investor-areas {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 40px;
+    }
+
+    .investor-areas li {
+      padding: 12px 0 12px 32px;
+      font-size: 15px;
+      color: var(--steel);
+      position: relative;
+      line-height: 1.6;
+    }
+
+    .investor-areas li::before {
+      content: "◆";
+      position: absolute;
+      left: 0;
+      top: 12px;
+      color: var(--gold);
+      font-size: 12px;
+    }
+
+    .investor-cta {
+      text-align: center;
+    }
+
+    .investor-cta a {
+      display: inline-block;
+      padding: 14px 32px;
+      border-radius: 8px;
+      background: var(--ink);
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .investor-cta a:hover {
+      background: var(--steel);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    /* CTA Section */
+    .cta {
+      background: var(--steel);
+      color: #fff;
+    }
+
+    .cta-inner {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .cta .eyebrow {
+      color: var(--gold);
+    }
+
+    .cta h2 {
+      color: #fff;
+      margin: 0 0 16px;
+      font-size: clamp(28px, 4vw, 42px);
+    }
+
+    .cta p {
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 16px;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    .cta a {
+      display: inline-block;
+      padding: 14px 32px;
+      border-radius: 8px;
+      background: var(--accent-light);
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .cta a:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    /* Footer (Based on existing project footer) */
+    .site-footer {
+      background: #1F2937;
+      border-top: 1px solid #374151;
+      color: #fff;
+      padding: 48px 0 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    .footer-brand h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      margin: 0 0 8px;
+    }
+
+    .footer-brand .license {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0 0 16px;
+    }
+
+    .footer-brand .social-icons {
+      display: flex;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .footer-brand .social-icons a {
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .footer-brand .social-icons a:hover {
+      color: #fff;
+    }
+
+    .footer-links h4,
+    .footer-services h4,
+    .footer-contact h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin: 0 0 16px;
+    }
+
+    .footer-links ul,
+    .footer-services ul,
+    .footer-contact ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-links li,
+    .footer-services li,
+    .footer-contact li {
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .footer-links li a {
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.3s ease;
+    }
+
+    .footer-links li a:hover {
+      color: #fff;
+    }
+
+    .footer-contact li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .footer-contact li svg,
+    .footer-brand .social-icons svg {
+      flex-shrink: 0;
+      color: #fff;
+    }
+
+    .footer-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      line-height: 0;
+    }
+
+    .footer-icon.social {
+      width: 20px;
+      height: 20px;
+    }
+
+    .footer-icon.contact {
+      width: 18px;
+      height: 18px;
+    }
+
+    .footer-icon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .site-footer svg {
+      overflow: hidden;
+      shape-rendering: geometricPrecision;
+    }
+
+    .footer-contact .contact-btn {
+      display: inline-block;
+      background: #fff;
+      color: #1F2937;
+      padding: 8px 24px;
+      border-radius: 6px;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .footer-contact .contact-btn:hover {
+      background: rgba(255, 255, 255, 0.9);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid #374151;
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    .footer-bottom p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .header-inner {
+        grid-template-columns: 1fr;
+        justify-items: start;
+      }
+      .nav {
+        display: none;
+      }
+      .header-cta {
+        display: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .page-header {
+        padding: 60px 0 40px;
+      }
+      .page-header h1 {
+        font-size: 36px;
+      }
+      .section {
+        padding: 60px 0 40px;
+      }
+      .step-card {
+        padding: 20px;
+      }
+      .step-number {
+        width: 38px;
+        height: 38px;
+        font-size: 14px;
+      }
+      .step-content {
+        margin-left: 56px;
+      }
+      .step-content h3 {
+        font-size: 18px;
+      }
+      .listing-cta-row {
+        flex-direction: column;
+      }
+      .listing-cta-row a {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">The Specialist Realty</div>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/how-we-work">How We Work</a>
+        <a href="/services" class="active">Services</a>
+        <a href="/listings">Listings</a>
+        <a href="/contact">Contact</a>
+      </nav>
+      <div class="header-cta">
+        <a href="/contact">Contact</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Page Header -->
+    <section class="page-header">
+      <div class="container">
+        <p class="eyebrow">Our Expertise</p>
+        <h1>Our Services</h1>
+        <p>Discover comprehensive real estate solutions tailored to your needs. From buying and selling to investment opportunities, The Specialist Realty provides expert guidance for all your real estate endeavors.</p>
+      </div>
+    </section>
+
+    <!-- Section 1: Our Services -->
+    <section class="section services-section">
+      <div class="container">
+        <div class="section-header-centered">
+          <p class="eyebrow">What We Do</p>
+          <h2>Our Services</h2>
+          <p>Comprehensive real estate solutions for all your needs</p>
+        </div>
+        
+        <div class="services-steps">
+          <article class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Buying</h3>
+              <p>Whether you're looking for a condominium, house, or lot, we guide you through entire buying process. From understanding your requirements and budget to property matching, site viewings, negotiation, and closing, we ensure you find the perfect property that aligns with your goals and lifestyle.</p>
+            </div>
+          </article>
+
+          <article class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>Selling</h3>
+              <p>Our selling process maximizes your property's exposure and value through strategic marketing. We conduct a thorough property assessment, develop a pricing strategy, implement a digital marketing system, match your property with qualified buyers, and manage all inquiries and viewings professionally.</p>
+            </div>
+          </article>
+
+          <article class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>Leasing</h3>
+              <p>We help you find the right tenants for your property or the perfect rental for your needs. Our leasing services include property showcasing, comprehensive tenant screening, lease agreement preparation, and ongoing property management support to ensure a smooth landlord-tenant relationship.</p>
+            </div>
+          </article>
+
+          <article class="step-card">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h3>Documentation</h3>
+              <p>Navigating real estate documentation can be complex. We handle all the paperwork for you, including title transfers, deed of sale preparation, BIR coordination, tax computation, and government document processing. Our expertise ensures all transactions are legally sound and compliant with regulations.</p>
+            </div>
+          </article>
+
+          <article class="step-card">
+            <div class="step-number">5</div>
+            <div class="step-content">
+              <h3>Valuation</h3>
+              <p>Accurate property valuation is essential for buying, selling, or investment decisions. We provide comprehensive market-based assessments considering location, property condition, market trends, and comparable sales. Our valuations help you make informed decisions and understand the true value of your property.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Listing Archive -->
+    <section class="section listing-archive-section">
+      <div class="container">
+        <div class="listing-archive-content">
+          <p class="eyebrow">Property Marketplace</p>
+          <h2>Listing Archive</h2>
+          <p class="listing-archive-description">Explore our curated collection of properties for sale and rent, or partner with us to showcase your property to qualified buyers. Browse through our extensive portfolio of condominiums, houses, and lots across Metro Manila and beyond. Each listing is carefully verified and presented with professional photography and detailed information to help you make informed decisions. For property owners, we offer a comprehensive enlistment service that includes professional photography, strategic marketing, and access to our network of qualified buyers.</p>
+          <div class="listing-cta-row">
+            <a href="/listings">Browse our Listings</a>
+            <a href="/contact">Enlist</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Developer Selling -->
+    <section class="section developer-selling-section">
+      <div class="container">
+        <div class="developer-selling-content">
+          <p class="eyebrow">Official Partners</p>
+          <h2>Developer Selling</h2>
+          <p class="developer-selling-description">The Specialist Realty is proud to be an accredited partner with major real estate developers across the Philippines. Our accreditations enable us to offer exclusive access to pre-selling projects, special pricing, and direct developer support. Whether you're interested in condominium projects, master-planned communities, or commercial properties, our developer partnerships provide you with trusted access to premium developments.</p>
+          <ul class="developer-benefits">
+            <li>Direct access to developer inventory</li>
+            <li>Special pricing and promotions</li>
+            <li>Professional pre-selling guidance</li>
+            <li>Turnover coordination support</li>
+            <li>Developer relationship management</li>
+          </ul>
+          <div class="developer-cta">
+            <a href="#">Learn more</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Investor Relations -->
+    <section class="section investor-relations-section">
+      <div class="container">
+        <div class="investor-relations-content">
+          <p class="eyebrow">Build Your Portfolio</p>
+          <h2>Investor Relations</h2>
+          <p class="investor-relations-description">Beyond traditional buying and selling, The Specialist Realty offers avenues for strategic real estate investment and development partnerships. We work with investors looking to build their real estate portfolio, developers seeking distribution channels, and individuals interested in property development opportunities. Our team provides market analysis, investment advisory, and end-to-end support for your investment journey.</p>
+          <ul class="investor-areas">
+            <li>Property portfolio building</li>
+            <li>Pre-selling investment opportunities</li>
+            <li>Joint venture partnerships</li>
+            <li>Development consulting</li>
+            <li>Market feasibility studies</li>
+            <li>ROI analysis and reporting</li>
+          </ul>
+          <div class="investor-cta">
+            <a href="#">Investments</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section cta">
+      <div class="container cta-inner">
+        <p class="eyebrow">Ready to Get Started?</p>
+        <h2>Let's Find Your Perfect Solution</h2>
+        <p>Whether you're buying, selling, or exploring investment opportunities, our team is ready to guide you through every step of your real estate journey. Contact us today to discuss your needs.</p>
+        <a href="/contact">Contact Us Today</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3>The Specialist - Realty Solutions & Services</h3>
+            <p class="license">REBL PRC License # 33422</p>
+            <div class="social-icons">
+              <a href="#" aria-label="Facebook">
+                <span class="footer-icon social">
+                  <svg width="20" height="20" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke">
+                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                  </svg>
+                </span>
+              </a>
+              <a href="#" aria-label="Twitter">
+                <span class="footer-icon social">
+                  <svg width="20" height="20" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke">
+                    <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 16 3a4.48 4.48 0 0 0-4.49 4.49c0 .35.04 .7.11 1.03A12.94 12.94 0 0 1 3 4s-4 9 5 13a13.07 13.07 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+                  </svg>
+                </span>
+              </a>
+              <a href="#" aria-label="Instagram">
+                <span class="footer-icon social">
+                  <svg width="20" height="20" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <circle cx="17.5" cy="6.5" r="1"></circle>
+                  </svg>
+                </span>
+              </a>
+              <a href="#" aria-label="LinkedIn">
+                <span class="footer-icon social">
+                  <svg width="20" height="20" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke">
+                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                    <rect x="2" y="9" width="4" height="12"></rect>
+                    <circle cx="4" cy="4" r="2"></circle>
+                  </svg>
+                </span>
+              </a>
+            </div>
+          </div>
+
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a href="/listings">Listings</a></li>
+              <li><a href="/blog">Blog</a></li>
+              <li><a href="/contact">Contact</a></li>
+              <li><a href="/contact">Services</a></li>
+            </ul>
+          </div>
+
+        <div class="footer-services">
+          <h4>Services</h4>
+          <ul>
+            <li>Buying Assistance</li>
+            <li>Selling & Marketing</li>
+            <li>Rentals</li>
+            <li>Documentation</li>
+            <li>Title Transfer</li>
+            <li>Valuation</li>
+          </ul>
+        </div>
+
+          <div class="footer-contact">
+            <h4>Contact</h4>
+            <ul>
+              <li>
+                <span class="footer-icon contact">
+                  <svg width="18" height="18" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.08 4.18 2 2 0 0 1 4.06 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                  </svg>
+                </span>
+                <span>+63 921 2303011</span>
+              </li>
+              <li>
+                <span class="footer-icon contact">
+                  <svg width="18" height="18" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke">
+                    <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                  </svg>
+                </span>
+                <span>thespecialistrss@gmail.com</span>
+              </li>
+              <li>
+                <span class="footer-icon contact">
+                  <svg width="18" height="18" viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                </span>
+                <span>Las Pinas City</span>
+              </li>
+            </ul>
+            <a href="/contact" class="contact-btn">Contact Us</a>
+          </div>
+        </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container">
+        <p>© The Specialist - Realty Solutions & Services. All rights reserved 2025.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

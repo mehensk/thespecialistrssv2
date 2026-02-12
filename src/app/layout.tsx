@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import './globals.css';
 import { GeistSans, GeistMono } from 'geist/font';
-import { sora } from '@/app/lib/fonts';  // ✅ Correct path
 import { Navbar } from '@/components/ui/navbar';
 import { Footer } from '@/components/ui/footer';
 import { SessionProvider } from '@/components/providers/SessionProvider';
@@ -29,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${GeistSans.variable} ${GeistMono.variable} ${sora.variable} antialiased`}
+        className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
       >
         <SessionProvider>
           <LogoutSync />

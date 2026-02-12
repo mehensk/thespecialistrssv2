@@ -2,10 +2,10 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { getCachedListing, getCachedListingIds } from '@/lib/cache';
+import { getCachedListingIds } from '@/lib/cache';
 import { ListingDetailClient } from '@/components/listings/ListingDetailClient';
 import { formatBedrooms } from '@/lib/location-utils';
-import { getUserFromToken } from '@/lib/get-user-from-token';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { prisma } from '@/lib/prisma';
 import { UserRole } from '@prisma/client';
 
@@ -34,7 +34,38 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   
   try {
-    const listing = await getCachedListing(id);
+    // Fetch listing directly from database (no cache for simplicity)
+    const listing = await prisma.listing.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        price: true,
+        location: true,
+        city: true,
+        address: true,
+        bedrooms: true,
+        bathrooms: true,
+        size: true,
+        propertyType: true,
+        listingType: true,
+        images: true,
+        yearBuilt: true,
+        parking: true,
+        floor: true,
+        totalFloors: true,
+        amenities: true,
+        propertyId: true,
+        available: true,
+        isPublished: true,
+        userId: true,
+        createdAt: true,
+        user: {
+          select: { name: true },
+        },
+      },
+    });
     
     if (!listing || !listing.isPublished) {
       return {
@@ -89,43 +120,38 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const { id } = await params;
   
   try {
-    // Try to get from cache first
-    let listing = await getCachedListing(id);
-    
-    // If not in cache, fetch directly from database
-    if (!listing) {
-      listing = await prisma.listing.findUnique({
-        where: { id },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          price: true,
-          location: true,
-          city: true,
-          address: true,
-          bedrooms: true,
-          bathrooms: true,
-          size: true,
-          propertyType: true,
-          listingType: true,
-          images: true,
-          yearBuilt: true,
-          parking: true,
-          floor: true,
-          totalFloors: true,
-          amenities: true,
-          propertyId: true,
-          available: true,
-          isPublished: true,
-          userId: true,
-          createdAt: true,
-          user: {
-            select: { name: true, email: true },
-          },
+    // Fetch listing directly from database (no cache for simplicity and reliability)
+    const listing = await prisma.listing.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        price: true,
+        location: true,
+        city: true,
+        address: true,
+        bedrooms: true,
+        bathrooms: true,
+        size: true,
+        propertyType: true,
+        listingType: true,
+        images: true,
+        yearBuilt: true,
+        parking: true,
+        floor: true,
+        totalFloors: true,
+        amenities: true,
+        propertyId: true,
+        available: true,
+        isPublished: true,
+        userId: true,
+        createdAt: true,
+        user: {
+          select: { name: true, email: true },
         },
-      });
-    }
+      },
+    });
 
     if (!listing) {
       notFound();
@@ -133,7 +159,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
     // If listing is not published, check if user has access
     if (!listing.isPublished) {
-      const user = await getUserFromToken();
+      // Try to get authenticated user, but don't require it
+      const user = await getAuthenticatedUser({} as any);
       
       // Allow access if:
       // 1. User is authenticated and owns the listing, OR

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Listing Card Concepts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1a1c1f;
+      --muted: #5f6066;
+      --paper: #f4f1ea;
+      --sand: #e7dcc6;
+      --sea: #24424a;
+      --copper: #b2764f;
+      --olive: #627061;
+      --clay: #8f6f59;
+      --gold: #c79f53;
+      --shadow: 0 18px 40px rgba(20, 20, 20, 0.18);
+      --radius: 20px;
+      --radius-lg: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Manrope", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 20%, rgba(199, 159, 83, 0.18), transparent 45%),
+        radial-gradient(circle at 90% 10%, rgba(98, 112, 97, 0.2), transparent 40%),
+        linear-gradient(120deg, #f5efe5 0%, #efe8dc 40%, #e6dece 100%);
+      min-height: 100vh;
+    }
+
+    .page {
+      padding: 56px 6vw 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .intro {
+      max-width: 920px;
+      margin-bottom: 32px;
+    }
+
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.7rem;
+      color: var(--olive);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-family: "Bodoni Moda", serif;
+      font-size: clamp(2rem, 3.4vw, 3.4rem);
+      margin: 0 0 14px;
+      color: var(--sea);
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin: 0;
+    }
+
+    .section-label {
+      margin: 38px 0 18px;
+      font-size: 0.82rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--clay);
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: grid;
+      gap: 0;
+      border: 1px solid rgba(36, 66, 74, 0.08);
+      transition: transform 0.35s ease, box-shadow 0.35s ease;
+      animation: rise 0.6s ease forwards;
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    .card:nth-child(1) { animation-delay: 0.05s; }
+    .card:nth-child(2) { animation-delay: 0.12s; }
+    .card:nth-child(3) { animation-delay: 0.19s; }
+    .card:nth-child(4) { animation-delay: 0.26s; }
+    .card:nth-child(5) { animation-delay: 0.33s; }
+    .card:nth-child(6) { animation-delay: 0.4s; }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 26px 50px rgba(20, 20, 20, 0.22);
+    }
+
+    .media {
+      position: relative;
+      min-height: 190px;
+      padding: 18px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+      color: #f9f5ef;
+    }
+
+    .media::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(150deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0));
+    }
+
+    .media > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(6px);
+    }
+
+    .badge.sale {
+      background: rgba(10, 10, 10, 0.35);
+    }
+
+    .badge.rent {
+      background: rgba(199, 159, 83, 0.3);
+    }
+
+    .media-title {
+      font-family: "Bodoni Moda", serif;
+      font-size: 1.3rem;
+      margin: 0;
+    }
+
+    .favorite {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      font-weight: 700;
+      color: #fff;
+      justify-self: end;
+    }
+
+    .body {
+      padding: 18px 20px 22px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .location {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .location span {
+      display: block;
+    }
+
+    .price {
+      display: grid;
+      gap: 6px;
+    }
+
+    .price-main {
+      font-family: "Bodoni Moda", serif;
+      font-size: 1.5rem;
+      color: var(--sea);
+    }
+
+    .price-sub {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      font-size: 0.82rem;
+      color: #3f4248;
+    }
+
+    .meta {
+      background: rgba(36, 66, 74, 0.06);
+      border-radius: 12px;
+      padding: 8px 10px;
+      display: grid;
+      gap: 2px;
+    }
+
+    .meta strong {
+      font-size: 0.9rem;
+    }
+
+    .meta-wide {
+      grid-column: span 3;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .meta-wide .meta {
+      background: rgba(199, 159, 83, 0.14);
+    }
+
+    .variant-banner {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 6px 12px;
+      border-radius: 999px;
+      justify-self: start;
+    }
+
+    .card.split {
+      grid-template-columns: 44% 56%;
+    }
+
+    .card.split .media {
+      min-height: 100%;
+    }
+
+    .card.split .body {
+      padding: 20px 18px 22px;
+    }
+
+    .card.poster {
+      border-radius: var(--radius-lg);
+    }
+
+    .card.poster .media {
+      min-height: 220px;
+    }
+
+    .card.poster .body {
+      background: #fbf8f1;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 0.76rem;
+      background: rgba(36, 66, 74, 0.08);
+      color: var(--sea);
+      font-weight: 600;
+    }
+
+    @keyframes rise {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .card.split {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        padding: 40px 6vw 60px;
+      }
+
+      .meta-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .meta-wide {
+        grid-column: span 2;
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="intro">
+      <div class="eyebrow">Listing Card Concepts</div>
+      <h1>Design variants using the shared listing card data fields.</h1>
+      <p class="subtitle">
+        Each card uses the same data surface: image, listingType badge, propertyType badge,
+        title, price, price per sqm, beds, baths, size, parking, floor, total floors,
+        year built, location, and address.
+      </p>
+    </section>
+
+    <div class="section-label">Classic Stack</div>
+    <section class="grid">
+      <article class="card">
+        <div class="media" style="background: linear-gradient(135deg, #24424a, #51777d);">
+          <div class="badges">
+            <span class="badge">Condominium</span>
+            <span class="badge sale">Sale</span>
+          </div>
+          <div class="favorite">+</div>
+          <div class="variant-banner">Classic</div>
+          <h3 class="media-title">Harborline Loft</h3>
+        </div>
+        <div class="body">
+          <div class="location">
+            <span>Address: 45 Ayala Ave</span>
+            <span>Location: Makati City</span>
+          </div>
+          <div class="price">
+            <div class="price-main">PHP 21,500,000</div>
+            <div class="price-sub">PHP 240,000 / sqm</div>
+          </div>
+          <div class="meta-grid">
+            <div class="meta"><strong>2</strong> Bedrooms</div>
+            <div class="meta"><strong>2</strong> Bathrooms</div>
+            <div class="meta"><strong>90</strong> sqm</div>
+            <div class="meta"><strong>1</strong> Parking</div>
+            <div class="meta"><strong>18</strong> Floor</div>
+            <div class="meta"><strong>26</strong> Total Floors</div>
+            <div class="meta"><strong>2019</strong> Year Built</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="media" style="background: linear-gradient(135deg, #8f6f59, #caa37a);">
+          <div class="badges">
+            <span class="badge">Townhouse</span>
+            <span class="badge rent">Rent</span>
+          </div>
+          <div class="favorite">+</div>
+          <div class="variant-banner">Classic</div>
+          <h3 class="media-title">Willow Court</h3>
+        </div>
+        <div class="body">
+          <div class="location">
+            <span>Address: 12 Maple Ridge</span>
+            <span>Location: Quezon City</span>
+          </div>
+          <div class="price">
+            <div class="price-main">PHP 85,000 / mo</div>
+            <div class="price-sub">Price per sqm not listed</div>
+          </div>
+          <div class="meta-grid">
+            <div class="meta"><strong>3</strong> Bedrooms</div>
+            <div class="meta"><strong>3</strong> Bathrooms</div>
+            <div class="meta"><strong>160</strong> sqm</div>
+            <div class="meta"><strong>2</strong> Parking</div>
+            <div class="meta"><strong>2</strong> Floor</div>
+            <div class="meta"><strong>2</strong> Total Floors</div>
+            <div class="meta"><strong>2015</strong> Year Built</div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div class="section-label">Split Image</div>
+    <section class="grid">
+      <article class="card split">
+        <div class="media" style="background: linear-gradient(135deg, #627061, #9fb09b);">
+          <div class="badges">
+            <span class="badge">Condominium</span>
+            <span class="badge sale">Sale</span>
+          </div>
+          <div class="favorite">+</div>
+          <div class="variant-banner">Split</div>
+          <h3 class="media-title">Hearthstone Modern</h3>
+        </div>
+        <div class="body">
+          <div class="tags">
+            <span class="tag">Property Type: Condominium</span>
+            <span class="tag">Listing Type: Sale</span>
+          </div>
+          <div class="price">
+            <div class="price-main">PHP 12,900,000</div>
+            <div class="price-sub">PHP 185,000 / sqm</div>
+          </div>
+          <div class="location">
+            <span>Address: 903 Rockwell Drive</span>
+            <span>Location: Makati City</span>
+          </div>
+          <div class="meta-grid">
+            <div class="meta"><strong>Studio</strong> Bedrooms</div>
+            <div class="meta"><strong>1</strong> Bathrooms</div>
+            <div class="meta"><strong>70</strong> sqm</div>
+            <div class="meta"><strong>1</strong> Parking</div>
+            <div class="meta"><strong>9</strong> Floor</div>
+            <div class="meta"><strong>15</strong> Total Floors</div>
+            <div class="meta"><strong>2021</strong> Year Built</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card split">
+        <div class="media" style="background: linear-gradient(135deg, #c79f53, #f0d39d);">
+          <div class="badges">
+            <span class="badge">House and Lot</span>
+            <span class="badge sale">Sale</span>
+          </div>
+          <div class="favorite">+</div>
+          <div class="variant-banner">Split</div>
+          <h3 class="media-title">Aurora Heights</h3>
+        </div>
+        <div class="body">
+          <div class="tags">
+            <span class="tag">Property Type: House and Lot</span>
+            <span class="tag">Listing Type: Sale</span>
+          </div>
+          <div class="price">
+            <div class="price-main">PHP 38,000,000</div>
+            <div class="price-sub">PHP 132,000 / sqm</div>
+          </div>
+          <div class="location">
+            <span>Address: 1 Pine Crest</span>
+            <span>Location: Tagaytay, Cavite</span>
+          </div>
+          <div class="meta-grid">
+            <div class="meta"><strong>4</strong> Bedrooms</div>
+            <div class="meta"><strong>4</strong> Bathrooms</div>
+            <div class="meta"><strong>288</strong> sqm</div>
+            <div class="meta"><strong>2</strong> Parking</div>
+            <div class="meta"><strong>2</strong> Floor</div>
+            <div class="meta"><strong>2</strong> Total Floors</div>
+            <div class="meta"><strong>2018</strong> Year Built</div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div class="section-label">Poster Emphasis</div>
+    <section class="grid">
+      <article class="card poster">
+        <div class="media" style="background: linear-gradient(135deg, #3f3b3a, #6a625f);">
+          <div class="badges">
+            <span class="badge">Penthouse</span>
+            <span class="badge rent">Rent</span>
+          </div>
+          <div class="favorite">+</div>
+          <div class="variant-banner">Poster</div>
+          <h3 class="media-title">Ironwood Estate</h3>
+        </div>
+        <div class="body">
+          <div class="price">
+            <div class="price-main">PHP 120,000 / mo</div>
+            <div class="price-sub">Price per sqm not listed</div>
+          </div>
+          <div class="location">
+            <span>Address: 12 High Street</span>
+            <span>Location: BGC, Taguig City</span>
+          </div>
+          <div class="meta-grid">
+            <div class="meta"><strong>2</strong> Bedrooms</div>
+            <div class="meta"><strong>2</strong> Bathrooms</div>
+            <div class="meta"><strong>110</strong> sqm</div>
+            <div class="meta"><strong>1</strong> Parking</div>
+            <div class="meta"><strong>32</strong> Floor</div>
+            <div class="meta"><strong>45</strong> Total Floors</div>
+            <div class="meta"><strong>2017</strong> Year Built</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card poster">
+        <div class="media" style="background: linear-gradient(135deg, #24424a, #8aa6aa);">
+          <div class="badges">
+            <span class="badge">Apartment</span>
+            <span class="badge rent">Rent</span>
+          </div>
+          <div class="favorite">+</div>
+          <div class="variant-banner">Poster</div>
+          <h3 class="media-title">Seabreeze Flats</h3>
+        </div>
+        <div class="body">
+          <div class="price">
+            <div class="price-main">PHP 65,000 / mo</div>
+            <div class="price-sub">Price per sqm not listed</div>
+          </div>
+          <div class="location">
+            <span>Address: 77 Coastline Way</span>
+            <span>Location: Pasay City</span>
+          </div>
+          <div class="meta-grid">
+            <div class="meta"><strong>1</strong> Bedrooms</div>
+            <div class="meta"><strong>1</strong> Bathrooms</div>
+            <div class="meta"><strong>58</strong> sqm</div>
+            <div class="meta"><strong>0</strong> Parking</div>
+            <div class="meta"><strong>8</strong> Floor</div>
+            <div class="meta"><strong>20</strong> Total Floors</div>
+            <div class="meta"><strong>2016</strong> Year Built</div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

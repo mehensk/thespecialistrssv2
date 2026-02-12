@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blog Wireframe 3 - Magazine Columns</title>
+  <style>
+    :root {
+      --bg: #f9f2e7;
+      --ink: #1d1a15;
+      --muted: #6c6258;
+      --line: #e2d6c8;
+      --card: #ffffff;
+      --accent: #b35b38;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Garamond", "Times New Roman", serif;
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+    }
+    .header {
+      display: grid;
+      gap: 8px;
+      border-bottom: 2px solid var(--line);
+      padding-bottom: 16px;
+    }
+    .name { font-size: 28px; letter-spacing: 0.2em; text-transform: uppercase; }
+    .sub { color: var(--muted); font-size: 14px; }
+
+    .magazine {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 18px;
+      margin-top: 20px;
+    }
+    .lead {
+      grid-column: span 2;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 260px auto;
+    }
+    .lead-media { background: #eadfcd; }
+    .lead-body { padding: 18px; display: grid; gap: 8px; }
+    .lead-title { font-size: 26px; line-height: 1.2; }
+    .meta { color: var(--muted); font-size: 12px; }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+    .stack-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+    .thumb { background: #eadfcd; height: 96px; border-radius: 10px; }
+    .tag { color: var(--accent); text-transform: uppercase; font-size: 12px; letter-spacing: 0.12em; }
+
+    .columns {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    .column {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+    .divider { height: 1px; background: var(--line); }
+
+    @media (max-width: 950px) {
+      .magazine { grid-template-columns: 1fr; }
+      .lead { grid-column: span 1; }
+      .columns { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="name">Specialist Journal</div>
+      <div class="sub">Editorial picks and market notes</div>
+    </div>
+
+    <section class="magazine">
+      <article class="lead">
+        <div class="lead-media"></div>
+        <div class="lead-body">
+          <div class="tag">Cover</div>
+          <div class="lead-title">A buyers’ map to the next wave of demand</div>
+          <div class="meta">By Author Name · 10 min read</div>
+          <div>Short standfirst paragraph to set tone.</div>
+        </div>
+      </article>
+
+      <aside class="stack">
+        <div class="stack-card">
+          <div class="thumb"></div>
+          <div class="tag">Notes</div>
+          <div>Small insights for quick reads</div>
+          <div class="meta">3 min read</div>
+        </div>
+        <div class="stack-card">
+          <div class="thumb"></div>
+          <div class="tag">Guide</div>
+          <div>Checklist for luxury unit turnover</div>
+          <div class="meta">5 min read</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="columns">
+      <article class="column">
+        <div class="tag">Neighborhood</div>
+        <div>Transit-led price shifts</div>
+        <div class="divider"></div>
+        <div class="meta">6 min read</div>
+      </article>
+      <article class="column">
+        <div class="tag">Market</div>
+        <div>Quarterly absorption overview</div>
+        <div class="divider"></div>
+        <div class="meta">7 min read</div>
+      </article>
+      <article class="column">
+        <div class="tag">Investor</div>
+        <div>Yield strategies for 2026</div>
+        <div class="divider"></div>
+        <div class="meta">8 min read</div>
+      </article>
+    </section>
+  </div>
+</body>
+</html>

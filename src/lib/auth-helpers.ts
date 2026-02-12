@@ -5,6 +5,7 @@
 
 import { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { auth } from '@/lib/auth';
 import { UserRole } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
@@ -31,11 +32,28 @@ export async function getAuthenticatedUser(
     });
 
     if (!token?.id) {
-      logger.debug('Auth: No valid token found', {
+      logger.debug('Auth: No valid token found, trying auth() fallback', {
         hasToken: !!token,
         hasTokenId: !!token?.id,
         duration: Date.now() - startTime,
       });
+
+      try {
+        const session = await auth();
+        if (session?.user?.id && session?.user?.role) {
+          return {
+            id: session.user.id as string,
+            role: session.user.role as UserRole,
+            email: session.user.email ?? undefined,
+            name: session.user.name ?? undefined,
+          };
+        }
+      } catch (authError) {
+        logger.warn('Auth: auth() fallback failed', {
+          error: authError instanceof Error ? authError.message : String(authError),
+        });
+      }
+
       return null;
     }
 

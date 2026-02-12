@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blog Wireframe 1 - Editorial Hero</title>
+  <style>
+    :root {
+      --bg: #f7f4ef;
+      --ink: #1c1c1c;
+      --muted: #6b6b6b;
+      --line: #d9d2c7;
+      --card: #ffffff;
+      --accent: #c5a46d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Georgia", "Times New Roman", serif;
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0 24px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { font-size: 20px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .nav { display: flex; gap: 16px; color: var(--muted); font-size: 14px; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 28px;
+      margin: 28px 0 36px;
+    }
+    .hero-media {
+      background: #e6dfd4;
+      height: 360px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+    }
+    .hero-copy {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 24px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+    .kicker { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+    .title { font-size: 34px; line-height: 1.15; }
+    .meta { color: var(--muted); font-size: 14px; }
+    .cta { margin-top: 8px; font-weight: bold; color: var(--accent); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 160px auto;
+    }
+    .card-media { background: #e8e1d6; }
+    .card-body { padding: 18px; display: grid; gap: 10px; }
+    .card-title { font-size: 20px; line-height: 1.2; }
+    .card-text { color: var(--muted); font-size: 14px; }
+
+    .section-title {
+      margin: 40px 0 16px;
+      font-size: 18px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="brand">The Specialist Realty</div>
+      <div class="nav">
+        <div>Market</div>
+        <div>Guides</div>
+        <div>Neighborhoods</div>
+        <div>Insights</div>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="hero-media" aria-label="Hero image"></div>
+      <div class="hero-copy">
+        <div class="kicker">Featured Story</div>
+        <div class="title">How to spot value in emerging Metro Manila pockets</div>
+        <div class="meta">By Author Name · 8 min read</div>
+        <div class="card-text">Short summary that frames the angle and sets context for the reader.</div>
+        <div class="cta">Read the feature ?</div>
+      </div>
+    </section>
+
+    <div class="section-title">Latest</div>
+    <section class="grid">
+      <article class="card">
+        <div class="card-media"></div>
+        <div class="card-body">
+          <div class="kicker">Market Update</div>
+          <div class="card-title">Condo demand shifts after rate movements</div>
+          <div class="card-text">2–3 lines of teaser copy for the card layout.</div>
+          <div class="meta">5 min read</div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="card-media"></div>
+        <div class="card-body">
+          <div class="kicker">Buyer Guide</div>
+          <div class="card-title">Checklist for first-time investors in 2026</div>
+          <div class="card-text">2–3 lines of teaser copy for the card layout.</div>
+          <div class="meta">6 min read</div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="card-media"></div>
+        <div class="card-body">
+          <div class="kicker">Neighborhood</div>
+          <div class="card-title">Why commute corridors are re-pricing fast</div>
+          <div class="card-text">2–3 lines of teaser copy for the card layout.</div>
+          <div class="meta">4 min read</div>
+        </div>
+      </article>
+    </section>
+  </div>
+</body>
+</html>

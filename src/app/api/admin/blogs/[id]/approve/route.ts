@@ -3,7 +3,7 @@ import { verifyAdminRole } from '@/lib/verify-admin-role';
 import { prisma } from '@/lib/prisma';
 import { UserRole, ActivityAction } from '@prisma/client';
 import { logBlogActivity } from '@/lib/activity-logger';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache';
 
 export async function POST(
@@ -39,9 +39,10 @@ export async function POST(
     });
 
     // Revalidate cache when blog post is approved
-    // TODO: Fix TypeScript error with revalidateTag - temporarily commented out
-    // revalidateTag(CACHE_TAGS.BLOG_POST(updated.slug));
-    // revalidateTag(CACHE_TAGS.BLOG_POSTS);
+    revalidateTag(CACHE_TAGS.BLOG_POST(updated.slug), 'max');
+    revalidateTag(CACHE_TAGS.BLOG_POSTS, 'max');
+    revalidatePath(`/blog/${updated.slug}`, 'page');
+    revalidatePath('/blog');
 
     return NextResponse.json({ success: true, blog: updated });
   } catch (error) {
@@ -49,4 +50,3 @@ export async function POST(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

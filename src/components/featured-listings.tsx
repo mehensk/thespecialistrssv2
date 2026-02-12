@@ -1,21 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Bed, Bath, Square, MapPin, Car, Calendar, Layers } from 'lucide-react';
-import { formatLocationDisplay, formatLocationWithLabel, formatBedrooms, formatBedroomsForTitle } from '@/lib/location-utils';
-
-const propertyTypeMap: { [key: string]: string } = {
-  'condominium': 'Condominium',
-  'house-and-lot': 'House and Lot',
-  'townhouse': 'Townhouse',
-  'apartment': 'Apartment',
-  'penthouse': 'Penthouse',
-  'lot': 'Lot',
-  'building': 'Building',
-  'commercial': 'Commercial Space',
-};
+import { ListingCard } from '@/components/listings/ListingCard';
 
 interface Listing {
   id: string;
@@ -37,7 +23,11 @@ interface Listing {
   createdAt: string;
 }
 
-export function FeaturedListings() {
+interface FeaturedListingsProps {
+  cardVariant?: 'landing';
+}
+
+export function FeaturedListings({ cardVariant }: FeaturedListingsProps) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,29 +35,29 @@ export function FeaturedListings() {
     const fetchListings = async () => {
       try {
         setLoading(true);
-        // Only fetch 4 listings from the API instead of all
-        const response = await fetch('/api/listings?published=true&limit=4');
+        // Only fetch 12 listings from the API instead of all
+        const response = await fetch('/api/listings?published=true&limit=12');
         const data = await response.json();
-        
+
         if (response.ok && data.listings) {
           // Transform API listings to match expected format
-          const transformedListings = data.listings.map((listing: any) => {
+          const transformedListings: Listing[] = data.listings.map((listing: any) => {
             // Properly handle bedrooms - preserve null/undefined, convert to number otherwise
-            const bedrooms = listing.bedrooms === null || listing.bedrooms === undefined || listing.bedrooms === ''
-              ? null
-              : Number(listing.bedrooms);
-            
+            const bedrooms =
+              listing.bedrooms === null || listing.bedrooms === undefined || listing.bedrooms === ''
+                ? null
+                : Number(listing.bedrooms);
+
             return {
               id: listing.id,
               title: listing.title || '',
-              price: listing.price || 0,
+              price: listing.price || null,
               bedrooms,
-              bathrooms: listing.bathrooms === null || listing.bathrooms === undefined || listing.bathrooms === ''
-                ? null
-                : Number(listing.bathrooms),
-              size: listing.size === null || listing.size === undefined || listing.size === ''
-                ? null
-                : Number(listing.size),
+              bathrooms:
+                listing.bathrooms === null || listing.bathrooms === undefined || listing.bathrooms === ''
+                  ? null
+                  : Number(listing.bathrooms),
+              size: listing.size === null || listing.size === undefined || listing.size === '' ? null : Number(listing.size),
               city: listing.city || listing.location || '',
               propertyType: listing.propertyType || '',
               listingType: listing.listingType || 'sale',
@@ -81,7 +71,10 @@ export function FeaturedListings() {
               createdAt: listing.createdAt || '',
             };
           });
-          setListings(transformedListings);
+          const sortedListings = transformedListings.sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          setListings(sortedListings.slice(0, 3));
         }
       } catch (error) {
         console.error('Error fetching featured listings:', error);
@@ -95,9 +88,9 @@ export function FeaturedListings() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-white rounded-xl overflow-hidden shadow-lg animate-pulse">
+      <div className="listing-grid">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className={`${cardVariant === 'landing' ? 'listing-card ' : ''}animate-pulse`}>
             <div className="h-64 bg-gray-200"></div>
             <div className="p-6">
               <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
@@ -114,137 +107,22 @@ export function FeaturedListings() {
     return null;
   }
 
+  const normalizedListings = listings.map((listing) => ({
+    ...listing,
+    image: listing.images[0],
+    type: listing.propertyType,
+  }));
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {listings.map((listing) => (
-        <Link
+    <div className="listing-grid">
+      {normalizedListings.map((listing) => (
+        <ListingCard
           key={listing.id}
-          href={`/listings/${listing.id}`}
-          className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block group border border-[#E5E7EB]"
-        >
-          <div className="relative h-56 w-full overflow-hidden bg-gray-100">
-            <Image
-              src={listing.images[0]}
-              alt={listing.title || `Property in ${listing.city}`}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              loading="lazy"
-            />
-            {/* Rent/Sale Badge - Top Right */}
-            <div className="absolute top-3 right-3">
-              <span className={`px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider shadow-lg backdrop-blur-sm ${
-                listing.listingType === 'rent'
-                  ? 'bg-[#D4AF37]/95 text-white'
-                  : 'bg-[#1F2937]/95 text-white'
-              }`}>
-                {listing.listingType === 'rent' ? 'Rent' : 'Sale'}
-              </span>
-            </div>
-          </div>
-          <div className="p-5">
-            {/* Title */}
-            <div className="mb-2">
-              <h3 className="text-sm font-semibold text-[#111111] line-clamp-1 leading-tight">
-                {(listing.propertyType || '').toLowerCase() === 'lot' ? (
-                  <>
-                    {listing.size && listing.size > 0 && `${listing.size} sqm `}
-                    Lot for {listing.listingType === 'rent' ? 'Rent' : 'Sale'}
-                    {listing.city && ` in ${listing.city}`}
-                  </>
-                ) : (
-                  <>
-                    {formatBedroomsForTitle(listing.bedrooms, listing.propertyType)}
-                    {propertyTypeMap[listing.propertyType || ''] || listing.propertyType || 'Property'}
-                    {' for '}
-                    {listing.listingType === 'rent' ? 'Rent' : 'Sale'}
-                  </>
-                )}
-              </h3>
-            </div>
-            
-            {/* Price */}
-            <div className="mb-3">
-              <p className="text-2xl md:text-3xl font-bold text-[#111111] tracking-tight w-full">
-                {listing.price ? `₱${listing.price.toLocaleString()}` : 'Price on request'}
-                {listing.price && listing.listingType === 'rent' && <span className="text-base font-medium text-[#111111]/60 ml-1">/mo</span>}
-              </p>
-              {listing.size && listing.size > 0 && listing.price && listing.price > 0 && listing.listingType === 'sale' && (
-                <p className="text-xs text-[#111111]/50 mt-1">
-                  ₱{Math.round(listing.price / listing.size).toLocaleString()}/sqm
-                </p>
-              )}
-            </div>
-            
-            {/* Property Details - Compact Grid */}
-            <div className="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-[#E5E7EB]">
-              {(() => {
-                const bedroomsText = formatBedrooms(listing.bedrooms, listing.propertyType);
-                return bedroomsText ? (
-                  <div className="flex items-center gap-1.5">
-                    <Bed size={16} className="text-[#1F2937] flex-shrink-0" />
-                    <span className="text-xs font-medium text-[#111111]/80">
-                      {bedroomsText}
-                    </span>
-                  </div>
-                ) : null;
-              })()}
-              {listing.bathrooms && listing.bathrooms > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <Bath size={16} className="text-[#1F2937] flex-shrink-0" />
-                  <span className="text-xs font-medium text-[#111111]/80">{listing.bathrooms}</span>
-                </div>
-              )}
-              {listing.size && listing.size > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <Square size={16} className="text-[#1F2937] flex-shrink-0" />
-                  <span className="text-xs font-medium text-[#111111]/80">{listing.size} sqm</span>
-                </div>
-              )}
-            </div>
-            
-            {/* Additional Details */}
-            <div className="flex flex-wrap gap-2 mb-3 text-xs text-[#111111]/60">
-              {listing.parking && listing.parking > 0 && (
-                <div className="flex items-center gap-1">
-                  <Car size={14} className="text-[#1F2937] flex-shrink-0" />
-                  <span>{listing.parking}</span>
-                </div>
-              )}
-              {listing.floor && listing.totalFloors && (
-                <div className="flex items-center gap-1">
-                  <Layers size={14} className="text-[#1F2937] flex-shrink-0" />
-                  <span>Floor {listing.floor}/{listing.totalFloors}</span>
-                </div>
-              )}
-              {listing.yearBuilt && (
-                <div className="flex items-center gap-1">
-                  <Calendar size={14} className="text-[#1F2937] flex-shrink-0" />
-                  <span>{listing.yearBuilt}</span>
-                </div>
-              )}
-            </div>
-            
-            {/* Location and Property Type */}
-            <div className="space-y-2.5">
-              {formatLocationDisplay(listing.city, listing.location, listing.address) !== 'Location not specified' && (
-                <div className="flex items-start gap-1.5">
-                  <MapPin size={14} className="text-[#1F2937] flex-shrink-0 mt-0.5" />
-                  <span className="text-sm text-[#111111]/70 line-clamp-2 leading-snug">
-                    {formatLocationWithLabel(listing.city, listing.location, listing.address)}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-start">
-                <span className="inline-block bg-[#F9FAFB] text-[#1F2937] px-3 py-1.5 rounded-lg text-xs font-medium tracking-wide border border-[#E5E7EB]">
-                  {propertyTypeMap[listing.propertyType || ''] || listing.propertyType || 'Property'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </Link>
+          listing={listing}
+          imageSizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          variant={cardVariant}
+        />
       ))}
     </div>
   );
 }
-

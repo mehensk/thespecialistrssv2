@@ -2,11 +2,14 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 import { ApproveButton } from './approve-button';
 import { ViewToggle } from '@/components/admin/ViewToggle';
 import { CompactListingCard } from '@/components/admin/CompactListingCard';
 import { SearchInput } from '@/components/ui/search-input';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { useToast } from '@/components/ui/toast';
 
 interface Listing {
   id: string;
@@ -30,6 +33,42 @@ interface AdminListingsViewProps {
 export function AdminListingsView({ listings }: AdminListingsViewProps) {
   const [view, setView] = useState<'grid' | 'compact'>('compact');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [listingToDelete, setListingToDelete] = useState<Listing | null>(null);
+  const router = useRouter();
+  const { success, error } = useToast();
+
+  const handleDeleteClick = (listing: Listing) => {
+    setListingToDelete(listing);
+    setShowConfirm(true);
+  };
+
+  const handleDelete = async () => {
+    if (!listingToDelete) return;
+    
+    setIsDeleting(listingToDelete.id);
+    setShowConfirm(false);
+    
+    try {
+      const response = await fetch(`/api/admin/listings/${listingToDelete.id}/delete`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        success('Listing deleted successfully');
+        router.refresh();
+      } else {
+        const data = await response.json();
+        error(data.error || 'Failed to delete listing');
+      }
+    } catch (err) {
+      error('Failed to delete listing. Please try again.');
+    } finally {
+      setIsDeleting(null);
+      setListingToDelete(null);
+    }
+  };
 
   const filteredListings = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -58,7 +97,7 @@ export function AdminListingsView({ listings }: AdminListingsViewProps) {
   if (!listings || listings.length === 0) {
     return (
       <div>
-        <div className="flex items-center justify-between mb-4 z-10 relative">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 z-10 relative">
           <div className="text-sm text-[#111111]/60">View: {view === 'compact' ? 'Table' : 'Grid'}</div>
           <ViewToggle view={view} onViewChange={setView} />
         </div>
@@ -71,15 +110,15 @@ export function AdminListingsView({ listings }: AdminListingsViewProps) {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4 gap-4 z-10 relative">
-        <div className="flex-1 max-w-md">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4 z-10 relative">
+        <div className="w-full md:flex-1 md:max-w-md">
           <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
             placeholder="Search listings by title, ID, location, creator..."
           />
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 md:gap-4">
           {searchQuery && (
             <div className="text-sm text-[#111111]/60">
               {filteredListings.length} of {listings.length} listings
@@ -105,7 +144,13 @@ export function AdminListingsView({ listings }: AdminListingsViewProps) {
           )}
         </div>
       ) : view === 'compact' ? (
-        <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden">
+        <>
+          <div className="md:hidden grid grid-cols-1 gap-3">
+            {filteredListings.map((listing) => (
+              <CompactListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+          <div className="hidden md:block bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
@@ -186,15 +231,14 @@ export function AdminListingsView({ listings }: AdminListingsViewProps) {
                             <ApproveButton listingId={listing.id} />
                           </div>
                         )}
-                        <form action={`/api/admin/listings/${listing.id}/delete`} method="POST">
-                          <button
-                            type="submit"
-                            className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </form>
+                        <button
+                          onClick={() => handleDeleteClick(listing)}
+                          disabled={isDeleting === listing.id}
+                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -203,6 +247,7 @@ export function AdminListingsView({ listings }: AdminListingsViewProps) {
             </table>
           </div>
         </div>
+        </>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {filteredListings.map((listing) => (
@@ -210,7 +255,17 @@ export function AdminListingsView({ listings }: AdminListingsViewProps) {
           ))}
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleDelete}
+        title="Delete Listing"
+        message={`Are you sure you want to delete "${listingToDelete?.title}" (${listingToDelete?.propertyId || 'N/A'})? This action cannot be undone.`}
+        confirmText="Delete"
+        confirmButtonClass="bg-red-600 hover:bg-red-700 text-white rounded-lg"
+        loading={isDeleting !== null}
+      />
     </div>
   );
 }
-

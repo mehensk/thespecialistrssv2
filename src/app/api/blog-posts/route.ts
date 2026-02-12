@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromToken } from '@/lib/get-user-from-token';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { prisma } from '@/lib/prisma';
 import { ActivityAction, Prisma } from '@prisma/client';
 import { logBlogActivity } from '@/lib/activity-logger';
 import { safeParseInt, validateBlogPostInput } from '@/lib/validation';
 import { logger } from '@/lib/logger';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { CACHE_TAGS, getCachedBlogPosts } from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getUserFromToken();
+    const user = await getAuthenticatedUser(request);
     const searchParams = request.nextUrl.searchParams;
     const published = searchParams.get('published');
     const limit = searchParams.get('limit');
@@ -84,9 +84,9 @@ export async function POST(request: NextRequest) {
   let imagesArray: string[] = [];
 
   try {
-    const user = await getUserFromToken();
+    const user = await getAuthenticatedUser(request);
 
-    if (!user || !user.id) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -204,9 +204,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Revalidate cache when new blog post is created
-    revalidateTag(CACHE_TAGS.BLOG_POSTS, '');
-    revalidateTag(CACHE_TAGS.BLOG_POST(slug), '');
-
+    revalidateTag(CACHE_TAGS.BLOG_POSTS, 'max');
+    revalidateTag(CACHE_TAGS.BLOG_POST(slug), 'max');
+    revalidatePath('/blog');
+    revalidatePath(`/blog/${slug}`, 'page');
     return NextResponse.json({ success: true, blog }, { status: 201 });
   } catch (error) {
     logger.error('Error creating blog post:', error);

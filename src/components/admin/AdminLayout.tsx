@@ -156,7 +156,7 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-white pt-[84px]">
+    <div className="min-h-screen bg-white pt-[140px] lg:pt-[84px]">
       <ActivityTracker />
       <div className="flex">
         {/* Sidebar - Desktop */}
@@ -272,7 +272,7 @@ export const AdminLayout = memo(function AdminLayout({ children }: { children: R
               <div className="h-full bg-gradient-to-r from-[#1F2937] to-[#111111] animate-pulse" style={{ width: '30%' }}></div>
             </div>
           )}
-          <div className="p-6 lg:p-8">
+          <div className="p-4 sm:p-6 lg:p-8">
             {children}
           </div>
         </main>

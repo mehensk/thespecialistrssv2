@@ -5,6 +5,7 @@ import { signIn, getSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { UserRole } from '@prisma/client';
+import { broadcastLogin } from '@/components/providers/LogoutSync';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -93,6 +94,9 @@ function LoginForm() {
         });
 
         if (session?.user?.role) {
+          // Broadcast login to all tabs
+          broadcastLogin();
+          
           // Redirect directly based on role - client-side redirect is more reliable
           const redirectPath = session.user.role === UserRole.ADMIN 
             ? '/admin/dashboard' 
@@ -236,4 +240,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-

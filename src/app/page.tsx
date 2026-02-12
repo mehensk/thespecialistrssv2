@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import { Home as HomeIcon, TrendingUp, Key, FileCheck, Calculator, Lightbulb } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import { ScrollAnimation } from '@/components/ui/scroll-animation';
@@ -31,320 +30,204 @@ export default function Home() {
       <Suspense fallback={null}>
         <LogoutMessage />
       </Suspense>
-      {/* Hero Section */}
-      <section className="relative w-full h-screen min-h-[100vh] mb-24 sm:mb-28 md:mb-32">
-        {/* Background Image - Luxury Condo Facade */}
-        <div className="absolute inset-0 w-full h-full">
-        <Image
-            src="/images/hero-condo.jpg"
-            alt="Luxury Condo Facade"
-            fill
-            priority
-            className="object-cover"
-            sizes="100vw"
-          />
-          {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
-        </div>
+      {/* Hero Section - Phase 2 Redesign */}
+      <section className="hero hero-split">
+        <div className="container hero-split-grid">
+          {/* Hero Panel - Left */}
+          <div className="hero-panel">
+            <h1>Meet The Specialist</h1>
+            <p className="lead">Welcome to The Specialist Realty Solutions and Services—where elevated real estate guidance meets genuine client care.</p>
+            <p className="lead">With over 10 years of expertise in developer selling, title transfers, and appraisals, we help you make confident property decisions through expert support and a refreshingly honest approach.</p>
+            <p className="lead">Whether you're searching for a condominium, family home, or investment property, we make your journey smooth, informed, and truly rewarding.</p>
+          </div>
 
-        {/* Hero Content */}
-        <div className="relative z-10 h-full flex flex-col pt-[84px] md:pt-20 lg:pt-24">
-          {/* Top Content - Headline and Description */}
-          <div className="flex-1 flex items-center justify-center">
-            <div className="mx-auto max-w-7xl w-full px-4 md:px-6">
-              <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-[2px] rounded-2xl p-6 md:p-8 lg:p-12 shadow-2xl border border-white/5 text-center">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold text-white mb-5 md:mb-6 leading-tight tracking-tight">
-                  Real Estate Solutions. Made Even Easier.
-          </h1>
-                <p className="text-lg md:text-xl lg:text-2xl text-white/90 mb-6 md:mb-8 leading-relaxed mx-auto tracking-wide">
-                  Sales · Rentals · Documentation assistance across Metro Manila and nearby cities. Work with a licensed broker backed by a trusted network and decades of finance & admin expertise.
-                </p>
-                
-                {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
-            <a
-                    href="/listings"
-                    className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 md:px-8 py-3 md:py-4 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 text-center font-medium text-base md:text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 relative overflow-hidden group"
-                  >
-                    <span className="relative z-10">View Properties</span>
-                    <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                  </a>
-            <a
-                    href="/contact"
-                    className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 md:px-8 py-3 md:py-4 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 text-center font-medium text-base md:text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 relative overflow-hidden group"
-                  >
-                    <span className="relative z-10">Schedule Tour</span>
-                    <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                  </a>
-                </div>
+          {/* Hero Actions Card - Right */}
+          <div className="hero-actions-card">
+            <div className="hero-actions-header">
+              <span className="section-icon">✦</span>
+              Quick Actions
+            </div>
+            <p className="hero-actions-intro">Ready to explore your next home? Browse our curated listings or book a personalized tour today.</p>
+            <div className="cta-row">
+              <a href="/listings">View Listings</a>
+              <a href="/contact">Schedule Tour</a>
+            </div>
+            
+            <div className="hero-actions-sell">
+              <div className="hero-actions-header">
+                <span className="section-icon">⌂</span>
+                Sell Your Property
+              </div>
+              <p className="enlist-message">LIST YOUR PROPERTIES WITH US</p>
+              <div className="cta-row">
+                <a href="/contact" className="enlist-button">Enlist Now</a>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Search Bar Overlay - Bottom Portion */}
-          <div className="pb-8 md:pb-12 px-4 md:px-6 relative z-10">
-            <HeroSearch />
-          </div>
+        {/* Search Bar */}
+        <div className="container hero-search">
+          <div className="search-header">Search our Properties</div>
+          <HeroSearch />
         </div>
       </section>
 
-      {/* Why Choose Us Section */}
-      <section className="py-28 bg-white">
-        <ScrollAnimation>
-          <div className="mx-auto max-w-7xl px-4 md:px-6">
-            <h2 className="text-4xl md:text-5xl font-semibold text-[#111111] text-center mb-20 tracking-tight">
-              Why Choose Us
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Card 1: Licensed & Experienced */}
-            <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="relative h-64 w-full">
-                <Image
-                  src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop"
-                  alt="Licensed & Experienced"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  loading="lazy"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-2xl font-semibold text-[#111111] mb-3 tracking-tight">
-                  Licensed & Experienced
-                </h3>
-                <p className="text-[#111111]/80 leading-relaxed tracking-wide">
-                  Licensed PRC Real Estate Broker offering industry expertise and a smooth, hassle-free client experience.
-                </p>
-              </div>
-            </div>
-
-            {/* Card 2: Accessibility & Responsiveness */}
-            <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="relative h-64 w-full">
-                <Image
-                  src="https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop"
-                  alt="Accessibility & Responsiveness"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  loading="lazy"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-2xl font-semibold text-[#111111] mb-3 tracking-tight">
-                  Accessibility & Responsiveness
-                </h3>
-                <p className="text-[#111111]/80 leading-relaxed tracking-wide">
-                  Easy to reach, fast to respond, and simple to work with.
-                </p>
-              </div>
-            </div>
-
-            {/* Card 3: Trust & Integrity */}
-            <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-              <div className="relative h-64 w-full">
-                <Image
-                  src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2070&auto=format&fit=crop"
-                  alt="Trust & Integrity"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  loading="lazy"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-2xl font-semibold text-[#111111] mb-3 tracking-tight">
-                  Trust & Integrity
-                </h3>
-                <p className="text-[#111111]/80 leading-relaxed tracking-wide">
-                  Transparent, ethical practices that prioritize client interests.
-                </p>
-              </div>
-            </div>
+      {/* Why Choose Us Section - Phase 3 */}
+      <section className="section grid-section">
+        <div className="container">
+          <div className="section-header-centered">
+            <p className="eyebrow">Our Difference</p>
+            <h2>Why Choose The Specialist Realty</h2>
+            <p>Expertise You Can Trust, Service You Can Feel</p>
           </div>
+          
+          <div className="why-choose-grid">
+            {/* Card 1: Expert Guidance - Shield Icon */}
+            <article className="card">
+              <div className="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+              </div>
+              <h3>Expert Guidance</h3>
+              <div className="card-content">
+                <p>From property selection to final turnover, we guide you with clarity and confidence throughout the entire process.</p>
+              </div>
+            </article>
+
+            {/* Card 2: Personalized Experience - Clock Icon */}
+            <article className="card">
+              <div className="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+              </div>
+              <h3>Personalized Experience</h3>
+              <div className="card-content">
+                <p>No two clients are the same. We listen closely to what matters most and align you with the right property opportunities.</p>
+              </div>
+            </article>
+
+            {/* Card 3: Life Transitions - Refresh Arrows Icon */}
+            <article className="card">
+              <div className="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <path d="M3 3v5h5"/>
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                  <path d="M16 21h5v-5"/>
+                </svg>
+              </div>
+              <h3>Life Transitions</h3>
+              <div className="card-content">
+                <p>Real estate is tied to life's biggest turning points. We offer steady support through every transition.</p>
+              </div>
+            </article>
+
+            {/* Card 4: Elevated Marketing - Checkmark Icon */}
+            <article className="card">
+              <div className="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+              <h3>Elevated Marketing</h3>
+              <div className="card-content">
+                <p>Your property gets polished, high-quality presentation and strategic exposure to attract serious buyers.</p>
+              </div>
+            </article>
+
+            {/* Card 5: Trust & Integrity - Bookmark Icon */}
+            <article className="card">
+              <div className="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+                </svg>
+              </div>
+              <h3>Trust & Integrity</h3>
+              <div className="card-content">
+                <p>Our approach is refreshingly honest, calm, and pressure-free, built on trust and long-term relationships.</p>
+              </div>
+            </article>
           </div>
-        </ScrollAnimation>
+        </div>
       </section>
 
-      {/* Our Services Section */}
-      <section className="py-28 bg-white">
-        <ScrollAnimation delay={100}>
-          <div className="max-w-7xl mx-auto px-4 md:px-6">
-            <h2 className="text-4xl md:text-5xl font-semibold text-[#111111] text-center mb-16 tracking-tight">
-              Our Services
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Service 1: Property Buying Assistance */}
-            <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 space-y-3">
-              <div className="h-10 w-10 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center shadow-md">
-                <HomeIcon size={20} className="text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-[#111111] tracking-tight">
-                Property Buying Assistance
-              </h3>
-              <p className="text-[#111111]/60 text-sm leading-relaxed tracking-wide">
-                Guidance on choosing the right property, negotiating effectively, and completing the transaction smoothly.
-              </p>
-            </div>
-
-            {/* Service 2: Property Selling & Marketing */}
-            <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 space-y-3">
-              <div className="h-10 w-10 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center shadow-md">
-                <TrendingUp size={20} className="text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-[#111111] tracking-tight">
-                Property Selling & Marketing
-              </h3>
-              <p className="text-[#111111]/60 text-sm leading-relaxed tracking-wide">
-                Professional listing exposure, pricing strategy, and buyer qualification to help sell efficiently and at fair market value.
-              </p>
-            </div>
-
-            {/* Service 3: Leasing & Rental Services */}
-            <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 space-y-3">
-              <div className="h-10 w-10 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center shadow-md">
-                <Key size={20} className="text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-[#111111] tracking-tight">
-                Leasing & Rental Services
-              </h3>
-              <p className="text-[#111111]/60 text-sm leading-relaxed tracking-wide">
-                Unit showcasing, inquiry handling, tenant screening, and drafting lease agreements for both landlords and tenants.
-              </p>
-            </div>
-
-            {/* Service 4: Documentation & Title Transfer */}
-            <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 space-y-3">
-              <div className="h-10 w-10 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center shadow-md">
-                <FileCheck size={20} className="text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-[#111111] tracking-tight">
-                Documentation & Title Transfer
-              </h3>
-              <p className="text-[#111111]/60 text-sm leading-relaxed tracking-wide">
-                Assistance with title transfer, deed preparation, taxes, BIR coordination, and LGU processing.
-              </p>
-            </div>
-
-            {/* Service 5: Property Valuation */}
-            <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 space-y-3">
-              <div className="h-10 w-10 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center shadow-md">
-                <Calculator size={20} className="text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-[#111111] tracking-tight">
-                Property Valuation
-              </h3>
-              <p className="text-[#111111]/60 text-sm leading-relaxed tracking-wide">
-                Market-based property assessments for owners, buyers, and investors to support informed decision-making.
-              </p>
-            </div>
-
-            {/* Service 6: Real Estate Advisory */}
-            <div className="bg-white rounded-xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 space-y-3">
-              <div className="h-10 w-10 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-lg flex items-center justify-center shadow-md">
-                <Lightbulb size={20} className="text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-[#111111] tracking-tight">
-                Real Estate Advisory
-              </h3>
-              <p className="text-[#111111]/60 text-sm leading-relaxed tracking-wide">
-                Consultation on investment options, location strategy, market trends, and ownership structures.
-              </p>
-            </div>
+      {/* Our Services Section - Phase 4 */}
+      <section className="section grid-section">
+        <div className="container">
+          <div className="section-header-centered">
+            <p className="eyebrow">What We Do</p>
+            <h2>Our Services</h2>
+            <p>Comprehensive real estate solutions for all your needs</p>
           </div>
+
+          <div className="cards-5">
+            <article className="card">
+              <h3>Buying</h3>
+              <p className="text-sm">Property search, negotiation, and purchase assistance</p>
+            </article>
+
+            <article className="card">
+              <h3>Selling</h3>
+              <p className="text-sm">Marketing, pricing strategy, and buyer qualification</p>
+            </article>
+
+            <article className="card">
+              <h3>Leasing</h3>
+              <p className="text-sm">Unit showcasing, tenant screening, and lease agreements</p>
+            </article>
+
+            <article className="card">
+              <h3>Documentation</h3>
+              <p className="text-sm">Title transfer, deed preparation, and BIR coordination</p>
+            </article>
+
+            <article className="card">
+              <h3>Valuation</h3>
+              <p className="text-sm">Market-based property assessments for informed decisions</p>
+            </article>
           </div>
-        </ScrollAnimation>
+        </div>
       </section>
 
-      {/* Featured Listings Section */}
-      <section className="py-28 bg-white">
-        <ScrollAnimation delay={200}>
-          <div className="max-w-7xl mx-auto px-4 md:px-6">
-            <h2 className="text-4xl md:text-5xl font-semibold text-[#111111] text-center mb-16 tracking-tight">
-              Featured Listings
-            </h2>
-            
-            <FeaturedListings />
-            
-            {/* Browse Listings Button */}
-            <div className="flex justify-center mt-12">
-              <a
-                href="/listings"
-                className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-8 py-4 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 text-center font-medium text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 relative overflow-hidden group"
-              >
-                <span className="relative z-10">Browse our listings</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              </a>
-            </div>
+      {/* Featured Listings Section - Phase 5 */}
+      <section className="section featured">
+        <div className="container">
+          <div className="section-header">
+            <p className="eyebrow">Available Now</p>
+            <h2>Featured Listings</h2>
+            <a href="/listings">Browse all listings →</a>
           </div>
-        </ScrollAnimation>
+
+          <FeaturedListings cardVariant="landing" />
+        </div>
+      </section>
+
+      {/* Stats Section - Phase 6 */}
+      <section className="section stats">
+        <div className="container stats-row">
+          <div className="stat">Trusted Property Advisor</div>
+          <div className="stat">Licensed PRC Broker</div>
+          <div className="stat">Metro Manila & Luzon</div>
+          <div className="stat">Developer Accredited Seller</div>
+        </div>
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-28 bg-white relative overflow-hidden">
-        <ScrollAnimation delay={300}>
-          <div className="max-w-7xl mx-auto px-4 md:px-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* CTA Card - Left */}
-              <div className="relative bg-white rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
-                {/* Background Pattern/Decoration */}
-                <div className="absolute inset-0 opacity-10">
-                  <div className="absolute top-0 left-0 w-96 h-96 bg-[#1F2937] rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2"></div>
-                  <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#1F2937] rounded-full blur-3xl transform translate-x-1/2 translate-y-1/2"></div>
-                </div>
-                
-                {/* Content */}
-                <div className="relative z-10 px-8 md:px-12 py-12 md:py-16 h-full flex flex-col justify-center">
-                  <div className="text-center lg:text-left">
-                    {/* Icon/Decoration */}
-                    <div className="mb-6 flex justify-center lg:justify-start">
-                      <div className="h-20 w-20 bg-gradient-to-br from-[#1F2937] to-[#111111] rounded-full flex items-center justify-center shadow-lg">
-                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                    </div>
-                    
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-[#111111] mb-6 tracking-tight">
-                      Ready to Find Your Perfect Property?
-                    </h2>
-                    <p className="text-lg md:text-xl text-[#111111]/80 mb-8 leading-relaxed tracking-wide">
-                      Let's work together to make your real estate dreams a reality. Get in touch with our expert team today.
-                    </p>
-                    
-                    {/* Contact Us Button */}
-                    <div className="flex justify-center lg:justify-start">
-                      <a
-                        href="/contact"
-                        className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-8 py-4 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 relative overflow-hidden group inline-block"
-                      >
-                        <span className="relative z-10">Contact Us</span>
-                        <span className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Image Card - Right */}
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl h-full min-h-[400px] lg:min-h-[500px]">
-                <Image
-                  src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=2073&auto=format&fit=crop"
-                  alt="Real Estate Professional Consultation"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  loading="lazy"
-                />
-                {/* Overlay for better text readability if needed */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-              </div>
-            </div>
-          </div>
-        </ScrollAnimation>
+      <section className="section cta">
+        <div className="container cta-centered">
+          <p className="eyebrow">Ready to Find Your Perfect Property?</p>
+          <h2>Let's find the right property for you. Beautifully and professionally.</h2>
+          <p>With The Specialist, you're not just choosing a real estate serviceyou're choosing a trusted real estate specialist who listens, understands your goals, and represents your best interest every step of the way.</p>
+          <a href="/contact" className="cta-button">Contact Us Today</a>
+        </div>
       </section>
     </div>
   );
 }
+

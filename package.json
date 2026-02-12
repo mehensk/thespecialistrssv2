@@ -28,9 +28,6 @@
     "build:netlify-local": "node ./scripts/build-netlify-local.js",
     "test:netlify-local": "powershell -ExecutionPolicy Bypass -File ./test-netlify-local.ps1"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
     "@prisma/client": "^6.19.0",

@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Eye, Edit, Trash2, CheckCircle, Clock } from 'lucide-react';
+import { Eye, Edit, CheckCircle, Clock } from 'lucide-react';
 import { ApproveButton } from './approve-button';
+import { DeleteButton } from './delete-button';
 
 interface ListingCardProps {
   listing: {
@@ -71,17 +72,10 @@ export function ListingCard({ listing, isAdmin }: ListingCardProps) {
             <ApproveButton listingId={listing.id} />
           </div>
         )}
-        <form action={`/api/listings/${listing.id}/delete`} method="POST" onClick={(e) => e.stopPropagation()}>
-          <button
-            type="submit"
-            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-            title="Delete"
-          >
-            <Trash2 size={16} />
-          </button>
-        </form>
+        <div onClick={(e) => e.stopPropagation()}>
+          <DeleteButton listingId={listing.id} title={listing.title} />
+        </div>
       </div>
     </div>
   );
 }
-

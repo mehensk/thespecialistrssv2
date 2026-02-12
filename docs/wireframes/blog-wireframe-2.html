@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blog Wireframe 2 - Split Rail</title>
+  <style>
+    :root {
+      --bg: #f2f6f1;
+      --ink: #1b1f1c;
+      --muted: #5f6b63;
+      --line: #cfd9d1;
+      --card: #ffffff;
+      --accent: #3a6b5d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Trebuchet MS", "Verdana", sans-serif;
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 20px 80px;
+    }
+    .masthead {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px;
+    }
+    .title { font-size: 32px; }
+    .filters { display: flex; gap: 14px; color: var(--muted); font-size: 14px; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 2.2fr 1fr;
+      gap: 28px;
+      margin-top: 24px;
+    }
+
+    .feature {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 280px auto;
+    }
+    .feature-media { background: #dfe8e1; }
+    .feature-body { padding: 20px; display: grid; gap: 10px; }
+    .kicker { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; }
+    .feature-title { font-size: 26px; line-height: 1.2; }
+
+    .rail {
+      display: grid;
+      gap: 16px;
+    }
+    .rail-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 88px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+    .rail-thumb { background: #dfe8e1; height: 64px; border-radius: 8px; }
+    .rail-title { font-size: 16px; line-height: 1.2; }
+    .meta { color: var(--muted); font-size: 12px; }
+
+    .list {
+      margin-top: 28px;
+      display: grid;
+      gap: 12px;
+    }
+    .list-item {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      display: grid;
+      gap: 6px;
+    }
+    .tag { color: var(--accent); font-weight: bold; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="masthead">
+      <div class="title">Blog & Insights</div>
+      <div class="filters">
+        <div>All</div>
+        <div>Market</div>
+        <div>Guides</div>
+        <div>Neighborhoods</div>
+      </div>
+    </div>
+
+    <section class="layout">
+      <article class="feature">
+        <div class="feature-media" aria-label="Feature image"></div>
+        <div class="feature-body">
+          <div class="kicker">Insight</div>
+          <div class="feature-title">The 2026 absorption curve and what it means for sellers</div>
+          <div class="meta">By Author Name · 9 min read</div>
+          <div>Short paragraph for hook and context. 2–3 lines max.</div>
+        </div>
+      </article>
+
+      <aside class="rail">
+        <div class="rail-card">
+          <div class="rail-thumb"></div>
+          <div>
+            <div class="rail-title">Pre-selling vs. RFO: timing signals</div>
+            <div class="meta">5 min read</div>
+          </div>
+        </div>
+        <div class="rail-card">
+          <div class="rail-thumb"></div>
+          <div>
+            <div class="rail-title">Top districts by rental yield this quarter</div>
+            <div class="meta">4 min read</div>
+          </div>
+        </div>
+        <div class="rail-card">
+          <div class="rail-thumb"></div>
+          <div>
+            <div class="rail-title">What to inspect during a unit turnover</div>
+            <div class="meta">6 min read</div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="list">
+      <div class="list-item">
+        <div class="tag">Guide</div>
+        <div class="rail-title">Negotiation tactics for today’s market</div>
+        <div class="meta">6 min read</div>
+      </div>
+      <div class="list-item">
+        <div class="tag">Neighborhood</div>
+        <div class="rail-title">Where transport upgrades are shifting prices</div>
+        <div class="meta">7 min read</div>
+      </div>
+      <div class="list-item">
+        <div class="tag">Market</div>
+        <div class="rail-title">Inventory trends to watch this quarter</div>
+        <div class="meta">5 min read</div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

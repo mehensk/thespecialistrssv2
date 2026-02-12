@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromToken } from '@/lib/get-user-from-token';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { prisma } from '@/lib/prisma';
 import { ActivityAction } from '@prisma/client';
 import { logBlogActivity } from '@/lib/activity-logger';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache';
 
 export async function POST(
@@ -11,9 +11,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getUserFromToken();
+    const user = await getAuthenticatedUser(request);
 
-    if (!user || !user.id) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -36,13 +36,13 @@ export async function POST(
     await prisma.blogPost.delete({ where: { id } });
 
     // Revalidate cache when blog post is deleted
-    revalidateTag(CACHE_TAGS.BLOG_POST(blog.slug), '');
-    revalidateTag(CACHE_TAGS.BLOG_POSTS, '');
-
+    revalidateTag(CACHE_TAGS.BLOG_POST(blog.slug), 'max');
+    revalidateTag(CACHE_TAGS.BLOG_POSTS, 'max');
+    revalidatePath('/blog');
+    revalidatePath(`/blog/${blog.slug}`, 'page');
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting blog:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

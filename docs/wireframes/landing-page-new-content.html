@@ -1,0 +1,1048 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Specialist Realty - Landing Page Wireframe</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap");
+
+    :root {
+      --ink: #0d0f12;
+      --steel: #1e2a36;
+      --mist: #f0f2f4;
+      --slate: #dde2e7;
+      --accent: #2f5f8f;
+      --accent-light: #4d7bb0;
+      --gold: #D4AF37;
+      --grid: rgba(13, 15, 18, 0.08);
+      --shadow: 0 20px 50px rgba(13, 15, 18, 0.18);
+      --shadow-sm: 0 10px 24px rgba(13, 15, 18, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--mist);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1160px, 92vw);
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      background: rgba(240, 242, 244, 0.95);
+      border-bottom: 1px solid var(--slate);
+      z-index: 10;
+    }
+
+    .header-inner {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 0;
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-size: 14px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--steel);
+    }
+
+    .header-cta {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .header-cta a {
+      padding: 10px 16px;
+      border-radius: 4px;
+      border: 1px solid var(--ink);
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: var(--ink);
+      color: #fff;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 72px 0 40px;
+      background: linear-gradient(120deg, #f0f2f4 0%, #e7ecef 50%, #dfe5ea 100%);
+      border-bottom: 1px solid var(--slate);
+      position: relative;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+      position: relative;
+    }
+
+    .eyebrow {
+      font-family: "Space Mono", "Courier New", monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1, h2, h3 {
+      margin: 12px 0 16px;
+      line-height: 1.2;
+    }
+
+    h1 {
+      font-size: clamp(32px, 4vw, 52px);
+    }
+
+    h2 {
+      font-size: clamp(28px, 3vw, 42px);
+    }
+
+    h3 {
+      font-size: 20px;
+      margin: 0 0 10px;
+    }
+
+    .lead {
+      font-size: 18px;
+      color: var(--steel);
+      line-height: 1.7;
+      max-width: 480px;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .cta-row a {
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--ink);
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .cta-row a:first-child {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .hero-right {
+      position: relative;
+    }
+
+    .hero-image {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-caption {
+      margin-top: 12px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .hero-search {
+      margin-top: 40px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .search-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      background: #fff;
+      padding: 14px;
+      border-radius: 6px;
+      border: 1px solid var(--slate);
+      box-shadow: var(--shadow);
+    }
+
+    .search-bar input,
+    .search-bar select {
+      padding: 12px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--slate);
+      font-family: inherit;
+    }
+
+    .search-bar button {
+      padding: 12px 16px;
+      border-radius: 4px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* Sections */
+    .section {
+      padding: 72px 0;
+    }
+
+    .grid-section {
+      background: #fff;
+      border-top: 1px solid var(--slate);
+      border-bottom: 1px solid var(--slate);
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(300px, 2fr);
+      gap: 32px;
+      align-items: start;
+    }
+
+    .cards-3,
+    .cards-4,
+    .cards-5,
+    .cards-6,
+    .listing-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .cards-3 {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .cards-4 {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .cards-5 {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .cards-6 {
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+
+    .card,
+    .listing-card {
+      background: #fff;
+      border: 1px solid var(--slate);
+      border-radius: 10px;
+      padding: 24px;
+      min-height: 110px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover,
+    .listing-card:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--ink);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+
+    .card-content p {
+      font-size: 14px;
+      color: var(--steel);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .section-header a {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .listing-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    /* About Section */
+    .about-content {
+      background: #fff;
+      padding: 32px;
+      border-radius: 10px;
+      border: 1px solid var(--slate);
+    }
+
+    .about-text p {
+      margin: 0 0 16px;
+      color: var(--steel);
+      line-height: 1.8;
+    }
+
+    .stats {
+      background: var(--steel);
+      color: #fff;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 18px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 12px;
+    }
+
+    /* Process Section */
+    .process-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--slate);
+    }
+
+    .process-tab {
+      padding: 12px 24px;
+      background: transparent;
+      border: none;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--steel);
+      cursor: pointer;
+      position: relative;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .process-tab.active {
+      color: var(--ink);
+    }
+
+    .process-tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--ink);
+    }
+
+    .process-steps {
+      display: none;
+    }
+
+    .process-steps.active {
+      display: block;
+    }
+
+    .step-card {
+      background: #fff;
+      border: 1px solid var(--slate);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .step-number {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 36px;
+      height: 36px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .step-content {
+      margin-left: 52px;
+    }
+
+    .step-content h4 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .step-content p {
+      margin: 0;
+      color: var(--steel);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Benefits */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .benefit-item {
+      padding: 20px;
+      background: var(--mist);
+      border-radius: 8px;
+      border-left: 3px solid var(--gold);
+    }
+
+    .benefit-item h4 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .benefit-item p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--steel);
+    }
+
+    /* CTA */
+    .cta {
+      background: #0d0f12;
+      color: #fff;
+    }
+
+    .cta-inner {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      align-items: center;
+    }
+
+    .cta a {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 12px 18px;
+      border-radius: 6px;
+      background: var(--accent-light);
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 12px;
+    }
+
+    .cta-image {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Footer */
+    .site-footer {
+      background: #1F2937;
+      border-top: 1px solid #374151;
+      color: #fff;
+      padding: 48px 0 40px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    .footer-brand h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+      margin: 0 0 8px;
+    }
+
+    .footer-brand .license {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0 0 16px;
+    }
+
+    .footer-brand .social-icons {
+      display: flex;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .footer-brand .social-icons a {
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.3s ease;
+      font-size: 12px;
+    }
+
+    .footer-brand .social-icons a:hover {
+      color: #fff;
+    }
+
+    .footer-links h4,
+    .footer-services h4,
+    .footer-contact h4 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      margin: 0 0 16px;
+    }
+
+    .footer-links ul,
+    .footer-services ul,
+    .footer-contact ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-links li,
+    .footer-services li,
+    .footer-contact li {
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .footer-links li a {
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.3s ease;
+    }
+
+    .footer-links li a:hover {
+      color: #fff;
+    }
+
+    .footer-contact li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .footer-contact li svg {
+      flex-shrink: 0;
+      color: #fff;
+    }
+
+    .footer-contact .contact-btn {
+      display: inline-block;
+      background: #fff;
+      color: #1F2937;
+      padding: 12px 24px;
+      border-radius: 6px;
+      margin-top: 24px;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .footer-contact .contact-btn:hover {
+      background: rgba(255, 255, 255, 0.9);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid #374151;
+      padding: 24px 0;
+      text-align: center;
+    }
+
+    .footer-bottom p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 860px) {
+      .header-inner {
+        grid-template-columns: 1fr;
+        justify-items: start;
+      }
+      .nav {
+        display: none;
+      }
+      .header-cta {
+        display: none;
+      }
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+      .process-tabs {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header header-grid">
+    <div class="container header-inner">
+      <div class="brand">The Specialist Realty</div>
+      <nav class="nav">
+        <a href="#">Home</a>
+        <a href="#">Listings</a>
+        <a href="#">Blog</a>
+        <a href="#">Contact</a>
+      </nav>
+      <div class="header-cta">
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero hero-architectural">
+      <div class="container hero-grid">
+        <div class="hero-left">
+          <h1>Real Estate Solutions. Made Even Easier.</h1>
+          <p class="lead">Sales · Rentals · Documentation assistance across Metro Manila and nearby cities. Work with a licensed broker backed by a trusted network and decades of finance & admin expertise.</p>
+          <div class="cta-row">
+            <a href="#">View Listings</a>
+            <a href="#">Schedule Tour</a>
+          </div>
+        </div>
+        <div class="hero-right">
+          <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80" alt="Luxury Condominium" class="hero-image" />
+        </div>
+      </div>
+
+      <div class="container hero-search">
+        <form class="search-bar">
+          <input type="text" placeholder="Location" />
+          <select>
+            <option value="">All Property Types</option>
+            <option value="condominium">Condominium</option>
+            <option value="house-and-lot">House and Lot</option>
+            <option value="townhouse">Townhouse</option>
+            <option value="apartment">Apartment</option>
+            <option value="penthouse">Penthouse</option>
+            <option value="lot">Lot</option>
+            <option value="building">Building</option>
+            <option value="commercial">Commercial Space</option>
+          </select>
+          <select>
+            <option value="sale">Sale</option>
+            <option value="rent">Rent</option>
+          </select>
+          <button type="submit">Search</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- About Intro Section -->
+    <section class="section">
+      <div class="container">
+        <div class="section-grid">
+          <div class="grid-block">
+            <p class="eyebrow">About Us</p>
+            <h2>Meet The Specialist</h2>
+          </div>
+          <div class="grid-block about-content">
+            <div class="about-text">
+              <p>Welcome to The Specialist Realty Solutions and Services—where elevated real estate guidance meets genuine client care.</p>
+              <p>We are committed to helping you make confident property decisions through expert support, refined strategy, and a refreshingly honest approach. Whether you are searching for the right condominium, a family home, or a prime lot with long-term value, our goal is simple: to make your journey smooth, informed, and truly rewarding.</p>
+              <p><strong>With over 10 years of real estate practice</strong> in developer selling, resale, title transfer, due diligence, appraisals and real estate development, we take pride in upholding an honest, no-pressure approach to your real estate journey.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Choose Us Section (Enhanced) -->
+    <section class="section grid-section">
+      <div class="container">
+        <div class="section-grid">
+          <div class="grid-block">
+            <p class="eyebrow">Our Difference</p>
+            <h2>Why Choose The Specialist Realty</h2>
+            <p>Expertise You Can Trust, Service You Can Feel</p>
+          </div>
+          <div class="grid-block cards-4">
+            <article class="card">
+              <div class="card-icon">✓</div>
+              <h3>Expert Guidance</h3>
+              <div class="card-content">
+                <p>From property selection to final turnover, we guide you with clarity and confidence throughout the entire process.</p>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-icon">★</div>
+              <h3>Personalized Experience</h3>
+              <div class="card-content">
+                <p>No two clients are the same. We listen closely to what matters most and align you with the right property opportunities.</p>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-icon">↔</div>
+              <h3>Life Transitions</h3>
+              <div class="card-content">
+                <p>Real estate is tied to life's biggest turning points. We offer steady support through every transition.</p>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-icon">📢</div>
+              <h3>Elevated Marketing</h3>
+              <div class="card-content">
+                <p>Your property gets polished, high-quality presentation and strategic exposure to attract serious buyers.</p>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-icon">🤝</div>
+              <h3>Trust & Integrity</h3>
+              <div class="card-content">
+                <p>Our approach is refreshingly honest, calm, and pressure-free, built on trust and long-term relationships.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="section grid-section">
+      <div class="container">
+        <div class="section-grid">
+          <div class="grid-block">
+            <p class="eyebrow">What We Do</p>
+            <h2>Our Services</h2>
+            <p>Comprehensive real estate solutions for all your needs</p>
+          </div>
+          <div class="grid-block cards-6">
+            <article class="card">
+              <h3>Buying</h3>
+              <p class="text-sm">Property search, negotiation, and purchase assistance</p>
+            </article>
+            <article class="card">
+              <h3>Selling</h3>
+              <p class="text-sm">Marketing, pricing strategy, and buyer qualification</p>
+            </article>
+            <article class="card">
+              <h3>Leasing</h3>
+              <p class="text-sm">Unit showcasing, tenant screening, and lease agreements</p>
+            </article>
+            <article class="card">
+              <h3>Documentation</h3>
+              <p class="text-sm">Title transfer, deed preparation, and BIR coordination</p>
+            </article>
+            <article class="card">
+              <h3>Valuation</h3>
+              <p class="text-sm">Market-based property assessments for informed decisions</p>
+            </article>
+            <article class="card">
+              <h3>Advisory</h3>
+              <p class="text-sm">Investment consultation and market strategy guidance</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Process Section - Tabs -->
+    <section class="section">
+      <div class="container">
+        <p class="eyebrow">Our Process</p>
+        <h2>How We Work</h2>
+        
+        <div class="process-tabs">
+          <button class="process-tab active" onclick="showProcess('buying')">Buying Process</button>
+          <button class="process-tab" onclick="showProcess('selling')">Selling Process</button>
+        </div>
+
+        <!-- Buying Process -->
+        <div id="buying-process" class="process-steps active">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h4>Consultation & Goal Setting</h4>
+              <p>We begin by understanding your ideal location, budget, lifestyle needs, and property goals.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h4>Property Matching & Shortlisting</h4>
+              <p>We curate the best options—condos, houses, or lots—based on your exact requirements.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h4>Site Viewing & Property Assessment</h4>
+              <p>We schedule viewings, review property details, and guide you in comparing choices wisely.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h4>Offer & Negotiation Support</h4>
+              <p>We assist you in structuring a strong offer and negotiating terms that protect your best interest.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">5</div>
+            <div class="step-content">
+              <h4>Documentation & Transaction Guidance</h4>
+              <p>We guide you through the requirements and ensure each step is organized and transparent.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">6</div>
+            <div class="step-content">
+              <h4>Closing & Turnover Assistance</h4>
+              <p>From final payments to turnover coordination, we help you complete the purchase smoothly.</p>
+            </div>
+          </div>
+
+          <div class="benefits-grid">
+            <div class="benefit-item">
+              <h4>✓ Curated Property Options</h4>
+              <p>We recommend quality properties aligned with your lifestyle and investment plans.</p>
+            </div>
+            <div class="benefit-item">
+              <h4>✓ Strong Negotiation Support</h4>
+              <p>We protect your best interests and ensure you move forward with peace of mind.</p>
+            </div>
+            <div class="benefit-item">
+              <h4>✓ Smooth Buying Experience</h4>
+              <p>We simplify details and ensure the process is seamless from start to finish.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selling Process -->
+        <div id="selling-process" class="process-steps">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h4>Property Assessment</h4>
+              <p>We evaluate your property's market value and develop a strategic marketing plan tailored to your goals.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h4>Digital Marketing System</h4>
+              <p>Your property is presented through our digital marketing system with 24/7 online accessibility for serious buyers.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h4>Targeted Buyer Matching</h4>
+              <p>Your listing is shared directly with qualified prospects within our database whose preferences align with your property.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h4>Professional Network Exposure</h4>
+              <p>We circulate your property through our brokers' network and MLS, connecting you with active buyers.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">5</div>
+            <div class="step-content">
+              <h4>Inquiry Management</h4>
+              <p>Our team remains ready to respond quickly and professionally to inquiries as they come in.</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">6</div>
+            <div class="step-content">
+              <h4>Closing Support</h4>
+              <p>We support you through the entire closing process to ensure a smooth, successful transaction.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Listings -->
+    <section class="section featured">
+      <div class="container">
+        <div class="section-header">
+          <p class="eyebrow">Available Now</p>
+          <h2>Featured Listings</h2>
+          <a href="#">Browse all listings →</a>
+        </div>
+        <div class="listing-grid">
+          <article class="listing-card">
+            <div class="image-placeholder" style="height: 180px; min-height: 0;">Listing 1</div>
+            <h3>Property Title</h3>
+            <p>Location · Price</p>
+          </article>
+          <article class="listing-card">
+            <div class="image-placeholder" style="height: 180px; min-height: 0;">Listing 2</div>
+            <h3>Property Title</h3>
+            <p>Location · Price</p>
+          </article>
+          <article class="listing-card">
+            <div class="image-placeholder" style="height: 180px; min-height: 0;">Listing 3</div>
+            <h3>Property Title</h3>
+            <p>Location · Price</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="section stats">
+      <div class="container stats-row">
+        <div class="stat">10+ Years Experience</div>
+        <div class="stat">Licensed PRC Broker</div>
+        <div class="stat">Metro Manila & Beyond</div>
+        <div class="stat">Developer Selling Specialist</div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section cta">
+      <div class="container cta-inner">
+        <div class="cta-text">
+          <p class="eyebrow" style="color: var(--gold);">Ready to Find Your Perfect Property?</p>
+          <h2>Let's find the right property for you—beautifully and professionally.</h2>
+          <p>With The Specialist, you're not just choosing a real estate service—you're choosing a trusted real estate specialist who listens, understands your goals, and represents your best interest every step of the way.</p>
+          <a href="#">Contact Us Today</a>
+        </div>
+        <div class="cta-media">
+          <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80" alt="Real Estate Property" class="cta-image" />
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3>The Specialist - Realty Solutions & Services</h3>
+          <p class="license">REBL PRC License # 33422</p>
+          <div class="social-icons">
+            <a href="#" aria-label="Facebook">Facebook</a>
+            <a href="#" aria-label="Twitter">Twitter</a>
+            <a href="#" aria-label="Instagram">Instagram</a>
+            <a href="#" aria-label="LinkedIn">LinkedIn</a>
+          </div>
+        </div>
+
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Listings</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Services</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-services">
+          <h4>Services</h4>
+          <ul>
+            <li>Buying Assistance</li>
+            <li>Selling & Marketing</li>
+            <li>Rentals</li>
+            <li>Documentation</li>
+            <li>Title Transfer</li>
+            <li>Valuation</li>
+          </ul>
+        </div>
+
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <ul>
+            <li>+63 921 2303011</li>
+            <li>thespecialistrss@gmail.com</li>
+            <li>Las Pinas City</li>
+          </ul>
+          <a href="#" class="contact-btn">Contact Us</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© The Specialist - Realty Solutions & Services. All rights reserved 2025.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function showProcess(type) {
+      // Hide all process steps
+      document.querySelectorAll('.process-steps').forEach(el => {
+        el.classList.remove('active');
+      });
+      
+      // Remove active class from all tabs
+      document.querySelectorAll('.process-tab').forEach(el => {
+        el.classList.remove('active');
+      });
+      
+      // Show selected process
+      document.getElementById(type + '-process').classList.add('active');
+      
+      // Add active class to clicked tab
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

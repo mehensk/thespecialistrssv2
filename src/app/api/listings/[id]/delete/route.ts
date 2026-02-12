@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromToken } from '@/lib/get-user-from-token';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { prisma } from '@/lib/prisma';
 import { ActivityAction } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache';
 
 export async function POST(
@@ -11,9 +11,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getUserFromToken();
+    const user = await getAuthenticatedUser(request);
 
-    if (!user || !user.id) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -36,13 +36,13 @@ export async function POST(
     await prisma.listing.delete({ where: { id } });
 
     // Revalidate cache when listing is deleted
-    revalidateTag(CACHE_TAGS.LISTING(id), '');
-    revalidateTag(CACHE_TAGS.LISTINGS, '');
-
+    revalidateTag(CACHE_TAGS.LISTING(id), 'max');
+    revalidateTag(CACHE_TAGS.LISTINGS, 'max');
+    revalidatePath('/listings');
+    revalidatePath(`/listings/${id}`, 'page');
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting listing:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

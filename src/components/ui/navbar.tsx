@@ -3,47 +3,10 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Menu, X, LayoutDashboard, LogOut, LogIn } from 'lucide-react';
+import { Menu, X, LayoutDashboard, LogOut, LogIn, ChevronDown } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { UserRole } from '@prisma/client';
 import { broadcastLogout } from '@/components/providers/LogoutSync';
-
-// #region agent log
-// Intercept fetch calls to session endpoint to track timing
-if (typeof window !== 'undefined' && !(window as any).__sessionFetchIntercepted) {
-  (window as any).__sessionFetchIntercepted = true;
-  const originalFetch = window.fetch;
-  window.fetch = async function(...args) {
-    let url = '';
-    if (typeof args[0] === 'string') {
-      url = args[0];
-    } else if (args[0] instanceof URL) {
-      url = args[0].href;
-    } else if (args[0] instanceof Request) {
-      url = args[0].url;
-    }
-    const isSessionEndpoint = url.includes('/api/auth/session');
-    if (isSessionEndpoint) {
-      const startTime = Date.now();
-      try {
-        await fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:fetch-interceptor',message:'session fetch started',data:{url,startTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H6'})}).catch(()=>{});
-      } catch {}
-      const response = await originalFetch.apply(this, args);
-      const duration = Date.now() - startTime;
-      try {
-        const clone = response.clone();
-        let sessionData = null;
-        try {
-          sessionData = await clone.json();
-        } catch {}
-        await fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:fetch-interceptor',message:'session fetch completed',data:{url,duration,status:response.status,hasSession:!!sessionData?.user,userId:sessionData?.user?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H6'})}).catch(()=>{});
-      } catch {}
-      return response;
-    }
-    return originalFetch.apply(this, args);
-  };
-}
-// #endregion
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -54,15 +17,9 @@ export function Navbar() {
   const [isStableAuthenticated, setIsStableAuthenticated] = useState(false);
   const unauthenticatedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:16',message:'useSession values changed',data:{status,hasSession:!!session,hasUser:!!session?.user,userId:session?.user?.id,userEmail:session?.user?.email},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4'})}).catch(()=>{});
-  }, [status, session]);
-  // #endregion
-  
   // Stabilize authentication state to prevent flickering
   // Only update when status actually changes from loading to authenticated/unauthenticated
-  // Improved: Add debounce for 'unauthenticated' state to handle brief transitions during refetches
+  // Debounce for 'unauthenticated' state to handle brief transitions during refetches
   useEffect(() => {
     // Clear any pending timeout
     if (unauthenticatedTimeoutRef.current) {
@@ -70,33 +27,17 @@ export function Navbar() {
       unauthenticatedTimeoutRef.current = null;
     }
     
-    // #region agent log
-    const prevStable = isStableAuthenticated;
-    const willSetTrue = status === 'authenticated' && session?.user;
-    const willSetFalse = status === 'unauthenticated';
-    const isCurrentlyLoading = status === 'loading';
-    fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:21',message:'stabilize effect running',data:{status,hasSession:!!session,hasUser:!!session?.user,prevStable,willSetTrue,willSetFalse,isCurrentlyLoading,condition1:status==='authenticated',condition2:!!session?.user},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4,H5,H6'})}).catch(()=>{});
-    // #endregion
-    
     if (status === 'authenticated' && session?.user) {
       // Immediately set to true when authenticated
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:23',message:'setting isStableAuthenticated to true',data:{prevStable,newValue:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4,H5,H6'})}).catch(()=>{});
-      // #endregion
       setIsStableAuthenticated(true);
     } else if (status === 'unauthenticated') {
-      // Debounce setting to false - wait 200ms to see if status changes back
-      // This handles brief 'unauthenticated' states during slow network refetches on Netlify
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:25',message:'debouncing unauthenticated state',data:{prevStable},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4,H5,H6'})}).catch(()=>{});
-      // #endregion
+      // Debounce setting to false - wait 300ms to see if status changes back
+      // Reduced from 1 second to 300ms for faster state stabilization
+      // This handles brief 'unauthenticated' states during slow network refetches
       unauthenticatedTimeoutRef.current = setTimeout(() => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:25',message:'setting isStableAuthenticated to false after debounce',data:{prevStable,newValue:false},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4,H5,H6'})}).catch(()=>{});
-        // #endregion
         setIsStableAuthenticated(false);
         unauthenticatedTimeoutRef.current = null;
-      }, 1000);
+      }, 300);
     }
     // Don't update during 'loading' state to prevent flickering
     // If we're already authenticated and status becomes 'loading', keep the authenticated state
@@ -107,12 +48,6 @@ export function Navbar() {
       }
     };
   }, [status, session?.user, isStableAuthenticated]);
-  
-  // #region agent log
-  useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/3b5ded69-e2d1-428f-b70f-1a87e140a928',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'navbar.tsx:31',message:'isStableAuthenticated changed',data:{isStableAuthenticated,status,hasSession:!!session,hasUser:!!session?.user},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1,H2,H3,H4,H5'})}).catch(()=>{});
-  }, [isStableAuthenticated, status, session]);
-  // #endregion
   
   // Use stable authenticated state
   const isAuthenticated = isStableAuthenticated;
@@ -215,8 +150,52 @@ export function Navbar() {
         {/* Desktop Navigation — Centered */}
         <nav className="hidden lg:flex items-center gap-8 flex-1 justify-center">
           <NavLink href="/" shouldBeTransparent={shouldBeTransparent}>Home</NavLink>
-          <NavLink href="/listings" shouldBeTransparent={shouldBeTransparent}>Listings</NavLink>
-          <NavLink href="/blog" shouldBeTransparent={shouldBeTransparent}>Blog</NavLink>
+          <NavLink href="/how-we-work" shouldBeTransparent={shouldBeTransparent}>How We Work</NavLink>
+          
+          {/* Services Dropdown */}
+          <div className="relative group">
+            <button 
+              className={`flex items-center gap-1 px-3 py-2 rounded-md transition-all font-space-grotesk ${
+                shouldBeTransparent
+                  ? 'text-white hover:bg-white/20'
+                  : 'text-[#111111] hover:bg-[#F9FAFB]'
+              }`}
+            >
+              Services
+              <ChevronDown size={14} className="transition-transform group-hover:rotate-180" />
+            </button>
+            
+            {/* Dropdown Menu */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+              <div className="bg-white rounded-lg shadow-lg border border-[#dde2e7] min-w-[180px] overflow-hidden">
+                {/* Gold accent line at top */}
+                <div className="h-0.5 bg-gradient-to-r from-[#D4AF37] via-[#D4AF37]/30 to-transparent"></div>
+                
+                {/* Arrow indicator */}
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-l border-t border-[#dde2e7] rotate-45 -mt-1"></div>
+                
+                <a 
+                  href="/listings"
+                  className="block px-5 py-2.5 text-sm text-[#1e2a36] hover:bg-[#f0f2f4] hover:text-[#2f5f8f] border-l-3 border-transparent hover:border-[#D4AF37] transition-all pl-5 hover:pl-6 font-space-grotesk"
+                >
+                  Listings
+                </a>
+                <a 
+                  href="#"
+                  className="block px-5 py-2.5 text-sm text-[#1e2a36] hover:bg-[#f0f2f4] hover:text-[#2f5f8f] border-l-3 border-transparent hover:border-[#D4AF37] transition-all pl-5 hover:pl-6 font-space-grotesk"
+                >
+                  Investor Relations
+                </a>
+                <a 
+                  href="#"
+                  className="block px-5 py-2.5 text-sm text-[#1e2a36] hover:bg-[#f0f2f4] hover:text-[#2f5f8f] border-l-3 border-transparent hover:border-[#D4AF37] transition-all pl-5 hover:pl-6 font-space-grotesk"
+                >
+                  Developer Selling
+                </a>
+              </div>
+            </div>
+          </div>
+          
           <NavLink href="/contact" shouldBeTransparent={shouldBeTransparent}>Contact</NavLink>
           {isAuthenticated && (
             <NavLink 
@@ -323,8 +302,36 @@ export function Navbar() {
       {isOpen && (
         <div className="lg:hidden bg-white border-t border-[#E5E7EB] px-4 py-6 space-y-5">
           <MobileLink href="/" onClose={closeMenu}>Home</MobileLink>
-          <MobileLink href="/listings" onClose={closeMenu}>Listings</MobileLink>
-          <MobileLink href="/blog" onClose={closeMenu}>Blog</MobileLink>
+          <MobileLink href="/how-we-work" onClose={closeMenu}>How We Work</MobileLink>
+          
+          {/* Services (Expanded in Mobile Drawer) */}
+          <div className="py-2 border-b border-[#E5E7EB]">
+            <div className="font-semibold text-[#111111] mb-3 font-space-grotesk">Services</div>
+            <div className="space-y-2 ml-4">
+              <a 
+                href="/listings"
+                onClick={closeMenu}
+                className="block text-[#1e2a36] hover:text-[#2f5f8f] border-l-2 border-[#E5E7EB] hover:border-[#D4AF37] pl-3 transition-all font-space-grotesk"
+              >
+                Listings
+              </a>
+              <a 
+                href="#"
+                onClick={closeMenu}
+                className="block text-[#1e2a36] hover:text-[#2f5f8f] border-l-2 border-[#E5E7EB] hover:border-[#D4AF37] pl-3 transition-all font-space-grotesk"
+              >
+                Investor Relations
+              </a>
+              <a 
+                href="#"
+                onClick={closeMenu}
+                className="block text-[#1e2a36] hover:text-[#2f5f8f] border-l-2 border-[#E5E7EB] hover:border-[#D4AF37] pl-3 transition-all font-space-grotesk"
+              >
+                Developer Selling
+              </a>
+            </div>
+          </div>
+          
           <MobileLink href="/contact" onClose={closeMenu}>Contact</MobileLink>
           {isAuthenticated && (
             <MobileLink 
@@ -372,7 +379,7 @@ export function Navbar() {
   );
 }
 
-// Reusable desktop link — Geist Sans (not Sora)
+// Reusable desktop link — Space Grotesk (not Sora)
 function NavLink({ 
   href, 
   children, 
@@ -385,7 +392,7 @@ function NavLink({
   return (
     <Link
       href={href}
-      className={`hover:underline underline-offset-4 font-sans transition-colors ${
+      className={`hover:underline underline-offset-4 font-space-grotesk transition-colors ${
         shouldBeTransparent
           ? 'text-white decoration-white drop-shadow-md' 
           : 'text-[#111111] decoration-[#111111]'
@@ -396,7 +403,7 @@ function NavLink({
   );
 }
 
-// Reusable mobile link — Geist Sans
+// Reusable mobile link — Space Grotesk
 function MobileLink({
   href,
   children,
@@ -409,7 +416,7 @@ function MobileLink({
   return (
     <Link
       href={href}
-      className="block text-[#111111] text-lg font-sans"
+      className="block text-[#111111] text-lg font-space-grotesk"
       onClick={onClose}
     >
       {children}

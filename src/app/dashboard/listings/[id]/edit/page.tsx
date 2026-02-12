@@ -868,4 +868,3 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
     </div>
   );
 }
-

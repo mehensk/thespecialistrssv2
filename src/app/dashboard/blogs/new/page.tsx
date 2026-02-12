@@ -189,10 +189,10 @@ export default function NewBlogPage() {
           <ArrowLeft size={20} />
           Back to Blogs
         </Link>
-        <h1 className="text-3xl font-semibold text-[#111111]">Create New Blog Post</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold text-[#111111]">Create New Blog Post</h1>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
+      <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-4 sm:p-6 lg:p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-[#111111] mb-2">
@@ -270,7 +270,7 @@ export default function NewBlogPage() {
             <div
               onDrop={handleFileDrop}
               onDragOver={handleDragOver}
-              className="border-2 border-dashed border-[#E5E7EB] rounded-md p-6 text-center hover:border-[#1F2937] transition-colors cursor-pointer"
+              className="border-2 border-dashed border-[#E5E7EB] rounded-md p-4 sm:p-6 text-center hover:border-[#1F2937] transition-colors cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
               <input
@@ -299,7 +299,7 @@ export default function NewBlogPage() {
                 <p className="text-sm text-[#111111]/70 mb-3">
                   Click on an image to set it as the cover photo
                 </p>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                   {formData.images.map((imageUrl, index) => (
                     <div
                       key={index}
@@ -359,17 +359,17 @@ export default function NewBlogPage() {
             </div>
           )}
 
-          <div className="flex items-center gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-4">
             <button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               {loading ? 'Creating...' : 'Create Blog Post'}
             </button>
             <Link
               href="/dashboard/blogs"
-              className="bg-white border-2 border-[#1F2937] text-[#1F2937] px-6 py-3 rounded-md hover:bg-[#1F2937] hover:text-white transition-all duration-300 font-medium"
+              className="bg-white border-2 border-[#1F2937] text-[#1F2937] px-6 py-3 rounded-md hover:bg-[#1F2937] hover:text-white transition-all duration-300 font-medium w-full sm:w-auto text-center"
             >
               Cancel
             </Link>

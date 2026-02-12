@@ -13,6 +13,23 @@ if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/dbname?schema=public';
 }
 
+// Cache Prisma engines in-repo to reduce re-downloads in CI
+if (!process.env.PRISMA_ENGINES_CACHE_DIR) {
+  process.env.PRISMA_ENGINES_CACHE_DIR = '.prisma';
+}
+
+// If a local proxy points to loopback, it can break Prisma engine downloads.
+// Clear it for the generate step to avoid false failures in CI/local sims.
+const loopbackProxyPattern = /^(http|https):\/\/(127\.0\.0\.1|localhost)(:\d+)?/i;
+if (process.env.HTTP_PROXY && loopbackProxyPattern.test(process.env.HTTP_PROXY)) {
+  console.log('Clearing HTTP_PROXY for prisma generate (loopback proxy detected).');
+  delete process.env.HTTP_PROXY;
+}
+if (process.env.HTTPS_PROXY && loopbackProxyPattern.test(process.env.HTTPS_PROXY)) {
+  console.log('Clearing HTTPS_PROXY for prisma generate (loopback proxy detected).');
+  delete process.env.HTTPS_PROXY;
+}
+
 console.log('Running prisma generate...');
 const res = spawnSync('npx', ['prisma', 'generate'], { 
   stdio: 'inherit',

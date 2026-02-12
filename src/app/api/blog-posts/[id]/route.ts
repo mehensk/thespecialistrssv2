@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserFromToken } from '@/lib/get-user-from-token';
+import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { prisma } from '@/lib/prisma';
 import { UserRole, ActivityAction } from '@prisma/client';
 import { logBlogActivity } from '@/lib/activity-logger';
 import { logger } from '@/lib/logger';
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from '@/lib/cache';
 
 export async function GET(
@@ -12,12 +12,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Check authentication - users should be able to fetch their own blog posts
-    const user = await getUserFromToken();
-    
-    if (!user || !user.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // Try to get authenticated user, but don't require it for published content
+    // Anonymous users can view published blog posts
+    const user = await getAuthenticatedUser(request);
 
     const { id } = await params;
     
@@ -38,9 +35,18 @@ export async function GET(
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
     }
 
-    // Users can only view their own blog posts unless they're admin
-    if (blog.userId !== user.id && user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // Published content is publicly accessible
+    // Unpublished content requires authentication + ownership or admin role
+    if (!blog.isPublished) {
+      // Not published - check if user is authorized to view
+      if (!user) {
+        return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
+      }
+
+      // User must own the blog post or be admin
+      if (blog.userId !== user.id && user.role !== UserRole.ADMIN) {
+        return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
+      }
     }
 
     return NextResponse.json({ blog });
@@ -77,9 +83,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getUserFromToken();
+    const user = await getAuthenticatedUser(request);
 
-    if (!user || !user.id) {
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -179,9 +185,16 @@ export async function PUT(
     });
 
     // Revalidate cache when blog post is updated
-    revalidateTag(CACHE_TAGS.BLOG_POST(updated.slug), '');
-    revalidateTag(CACHE_TAGS.BLOG_POSTS, '');
-
+    revalidateTag(CACHE_TAGS.BLOG_POST(blog.slug), 'max');
+    revalidateTag(CACHE_TAGS.BLOG_POSTS, 'max');
+    if (updated.slug !== blog.slug) {
+      revalidateTag(CACHE_TAGS.BLOG_POST(updated.slug), 'max');
+    }
+    revalidatePath('/blog');
+    revalidatePath(`/blog/${blog.slug}`, 'page');
+    if (updated.slug !== blog.slug) {
+      revalidatePath(`/blog/${updated.slug}`, 'page');
+    }
     return NextResponse.json({ success: true, blog: updated });
   } catch (error) {
     logger.error('Error updating blog post:', error);
@@ -199,4 +212,3 @@ export async function PUT(
     );
   }
 }
-

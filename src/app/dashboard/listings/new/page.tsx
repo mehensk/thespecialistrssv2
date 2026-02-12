@@ -292,7 +292,7 @@ export default function NewListingPage() {
         <h1 className="text-2xl font-semibold text-[#111111]">Create New Listing</h1>
       </div>
 
-      <div className="w-full md:max-w-5xl mx-auto bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-8">
+      <div className="w-full md:max-w-5xl mx-auto bg-white rounded-xl shadow-lg border border-[#E5E7EB] p-4 sm:p-6 lg:p-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information Section */}
           <div className="space-y-6">
@@ -604,7 +604,7 @@ export default function NewListingPage() {
                   Upload Images
                 </label>
                 <div
-                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+                  className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors cursor-pointer ${
                     isDragging
                       ? 'border-[#1F2937] bg-[#F3F4F6]'
                       : 'border-[#E5E7EB] hover:border-[#1F2937]'
@@ -652,7 +652,7 @@ export default function NewListingPage() {
                       Click on an image to set it as the cover photo
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {formData.images.map((image, index) => (
                       <div 
                         key={index} 
@@ -705,7 +705,7 @@ export default function NewListingPage() {
               Select all amenities and services available in this property
             </p>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1.5">
               {amenitiesList.map((amenity) => {
                 const amenityKey = `${amenity.category}:${amenity.name}`;
                 const isSelected = formData.amenities.includes(amenityKey);
@@ -737,17 +737,17 @@ export default function NewListingPage() {
           )}
 
           {/* Submit Buttons */}
-          <div className="flex items-center gap-3 pt-3 border-t border-[#E5E7EB]">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-3 border-t border-[#E5E7EB]">
             <button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-5 py-2 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-5 py-2 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               {loading ? 'Creating...' : 'Create Listing'}
             </button>
             <Link
               href="/dashboard/listings"
-              className="bg-white border-2 border-[#1F2937] text-[#1F2937] px-5 py-2 rounded-md hover:bg-[#1F2937] hover:text-white transition-all duration-300 text-sm font-medium"
+              className="bg-white border-2 border-[#1F2937] text-[#1F2937] px-5 py-2 rounded-md hover:bg-[#1F2937] hover:text-white transition-all duration-300 text-sm font-medium w-full sm:w-auto text-center"
             >
               Cancel
             </Link>
@@ -772,4 +772,3 @@ export default function NewListingPage() {
     </div>
   );
 }
-

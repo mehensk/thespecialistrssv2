@@ -16,6 +16,30 @@ const netlifyEnv = {
   NODE_ENV: 'production', // Netlify builds in production mode
 };
 
+// Keep Prisma engines and temp files in-repo to avoid permission issues
+const prismaCacheDir = path.join(process.cwd(), '.prisma');
+const prismaTempDir = path.join(prismaCacheDir, 'tmp');
+if (!fs.existsSync(prismaCacheDir)) {
+  fs.mkdirSync(prismaCacheDir, { recursive: true });
+}
+if (!fs.existsSync(prismaTempDir)) {
+  fs.mkdirSync(prismaTempDir, { recursive: true });
+}
+if (!netlifyEnv.PRISMA_ENGINES_CACHE_DIR) {
+  netlifyEnv.PRISMA_ENGINES_CACHE_DIR = prismaCacheDir;
+}
+netlifyEnv.TEMP = prismaTempDir;
+netlifyEnv.TMP = prismaTempDir;
+
+// Clear loopback proxies that can break Prisma engine downloads locally
+const loopbackProxyPattern = /^(http|https):\/\/(127\.0\.0\.1|localhost)(:\d+)?/i;
+if (netlifyEnv.HTTP_PROXY && loopbackProxyPattern.test(netlifyEnv.HTTP_PROXY)) {
+  delete netlifyEnv.HTTP_PROXY;
+}
+if (netlifyEnv.HTTPS_PROXY && loopbackProxyPattern.test(netlifyEnv.HTTPS_PROXY)) {
+  delete netlifyEnv.HTTPS_PROXY;
+}
+
 // Check and set required environment variables for build
 const requiredEnvVars = {
   DATABASE_URL: 'postgresql://user:password@localhost:5432/dbname?schema=public',
@@ -135,4 +159,3 @@ console.log('📋 Next steps:');
 console.log('   1. Ensure all environment variables are set in Netlify dashboard');
 console.log('   2. Verify your netlify.toml configuration');
 console.log('   3. Deploy to Netlify\n');
-

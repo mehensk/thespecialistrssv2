@@ -23,6 +23,8 @@ export function LogoutSync() {
           try {
             // Set logout flag
             localStorage.setItem('auth-logout-flag', 'true');
+            // Clear login flag
+            localStorage.removeItem('auth-login-flag');
             
             // Call server-side logout endpoint
             await fetch('/api/auth/logout', {
@@ -39,8 +41,15 @@ export function LogoutSync() {
             console.error('Logout sync error:', error);
             // Fallback: force redirect
             localStorage.setItem('auth-logout-flag', 'true');
+            localStorage.removeItem('auth-login-flag');
             window.location.href = '/?logout=success';
           }
+        }
+      } else if (event.data.type === 'LOGIN') {
+        // Another tab logged in, sync login state
+        if (!session) {
+          // Reload to get the session
+          window.location.reload();
         }
       }
     };
@@ -54,6 +63,8 @@ export function LogoutSync() {
           try {
             // Set logout flag
             localStorage.setItem('auth-logout-flag', 'true');
+            // Clear login flag
+            localStorage.removeItem('auth-login-flag');
             
             // Call server-side logout endpoint
             await fetch('/api/auth/logout', {
@@ -75,8 +86,15 @@ export function LogoutSync() {
             localStorage.removeItem('auth-logout');
             // Fallback: force redirect
             localStorage.setItem('auth-logout-flag', 'true');
+            localStorage.removeItem('auth-login-flag');
             window.location.href = '/?logout=success';
           }
+        }
+      } else if (e.key === 'auth-login' && e.newValue === 'true') {
+        // Another tab logged in, sync login state
+        if (!session) {
+          // Reload to get the session
+          window.location.reload();
         }
       }
     };
@@ -113,3 +131,26 @@ export function broadcastLogout() {
   }, 1000);
 }
 
+/**
+ * Broadcast login to all tabs
+ * Call this function when user logs in
+ */
+export function broadcastLogin() {
+  // Set login flag
+  localStorage.setItem('auth-login-flag', 'true');
+  
+  // Clear logout flag
+  localStorage.removeItem('auth-logout-flag');
+  
+  // Use BroadcastChannel
+  const channel = new BroadcastChannel('auth-sync');
+  channel.postMessage({ type: 'LOGIN' });
+  channel.close();
+
+  // Also use localStorage as fallback
+  localStorage.setItem('auth-login', 'true');
+  // Remove it after a short delay
+  setTimeout(() => {
+    localStorage.removeItem('auth-login');
+  }, 1000);
+}

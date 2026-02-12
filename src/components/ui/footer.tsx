@@ -58,23 +58,28 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/how-we-work" className="text-white/70 hover:text-white transition-colors">
+                  How We Work
+                </Link>
+              </li>
+              <li>
                 <Link href="/listings" className="text-white/70 hover:text-white transition-colors">
                   Listings
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="text-white/70 hover:text-white transition-colors">
-                  Blog
-                </Link>
+                <a href="#" className="text-white/70 hover:text-white transition-colors">
+                  Investor Relations
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-white/70 hover:text-white transition-colors">
+                  Developer Selling
+                </a>
               </li>
               <li>
                 <Link href="/contact" className="text-white/70 hover:text-white transition-colors">
                   Contact
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-white/70 hover:text-white transition-colors">
-                  Services
                 </Link>
               </li>
             </ul>
@@ -139,7 +144,7 @@ export function Footer() {
       <div className="border-t border-[#374151]">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
           <div className="text-center text-sm text-white/70">
-            <p>© The Specialist - Realty Solutions & Services. All rights reserved 2025.</p>
+            <p>© The Specialist - Realty Solutions & Services. All rights reserved 2026.</p>
           </div>
         </div>
       </div>

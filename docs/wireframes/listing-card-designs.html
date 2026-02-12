@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listing Card Design Options - The Specialist Realty</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #F9FAFB;
+            padding: 40px 20px;
+            color: #111111;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #111111;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6B7280;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+
+        .version-section {
+            margin-bottom: 60px;
+        }
+
+        .version-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1F2937;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #E5E7EB;
+        }
+
+        .version-description {
+            color: #6B7280;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* ==================== VERSION 1: Modern Clean ==================== */
+        .card-v1 {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid #E5E7EB;
+        }
+
+        .card-v1:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+
+        .card-v1-image-wrapper {
+            position: relative;
+            height: 220px;
+            overflow: hidden;
+            background: #F3F4F6;
+        }
+
+        .card-v1-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .card-v1:hover .card-v1-image {
+            transform: scale(1.05);
+        }
+
+        .card-v1-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(4px);
+        }
+
+        .card-v1-badge.rent {
+            background: rgba(212, 175, 55, 0.95);
+            color: white;
+        }
+
+        .card-v1-badge.sale {
+            background: rgba(31, 41, 55, 0.95);
+            color: white;
+        }
+
+        .card-v1-content {
+            padding: 20px;
+        }
+
+        .card-v1-price-section {
+            margin-bottom: 12px;
+        }
+
+        .card-v1-price {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111111;
+            line-height: 1.2;
+        }
+
+        .card-v1-price-suffix {
+            font-size: 15px;
+            font-weight: 500;
+            color: #6B7280;
+            margin-left: 4px;
+        }
+
+        .card-v1-price-per-sqm {
+            font-size: 12px;
+            color: #9CA3AF;
+            margin-top: 4px;
+        }
+
+        .card-v1-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #111111;
+            margin-bottom: 14px;
+            line-height: 1.4;
+        }
+
+        .card-v1-details {
+            display: flex;
+            gap: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #F3F4F6;
+            margin-bottom: 14px;
+        }
+
+        .card-v1-detail {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #4B5563;
+        }
+
+        .card-v1-detail-icon {
+            width: 16px;
+            height: 16px;
+            color: #1F2937;
+        }
+
+        .card-v1-location {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            font-size: 13px;
+            color: #6B7280;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .card-v1-location-icon {
+            width: 14px;
+            height: 14px;
+            color: #1F2937;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .card-v1-type-badge {
+            display: inline-block;
+            background: #F9FAFB;
+            color: #1F2937;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1px solid #E5E7EB;
+        }
+
+        /* ==================== VERSION 2: Information Rich ==================== */
+        .card-v2 {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid #E5E7EB;
+        }
+
+        .card-v2:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .card-v2-header {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+        }
+
+        .card-v2-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .card-v2:hover .card-v2-image {
+            transform: scale(1.08);
+        }
+
+        .card-v2-badges {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-v2-type-badge-top {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #1F2937;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card-v2-listing-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card-v2-listing-badge.rent {
+            background: rgba(212, 175, 55, 0.95);
+            color: white;
+        }
+
+        .card-v2-listing-badge.sale {
+            background: rgba(31, 41, 55, 0.95);
+            color: white;
+        }
+
+        .card-v2-body {
+            padding: 24px;
+        }
+
+        .card-v2-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #111111;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .card-v2-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 16px;
+        }
+
+        .card-v2-location-icon {
+            width: 16px;
+            height: 16px;
+            color: #D4AF37;
+        }
+
+        .card-v2-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: #111111;
+            margin-bottom: 6px;
+        }
+
+        .card-v2-price-suffix {
+            font-size: 16px;
+            font-weight: 500;
+            color: #6B7280;
+        }
+
+        .card-v2-price-per-sqm {
+            font-size: 13px;
+            color: #9CA3AF;
+            margin-bottom: 20px;
+        }
+
+        .card-v2-details-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 16px;
+            background: #F9FAFB;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .card-v2-detail-item {
+            text-align: center;
+        }
+
+        .card-v2-detail-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+
+        .card-v2-detail-label {
+            font-size: 11px;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .card-v2-extra-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        .card-v2-extra-detail {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #FEF3C7;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        /* ==================== VERSION 3: Minimal & Elegant ==================== */
+        .card-v3 {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid #F3F4F6;
+        }
+
+        .card-v3:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-color: #E5E7EB;
+        }
+
+        .card-v3-image-container {
+            position: relative;
+            height: 260px;
+            overflow: hidden;
+        }
+
+        .card-v3-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .card-v3:hover .card-v3-image {
+            transform: scale(1.1);
+        }
+
+        .card-v3-image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 30px 20px 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+        }
+
+        .card-v3-badge {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-v3-badge.rent {
+            background: rgba(212, 175, 55, 0.95);
+            color: white;
+        }
+
+        .card-v3-badge.sale {
+            background: rgba(31, 41, 55, 0.95);
+            color: white;
+        }
+
+        .card-v3-content {
+            padding: 24px;
+        }
+
+        .card-v3-type-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #9CA3AF;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .card-v3-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111111;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .card-v3-price {
+            font-size: 36px;
+            font-weight: 700;
+            color: #111111;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .card-v3-price-suffix {
+            font-size: 18px;
+            font-weight: 500;
+            color: #6B7280;
+        }
+
+        .card-v3-price-per-sqm {
+            font-size: 13px;
+            color: #9CA3AF;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .card-v3-details {
+            display: flex;
+            gap: 24px;
+            padding: 20px 0;
+            border-top: 1px solid #F3F4F6;
+            border-bottom: 1px solid #F3F4F6;
+            margin-bottom: 16px;
+        }
+
+        .card-v3-detail {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #4B5563;
+            font-weight: 500;
+        }
+
+        .card-v3-detail-icon {
+            width: 18px;
+            height: 18px;
+            color: #D4AF37;
+        }
+
+        .card-v3-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        .card-v3-location-icon {
+            width: 16px;
+            height: 16px;
+            color: #9CA3AF;
+        }
+
+        /* Data legend */
+        .data-legend {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 40px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .data-legend h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1F2937;
+        }
+
+        .data-legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .data-item {
+            padding: 12px;
+            background: #F9FAFB;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .data-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .data-value {
+            font-size: 14px;
+            color: #1F2937;
+        }
+
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            .version-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Listing Card Design Options</h1>
+        <p class="subtitle">Three distinct approaches using the same data structure</p>
+
+        <!-- VERSION 1: Modern Clean -->
+        <section class="version-section">
+            <h2 class="version-title">Version 1: Modern Clean</h2>
+            <p class="version-description">
+                <strong>Design Philosophy:</strong> Clean, minimalist approach with strong emphasis on the property image and key information.<br>
+                <strong>Best For:</strong> Featured listings, hero sections, premium property displays<br>
+                <strong>Highlights:</strong> Generous image space, prominent pricing, clear visual hierarchy, subtle hover effects
+            </p>
+
+            <div class="card-grid">
+                <!-- Card 1: Rental Condo -->
+                <div class="card-v1">
+                    <div class="card-v1-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop" alt="Condominium" class="card-v1-image">
+                        <span class="card-v1-badge rent">Rent</span>
+                    </div>
+                    <div class="card-v1-content">
+                        <div class="card-v1-price-section">
+                            <div class="card-v1-price">₱85,000<span class="card-v1-price-suffix">/mo</span></div>
+                            <div class="card-v1-price-per-sqm">₱170,000/sqm</div>
+                        </div>
+                        <div class="card-v1-title">2 Bedroom Condominium for Rent in Makati</div>
+                        <div class="card-v1-details">
+                            <div class="card-v1-detail">
+                                <svg class="card-v1-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                                <span>2 Beds</span>
+                            </div>
+                            <div class="card-v1-detail">
+                                <svg class="card-v1-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                                <span>2 Baths</span>
+                            </div>
+                            <div class="card-v1-detail">
+                                <svg class="card-v1-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                                <span>50 sqm</span>
+                            </div>
+                        </div>
+                        <div class="card-v1-location">
+                            <svg class="card-v1-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>Makati, Metro Manila</span>
+                        </div>
+                        <span class="card-v1-type-badge">Condominium</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Sale House -->
+                <div class="card-v1">
+                    <div class="card-v1-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop" alt="House and Lot" class="card-v1-image">
+                        <span class="card-v1-badge sale">Sale</span>
+                    </div>
+                    <div class="card-v1-content">
+                        <div class="card-v1-price-section">
+                            <div class="card-v1-price">₱15,000,000</div>
+                            <div class="card-v1-price-per-sqm">₱100,000/sqm</div>
+                        </div>
+                        <div class="card-v1-title">4 Bedroom House and Lot for Sale in Quezon City</div>
+                        <div class="card-v1-details">
+                            <div class="card-v1-detail">
+                                <svg class="card-v1-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                                <span>4 Beds</span>
+                            </div>
+                            <div class="card-v1-detail">
+                                <svg class="card-v1-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                                <span>3 Baths</span>
+                            </div>
+                            <div class="card-v1-detail">
+                                <svg class="card-v1-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                                <span>150 sqm</span>
+                            </div>
+                        </div>
+                        <div class="card-v1-location">
+                            <svg class="card-v1-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>Quezon City, Metro Manila</span>
+                        </div>
+                        <span class="card-v1-type-badge">House and Lot</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Studio -->
+                <div class="card-v1">
+                    <div class="card-v1-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop" alt="Studio" class="card-v1-image">
+                        <span class="card-v1-badge rent">Rent</span>
+                    </div>
+                    <div class="card-v1-content">
+                        <div class="card-v1-price-section">
+                            <div class="card-v1-price">₱45,000<span class="card-v1-price-suffix">/mo</span></div>
+                            <div class="card-v1-price-per-sqm">₱150,000/sqm</div>
+                        </div>
+                        <div class="card-v1-title">Studio Condominium for Rent in BGC</div>
+                        <div class="card-v1-details">
+                            <div class="card-v1-detail">
+                                <svg class="card-v1-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                                <span>Studio</span>
+                            </div>
+                            <div class="card-v1-detail">
+                                <svg class="card-v1-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                                <span>1 Bath</span>
+                            </div>
+                            <div class="card-v1-detail">
+                                <svg class="card-v1-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                                <span>30 sqm</span>
+                            </div>
+                        </div>
+                        <div class="card-v1-location">
+                            <svg class="card-v1-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>Taguig, Metro Manila</span>
+                        </div>
+                        <span class="card-v1-type-badge">Condominium</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VERSION 2: Information Rich -->
+        <section class="version-section">
+            <h2 class="version-title">Version 2: Information Rich</h2>
+            <p class="version-description">
+                <strong>Design Philosophy:</strong> Comprehensive display of all property details in an organized, scannable format.<br>
+                <strong>Best For:</strong> Browse listings page, property comparison, detailed search results<br>
+                <strong>Highlights:</strong> Maximum information density, clear badges, structured details grid, additional property info (parking, floor, year)
+            </p>
+
+            <div class="card-grid">
+                <!-- Card 1 -->
+                <div class="card-v2">
+                    <div class="card-v2-header">
+                        <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop" alt="Condominium" class="card-v2-image">
+                        <div class="card-v2-badges">
+                            <span class="card-v2-type-badge-top">Condominium</span>
+                            <span class="card-v2-listing-badge rent">Rent</span>
+                        </div>
+                    </div>
+                    <div class="card-v2-body">
+                        <div class="card-v2-title">2 Bedroom Condominium for Rent</div>
+                        <div class="card-v2-location">
+                            <svg class="card-v2-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>Makati, Metro Manila</span>
+                        </div>
+                        <div class="card-v2-price">₱85,000<span class="card-v2-price-suffix">/mo</span></div>
+                        <div class="card-v2-price-per-sqm">₱170,000/sqm</div>
+                        <div class="card-v2-details-grid">
+                            <div class="card-v2-detail-item">
+                                <div class="card-v2-detail-value">2</div>
+                                <div class="card-v2-detail-label">Bedrooms</div>
+                            </div>
+                            <div class="card-v2-detail-item">
+                                <div class="card-v2-detail-value">2</div>
+                                <div class="card-v2-detail-label">Bathrooms</div>
+                            </div>
+                            <div class="card-v2-detail-item">
+                                <div class="card-v2-detail-value">50</div>
+                                <div class="card-v2-detail-label">Size (sqm)</div>
+                            </div>
+                        </div>
+                        <div class="card-v2-extra-details">
+                            <div class="card-v2-extra-detail">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                                <span>1 Parking</span>
+                            </div>
+                            <div class="card-v2-extra-detail">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                <span>Floor 12/25</span>
+                            </div>
+                            <div class="card-v2-extra-detail">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Built 2020</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="card-v2">
+                    <div class="card-v2-header">
+                        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop" alt="House and Lot" class="card-v2-image">
+                        <div class="card-v2-badges">
+                            <span class="card-v2-type-badge-top">House and Lot</span>
+                            <span class="card-v2-listing-badge sale">Sale</span>
+                        </div>
+                    </div>
+                    <div class="card-v2-body">
+                        <div class="card-v2-title">4 Bedroom House and Lot for Sale</div>
+                        <div class="card-v2-location">
+                            <svg class="card-v2-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>Quezon City, Metro Manila</span>
+                        </div>
+                        <div class="card-v2-price">₱15,000,000</div>
+                        <div class="card-v2-price-per-sqm">₱100,000/sqm</div>
+                        <div class="card-v2-details-grid">
+                            <div class="card-v2-detail-item">
+                                <div class="card-v2-detail-value">4</div>
+                                <div class="card-v2-detail-label">Bedrooms</div>
+                            </div>
+                            <div class="card-v2-detail-item">
+                                <div class="card-v2-detail-value">3</div>
+                                <div class="card-v2-detail-label">Bathrooms</div>
+                            </div>
+                            <div class="card-v2-detail-item">
+                                <div class="card-v2-detail-value">150</div>
+                                <div class="card-v2-detail-label">Size (sqm)</div>
+                            </div>
+                        </div>
+                        <div class="card-v2-extra-details">
+                            <div class="card-v2-extra-detail">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                                <span>2 Parking</span>
+                            </div>
+                            <div class="card-v2-extra-detail">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                <span>Floor 1/2</span>
+                            </div>
+                            <div class="card-v2-extra-detail">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Built 2018</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="card-v2">
+                    <div class="card-v2-header">
+                        <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop" alt="Studio" class="card-v2-image">
+                        <div class="card-v2-badges">
+                            <span class="card-v2-type-badge-top">Condominium</span>
+                            <span class="card-v2-listing-badge rent">Rent</span>
+                        </div>
+                    </div>
+                    <div class="card-v2-body">
+                        <div class="card-v2-title">Studio Condominium for Rent</div>
+                        <div class="card-v2-location">
+                            <svg class="card-v2-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>Taguig, Metro Manila</span>
+                        </div>
+                        <div class="card-v2-price">₱45,000<span class="card-v2-price-suffix">/mo</span></div>
+                        <div class="card-v2-price-per-sqm">₱150,000/sqm</div>
+                        <div class="card-v2-details-grid">
+                            <div class="card-v2-detail-item">
+                                <div class="card-v2-detail-value">Studio</div>
+                                <div class="card-v2-detail-label">Bedrooms</div>
+                            </div>
+                            <div class="card-v2-detail-item">
+                                <div class="card-v2-detail-value">1</div>
+                                <div class="card-v2-detail-label">Bathrooms</div>
+                            </div>
+                            <div class="card-v2-detail-item">
+                                <div class="card-v2-detail-value">30</div>
+                                <div class="card-v2-detail-label">Size (sqm)</div>
+                            </div>
+                        </div>
+                        <div class="card-v2-extra-details">
+                            <div class="card-v2-extra-detail">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                                <span>1 Parking</span>
+                            </div>
+                            <div class="card-v2-extra-detail">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                <span>Floor 8/30</span>
+                            </div>
+                            <div class="card-v2-extra-detail">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>Built 2019</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VERSION 3: Minimal & Elegant -->
+        <section class="version-section">
+            <h2 class="version-title">Version 3: Minimal & Elegant</h2>
+            <p class="version-description">
+                <strong>Design Philosophy:</strong> Luxury-focused design with dramatic imagery, refined typography, and premium feel.<br>
+                <strong>Best For:</strong> High-end properties, luxury collections, premium featured sections<br>
+                <strong>Highlights:</strong> Large hero images, gradient overlays, elegant typography, gold accents, sophisticated hover effects
+            </p>
+
+            <div class="card-grid">
+                <!-- Card 1 -->
+                <div class="card-v3">
+                    <div class="card-v3-image-container">
+                        <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop" alt="Condominium" class="card-v3-image">
+                        <div class="card-v3-image-overlay"></div>
+                        <span class="card-v3-badge rent">For Rent</span>
+                    </div>
+                    <div class="card-v3-content">
+                        <span class="card-v3-type-badge">Condominium</span>
+                        <div class="card-v3-title">2 Bedroom Condominium for Rent in Makati</div>
+                        <div class="card-v3-price">₱85,000<span class="card-v3-price-suffix">/mo</span></div>
+                        <div class="card-v3-price-per-sqm">₱170,000 per sqm</div>
+                        <div class="card-v3-details">
+                            <div class="card-v3-detail">
+                                <svg class="card-v3-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                                <span>2 Beds</span>
+                            </div>
+                            <div class="card-v3-detail">
+                                <svg class="card-v3-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                                <span>2 Baths</span>
+                            </div>
+                            <div class="card-v3-detail">
+                                <svg class="card-v3-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                                <span>50 sqm</span>
+                            </div>
+                        </div>
+                        <div class="card-v3-location">
+                            <svg class="card-v3-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>Makati, Metro Manila</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="card-v3">
+                    <div class="card-v3-image-container">
+                        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop" alt="House and Lot" class="card-v3-image">
+                        <div class="card-v3-image-overlay"></div>
+                        <span class="card-v3-badge sale">For Sale</span>
+                    </div>
+                    <div class="card-v3-content">
+                        <span class="card-v3-type-badge">House and Lot</span>
+                        <div class="card-v3-title">4 Bedroom House and Lot for Sale in Quezon City</div>
+                        <div class="card-v3-price">₱15,000,000</div>
+                        <div class="card-v3-price-per-sqm">₱100,000 per sqm</div>
+                        <div class="card-v3-details">
+                            <div class="card-v3-detail">
+                                <svg class="card-v3-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                                <span>4 Beds</span>
+                            </div>
+                            <div class="card-v3-detail">
+                                <svg class="card-v3-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                                <span>3 Baths</span>
+                            </div>
+                            <div class="card-v3-detail">
+                                <svg class="card-v3-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                                <span>150 sqm</span>
+                            </div>
+                        </div>
+                        <div class="card-v3-location">
+                            <svg class="card-v3-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>Quezon City, Metro Manila</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="card-v3">
+                    <div class="card-v3-image-container">
+                        <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop" alt="Studio" class="card-v3-image">
+                        <div class="card-v3-image-overlay"></div>
+                        <span class="card-v3-badge rent">For Rent</span>
+                    </div>
+                    <div class="card-v3-content">
+                        <span class="card-v3-type-badge">Condominium</span>
+                        <div class="card-v3-title">Studio Condominium for Rent in BGC</div>
+                        <div class="card-v3-price">₱45,000<span class="card-v3-price-suffix">/mo</span></div>
+                        <div class="card-v3-price-per-sqm">₱150,000 per sqm</div>
+                        <div class="card-v3-details">
+                            <div class="card-v3-detail">
+                                <svg class="card-v3-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                                <span>Studio</span>
+                            </div>
+                            <div class="card-v3-detail">
+                                <svg class="card-v3-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                                <span>1 Bath</span>
+                            </div>
+                            <div class="card-v3-detail">
+                                <svg class="card-v3-detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                                <span>30 sqm</span>
+                            </div>
+                        </div>
+                        <div class="card-v3-location">
+                            <svg class="card-v3-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>Taguig, Metro Manila</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Fields Legend -->
+        <div class="data-legend">
+            <h3>Data Fields Used Across All Designs</h3>
+            <div class="data-legend-grid">
+                <div class="data-item">
+                    <div class="data-label">Image</div>
+                    <div class="data-value">Primary property image</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Title</div>
+                    <div class="data-value">Smart formatted property title</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Price</div>
+                    <div class="data-value">Formatted with ₱ locale</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Listing Type</div>
+                    <div class="data-value">Rent/Sale badge</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Property Type</div>
+                    <div class="data-value">Condominium, House and Lot, etc.</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Bedrooms</div>
+                    <div class="data-value">Count or "Studio"</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Bathrooms</div>
+                    <div class="data-value">Count</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Size</div>
+                    <div class="data-value">Area in sqm</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Location</div>
+                    <div class="data-value">City, specific location, address</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Price per sqm</div>
+                    <div class="data-value">Calculated for sales</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Parking</div>
+                    <div class="data-value">Number of spaces</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Floor/Total Floors</div>
+                    <div class="data-value">Floor level</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Year Built</div>
+                    <div class="data-value">Construction year</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Price Suffix</div>
+                    <div class="data-value">"/mo" for rentals</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-label">Helper Functions</div>
+                    <div class="data-value">formatBedrooms, formatLocation, etc.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

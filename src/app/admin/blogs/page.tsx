@@ -19,7 +19,7 @@ export default async function AdminBlogsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-semibold text-[#111111]">Blog Management</h1>
+        <h1 className="text-2xl sm:text-3xl font-semibold text-[#111111]">Blog Management</h1>
       </div>
 
       <AdminBlogsView blogs={blogs} />

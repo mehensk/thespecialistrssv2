@@ -2,10 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 import { ApproveButton } from './approve-button';
 import { ViewToggle } from '@/components/admin/ViewToggle';
 import { CompactBlogCard } from '@/components/admin/CompactBlogCard';
+import { ConfirmationModal } from '@/components/ui/confirmation-modal';
+import { useToast } from '@/components/ui/toast';
 
 interface Blog {
   id: string;
@@ -25,16 +28,58 @@ interface AdminBlogsViewProps {
 
 export function AdminBlogsView({ blogs }: AdminBlogsViewProps) {
   const [view, setView] = useState<'grid' | 'compact'>('compact');
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [blogToDelete, setBlogToDelete] = useState<Blog | null>(null);
+  const router = useRouter();
+  const { success, error } = useToast();
+
+  const handleDeleteClick = (blog: Blog) => {
+    setBlogToDelete(blog);
+    setShowConfirm(true);
+  };
+
+  const handleDelete = async () => {
+    if (!blogToDelete) return;
+    
+    setIsDeleting(blogToDelete.id);
+    setShowConfirm(false);
+    
+    try {
+      const response = await fetch(`/api/admin/blogs/${blogToDelete.id}/delete`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        success('Blog deleted successfully');
+        router.refresh();
+      } else {
+        const data = await response.json();
+        error(data.error || 'Failed to delete blog');
+      }
+    } catch (err) {
+      error('Failed to delete blog. Please try again.');
+    } finally {
+      setIsDeleting(null);
+      setBlogToDelete(null);
+    }
+  };
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4 z-10 relative">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 z-10 relative">
         <div className="text-sm text-[#111111]/60">View: {view === 'compact' ? 'Table' : 'Grid'}</div>
         <ViewToggle view={view} onViewChange={setView} />
       </div>
 
       {view === 'compact' ? (
-        <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden">
+        <>
+          <div className="md:hidden grid grid-cols-1 gap-3">
+            {blogs.map((blog) => (
+              <CompactBlogCard key={blog.id} blog={blog} />
+            ))}
+          </div>
+          <div className="hidden md:block bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-[#F9FAFB] border-b border-[#E5E7EB]">
@@ -89,15 +134,14 @@ export function AdminBlogsView({ blogs }: AdminBlogsViewProps) {
                             <ApproveButton blogId={blog.id} />
                           </div>
                         )}
-                        <form action={`/api/admin/blogs/${blog.id}/delete`} method="POST">
-                          <button
-                            type="submit"
-                            className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </form>
+                        <button
+                          onClick={() => handleDeleteClick(blog)}
+                          disabled={isDeleting === blog.id}
+                          className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -106,6 +150,7 @@ export function AdminBlogsView({ blogs }: AdminBlogsViewProps) {
             </table>
           </div>
         </div>
+        </>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {blogs.map((blog) => (
@@ -113,7 +158,17 @@ export function AdminBlogsView({ blogs }: AdminBlogsViewProps) {
           ))}
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleDelete}
+        title="Delete Blog Post"
+        message={`Are you sure you want to delete "${blogToDelete?.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        confirmButtonClass="bg-red-600 hover:bg-red-700 text-white rounded-lg"
+        loading={isDeleting !== null}
+      />
     </div>
   );
 }
-
