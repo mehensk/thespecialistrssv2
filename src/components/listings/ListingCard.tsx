@@ -65,7 +65,7 @@ export function ListingCard({
   return (
     <Link
       href={`/listings/${listing.id}`}
-      className={`bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block group border border-[#E5E7EB]${variant === 'landing' ? ' listing-card' : ''}${className ? ` ${className}` : ''}`}
+      className={`bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block group border border-[#E5E7EB] h-full flex flex-col${variant === 'landing' ? ' listing-card' : ''}${className ? ` ${className}` : ''}`}
     >
       <div className="relative h-56 w-full overflow-hidden bg-gray-100">
         <Image
@@ -87,7 +87,7 @@ export function ListingCard({
           </span>
         </div>
       </div>
-      <div className="p-5">
+      <div className="p-5 flex-1 flex flex-col">
         {/* Title */}
         <div className="mb-2">
           <h3 className="text-sm font-semibold text-[#111111] line-clamp-1 leading-tight">
@@ -167,8 +167,8 @@ export function ListingCard({
           )}
         </div>
 
-        {/* Location and Property Type */}
-        <div className="space-y-2.5">
+        {/* Location */}
+        <div className="space-y-2.5 mb-3">
           {formatLocationDisplay(listing.city, listing.location, listing.address) !== 'Location not specified' && (
             <div className="flex items-start gap-1.5">
               <MapPin size={14} className="text-[#1F2937] flex-shrink-0 mt-0.5" />
@@ -177,11 +177,13 @@ export function ListingCard({
               </span>
             </div>
           )}
-          <div className="flex justify-start">
-            <span className="badge gold inline-block bg-[#F9FAFB] text-[#1F2937] px-3 py-1.5 rounded-lg text-xs font-medium tracking-wide border border-[#E5E7EB]">
-              {propertyTypeMap[listing.type || ''] || listing.type || 'Property'}
-            </span>
-          </div>
+        </div>
+
+        {/* Property Type - anchored to bottom-left for consistent alignment */}
+        <div className="flex justify-start mt-auto">
+          <span className="badge gold inline-block bg-[#F9FAFB] text-[#1F2937] px-3 py-1.5 rounded-lg text-xs font-medium tracking-wide border border-[#E5E7EB]">
+            {propertyTypeMap[listing.type || ''] || listing.type || 'Property'}
+          </span>
         </div>
       </div>
     </Link>

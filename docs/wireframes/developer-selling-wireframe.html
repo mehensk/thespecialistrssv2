@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Specialist Realty - Developer Selling</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap");
+
+    :root {
+      --ink: #0d0f12;
+      --steel: #1e2a36;
+      --mist: #f0f2f4;
+      --slate: #dde2e7;
+      --accent: #2f5f8f;
+      --accent-light: #4d7bb0;
+      --gold: #d4af37;
+      --shadow: 0 20px 50px rgba(13, 15, 18, 0.18);
+      --shadow-sm: 0 10px 24px rgba(13, 15, 18, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--mist);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1160px, 92vw);
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      background: rgba(240, 242, 244, 0.95);
+      border-bottom: 1px solid var(--slate);
+      z-index: 10;
+    }
+
+    .header-inner {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 0;
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-size: 14px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--steel);
+    }
+
+    .nav a {
+      transition: color 0.3s ease;
+    }
+
+    .nav a:hover {
+      color: var(--accent);
+    }
+
+    .header-cta {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .header-cta a {
+      padding: 10px 16px;
+      border-radius: 4px;
+      border: 1px solid var(--ink);
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: var(--ink);
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    .header-cta a:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .page-header {
+      background-image: url("https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1920&q=80");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      position: relative;
+      border-bottom: 1px solid var(--slate);
+      padding: 80px 0 60px;
+    }
+
+    .page-header::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(13, 15, 18, 0.92) 0%, rgba(13, 15, 18, 0.88) 50%, rgba(30, 42, 54, 0.85) 100%);
+    }
+
+    .page-header .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      font-family: "Space Mono", "Courier New", monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .page-header .eyebrow {
+      color: var(--accent-light);
+    }
+
+    .page-header h1 {
+      margin: 0 0 16px;
+      color: #fff;
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+      line-height: 1.12;
+      max-width: 900px;
+    }
+
+    .page-header p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 18px;
+      max-width: 700px;
+      line-height: 1.7;
+    }
+
+    .section {
+      padding: 80px 0;
+    }
+
+    h2 {
+      font-size: clamp(28px, 3vw, 42px);
+      margin: 0 0 14px;
+      line-height: 1.2;
+    }
+
+    .section-intro {
+      max-width: 760px;
+      color: var(--steel);
+      line-height: 1.8;
+      margin-bottom: 40px;
+    }
+
+    .developers-section {
+      background: #fff;
+      border-top: 1px solid var(--slate);
+      border-bottom: 1px solid var(--slate);
+    }
+
+    .developer-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      max-width: 860px;
+    }
+
+    .developer-card {
+      background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+      border: 1px solid var(--slate);
+      border-radius: 12px;
+      min-height: 168px;
+      padding: 24px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+
+    .developer-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+      border-color: rgba(212, 175, 55, 0.35);
+    }
+
+    .logo-wrap {
+      width: 100%;
+      min-height: 72px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 14px;
+      border: 1px dashed rgba(30, 42, 54, 0.2);
+      border-radius: 8px;
+      padding: 8px;
+      background: #fff;
+    }
+
+    .logo-wrap.dark {
+      background: #1e2a36;
+      border-color: rgba(212, 175, 55, 0.28);
+    }
+
+    .logo-wrap img {
+      max-width: 100%;
+      max-height: 40px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .developer-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ink);
+      margin: 0;
+      letter-spacing: 0.2px;
+    }
+
+    .cta {
+      background: #0d0f12;
+      color: #fff;
+    }
+
+    .cta-inner {
+      max-width: 740px;
+    }
+
+    .cta h2 {
+      color: #fff;
+      margin-bottom: 14px;
+    }
+
+    .cta p {
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 16px;
+      line-height: 1.7;
+      margin: 0 0 24px;
+      max-width: 620px;
+    }
+
+    .cta a {
+      display: inline-block;
+      padding: 14px 28px;
+      border-radius: 6px;
+      background: var(--accent-light);
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .cta a:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .site-footer {
+      background: #1f2937;
+      border-top: 1px solid #374151;
+      color: #fff;
+      padding: 48px 0 40px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    .footer-brand h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      margin: 0 0 8px;
+    }
+
+    .footer-brand .license {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0;
+    }
+
+    .footer-links h4,
+    .footer-services h4,
+    .footer-contact h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin: 0 0 16px;
+    }
+
+    .footer-links ul,
+    .footer-services ul,
+    .footer-contact ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-links li,
+    .footer-services li,
+    .footer-contact li {
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .footer-links li a {
+      color: rgba(255, 255, 255, 0.7);
+      transition: color 0.3s ease;
+    }
+
+    .footer-links li a:hover {
+      color: #fff;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid #374151;
+      padding: 20px 0;
+      text-align: center;
+    }
+
+    .footer-bottom p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    @media (max-width: 1024px) {
+      .developer-card {
+        min-height: 156px;
+      }
+
+      .logo-wrap img {
+        max-height: 36px;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .header-inner {
+        grid-template-columns: 1fr;
+        justify-items: start;
+      }
+
+      .nav,
+      .header-cta {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-header {
+        padding: 60px 0 40px;
+      }
+
+      .page-header p {
+        font-size: 16px;
+      }
+
+      .section {
+        padding: 60px 0;
+      }
+
+      .developer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .logo-wrap img {
+        max-height: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">The Specialist Realty</div>
+      <nav class="nav">
+        <a href="#">Home</a>
+        <a href="#">How We Work</a>
+        <a href="#">Listings</a>
+        <a href="#" style="color: var(--ink);">Developer Selling</a>
+        <a href="#">Contact</a>
+      </nav>
+      <div class="header-cta">
+        <a href="#">Book Consultation</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-header">
+      <div class="container">
+        <p class="eyebrow">Developer Selling</p>
+        <h1>Access Developer-Built Projects Through Accredited Guidance</h1>
+        <p>We help buyers navigate trusted options from major developers we are accredited with, so you can choose the right project with confidence and clarity.</p>
+      </div>
+    </section>
+
+    <section class="section developers-section">
+      <div class="container">
+        <p class="eyebrow">Official Partners</p>
+        <h2>Accredited With Major Developers</h2>
+        <p class="section-intro">The logos below represent developers that The Specialist Realty works with. Replace each placeholder with your official brand assets once downloaded.</p>
+
+        <div class="developer-grid">
+          <article class="developer-card">
+            <div class="logo-wrap dark">
+              <img src="https://federalland.ph/app/uploads/2025/04/footer-logo.webp" alt="Federal Land official logo" />
+            </div>
+            <p class="developer-name">Federal Land, Inc.</p>
+          </article>
+
+          <article class="developer-card">
+            <div class="logo-wrap">
+              <img src="https://www.dmcihomes.com/assets/images/page_template/dmci-logo-blue-08f090803967323f2de896c58ed00c35.png" alt="DMCI Homes official logo" />
+            </div>
+            <p class="developer-name">DMCI Project Developers, Inc. (DMCI Homes)</p>
+          </article>
+
+          <article class="developer-card">
+            <div class="logo-wrap">
+              <img src="https://rlcresidences.com/logo-colored@2x.webp" alt="RLC Residences official logo" />
+            </div>
+            <p class="developer-name">RLC Residences (Robinsons Land Corporation)</p>
+          </article>
+
+          <article class="developer-card">
+            <div class="logo-wrap">
+              <img src="https://smdc.com/app/uploads/2025/07/SMDC-logo.png" alt="SMDC official logo" />
+            </div>
+            <p class="developer-name">SM Development Corporation (SMDC)</p>
+          </article>
+
+          <article class="developer-card">
+            <div class="logo-wrap dark">
+              <img src="https://www.antel.com.ph/wp-content/uploads/2022/02/antel-land-logo-white-text.png" alt="Antel Land official logo" />
+            </div>
+            <p class="developer-name">Antel Land</p>
+          </article>
+
+          <article class="developer-card">
+            <div class="logo-wrap dark">
+              <img src="https://www.cathaylandinc.com/wp-content/uploads/2021/05/CLI-white-logo-.png" alt="Cathay Land official logo" />
+            </div>
+            <p class="developer-name">Cathay Land Inc.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cta">
+      <div class="container cta-inner">
+        <p class="eyebrow" style="color: var(--gold);">Ready to Start?</p>
+        <h2>Book a Consultation for Developer Project Matching</h2>
+        <p>Tell us your budget, preferred area, and timeline. We will guide you through accredited developer options that align with your goals.</p>
+        <a href="#">Book a Consultation</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3>The Specialist - Realty Solutions & Services</h3>
+          <p class="license">REBL PRC License # 33422</p>
+        </div>
+
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">How We Work</a></li>
+            <li><a href="#">Listings</a></li>
+            <li><a href="#">Developer Selling</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-services">
+          <h4>Services</h4>
+          <ul>
+            <li>Buying Assistance</li>
+            <li>Selling & Marketing</li>
+            <li>Rentals</li>
+            <li>Documentation</li>
+            <li>Title Transfer</li>
+            <li>Valuation</li>
+          </ul>
+        </div>
+
+        <div class="footer-contact">
+          <h4>Contact</h4>
+          <ul>
+            <li>+63 921 2303011</li>
+            <li>thespecialistrss@gmail.com</li>
+            <li>Las Pinas City</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <p>&copy; The Specialist - Realty Solutions & Services. All rights reserved 2026.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

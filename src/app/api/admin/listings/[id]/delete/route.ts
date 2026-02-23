@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminRole } from '@/lib/verify-admin-role';
 import { prisma } from '@/lib/prisma';
-import { UserRole, ActivityAction } from '@prisma/client';
+import { ActivityAction } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
+import { revalidateListingCaches } from '@/lib/listing-revalidation';
 
 export async function POST(
   request: NextRequest,
@@ -28,6 +29,8 @@ export async function POST(
     });
 
     await prisma.listing.delete({ where: { id } });
+    // Non-blocking cache revalidation for listing views
+    revalidateListingCaches(id);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -35,4 +38,3 @@ export async function POST(
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

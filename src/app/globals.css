@@ -614,6 +614,20 @@ body {
   color: #111;
 }
 
+/* Browse listings keeps its existing card surface while reusing the gold pill from .listing-card .badge.gold */
+.browse-card {
+  max-width: none;
+  background: #fff;
+  border-color: #E5E7EB;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.browse-card:hover {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  border-color: #E5E7EB;
+  transform: translateY(-0.25rem);
+}
+
 /* Phase 6: Stats Section Styling */
 
 .stats {

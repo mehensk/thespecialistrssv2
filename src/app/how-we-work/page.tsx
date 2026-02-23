@@ -102,7 +102,7 @@ export default function HowWeWorkPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-[#1F2937] to-[#111111] text-white py-20 md:py-24">
+      <section className="relative bg-gradient-to-b from-[#1F2937] to-[#111111] text-white pt-32 pb-20 md:pt-36 md:pb-24">
         {/* Background Image with Overlay */}
         <div 
           className="absolute inset-0 bg-cover bg-center"

@@ -3,8 +3,7 @@ import { getAuthenticatedUser } from '@/lib/auth-helpers';
 import { prisma } from '@/lib/prisma';
 import { ActivityAction } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
-import { revalidatePath, revalidateTag } from 'next/cache';
-import { CACHE_TAGS } from '@/lib/cache';
+import { revalidateListingCaches } from '@/lib/listing-revalidation';
 
 export async function POST(
   request: NextRequest,
@@ -35,11 +34,8 @@ export async function POST(
 
     await prisma.listing.delete({ where: { id } });
 
-    // Revalidate cache when listing is deleted
-    revalidateTag(CACHE_TAGS.LISTING(id), 'max');
-    revalidateTag(CACHE_TAGS.LISTINGS, 'max');
-    revalidatePath('/listings');
-    revalidatePath(`/listings/${id}`, 'page');
+    // Non-blocking cache revalidation for listing views
+    revalidateListingCaches(id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting listing:', error);

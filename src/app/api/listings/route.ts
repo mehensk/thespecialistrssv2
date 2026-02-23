@@ -5,9 +5,9 @@ import { logListingActivity } from '@/lib/activity-logger';
 import { safeParseInt, safeParseFloat, validateListingInput } from '@/lib/validation';
 import { randomUUID } from 'crypto';
 import { logger } from '@/lib/logger';
-import { revalidatePath, revalidateTag } from 'next/cache';
-import { CACHE_TAGS, getCachedListings } from '@/lib/cache';
+import { getCachedListings } from '@/lib/cache';
 import { getAuthenticatedUser, hasRequiredRole } from '@/lib/auth-helpers';
+import { revalidateListingCaches } from '@/lib/listing-revalidation';
 
 // Generate a unique property ID using timestamp and UUID
 function generatePropertyId(): string {
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
       // Add cache headers for public listings
       const headers = new Headers();
-      headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+      headers.set('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=30');
 
       return NextResponse.json({ listings }, { headers });
     }
@@ -213,11 +213,8 @@ export async function POST(request: NextRequest) {
       logger.error('Failed to log activity (non-critical):', activityError);
     }
 
-    // Revalidate cache when new listing is created
-    revalidateTag(CACHE_TAGS.LISTINGS, 'max');
-    revalidateTag(CACHE_TAGS.LISTING(listing.id), 'max');
-    revalidatePath('/listings');
-    revalidatePath(`/listings/${listing.id}`, 'page');
+    // Non-blocking cache revalidation for listing views
+    revalidateListingCaches(listing.id);
     return NextResponse.json({ success: true, listing }, { status: 201 });
   } catch (error) {
     logger.error('Error creating listing:', error);

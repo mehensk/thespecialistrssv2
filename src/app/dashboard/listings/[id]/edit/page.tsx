@@ -159,7 +159,12 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
     const fetchListing = async () => {
       try {
         setFetching(true);
-        const response = await fetch(`/api/listings/${id}`);
+        const response = await fetch(`/api/listings/${id}`, {
+          cache: 'no-store',
+          headers: {
+            'x-dashboard-edit': '1',
+          },
+        });
         const data = await response.json();
         
         if (!response.ok) {

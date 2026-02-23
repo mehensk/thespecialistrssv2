@@ -124,6 +124,29 @@ Improve mobile usability for listing create/edit flows and reset dashboard navig
 - Validate that logout is reachable from mobile More sheet.
 - Validate no overlap between bottom nav and page actions.
 
+## Known Issue: Mobile Edit Listing Image Persistence
+
+### Problem
+- On mobile `Edit Listing`, a newly uploaded image appears immediately in the UI after upload and save.
+- When reopening the same listing in `Edit Listing`, that new image can be missing from the image selection.
+- If user clicks `Update Listing` from this stale state, the missing image gets removed from the saved `images` array.
+
+### Root Cause
+- Edit flow can read cached/older listing payload instead of latest database state.
+
+### Planned Solution
+- Keep public listing pages cached for performance.
+- Force fresh reads for dashboard edit flow:
+- Bypass cached listing read for authenticated dashboard edit requests.
+- Use `cache: 'no-store'` in edit page fetch for listing data.
+- Keep existing `PUT /api/listings/[id]` save behavior and revalidation logic.
+
+### Acceptance Criteria
+1. Upload image in mobile `Edit Listing` and save.
+2. Reopen same listing in `Edit Listing`; uploaded image is present.
+3. Remove image, save, reopen; removal persists.
+4. Public `/listings` behavior remains cached.
+
 ## Risks
 - Medium: nav architecture shift touches both admin and non-admin layouts.
 - Mitigation: central nav config + phased rollout + route-by-route QA.

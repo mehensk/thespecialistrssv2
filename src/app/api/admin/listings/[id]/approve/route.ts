@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminRole } from '@/lib/verify-admin-role';
 import { prisma } from '@/lib/prisma';
-import { UserRole, ActivityAction } from '@prisma/client';
+import { ActivityAction } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
 import { logger } from '@/lib/logger';
-import { revalidatePath, revalidateTag } from 'next/cache';
-import { CACHE_TAGS } from '@/lib/cache';
+import { revalidateListingCaches } from '@/lib/listing-revalidation';
 
 export async function POST(
   request: NextRequest,
@@ -43,11 +42,8 @@ export async function POST(
       title: listing.title,
     });
 
-    // Revalidate cache when listing is approved
-    revalidateTag(CACHE_TAGS.LISTING(id), 'max');
-    revalidateTag(CACHE_TAGS.LISTINGS, 'max');
-    revalidatePath(`/listings/${id}`, 'page');
-    revalidatePath('/listings');
+    // Non-blocking cache revalidation for listing views
+    revalidateListingCaches(id);
     return NextResponse.json({ success: true, listing: updated });
   } catch (error) {
     console.error('Error approving listing:', error);

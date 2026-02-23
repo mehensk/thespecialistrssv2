@@ -181,13 +181,13 @@ export function Navbar() {
                   Listings
                 </a>
                 <a 
-                  href="#"
+                  href="/investor-relations"
                   className="block px-5 py-2.5 text-sm text-[#1e2a36] hover:bg-[#f0f2f4] hover:text-[#2f5f8f] border-l-3 border-transparent hover:border-[#D4AF37] transition-all pl-5 hover:pl-6 font-space-grotesk"
                 >
                   Investor Relations
                 </a>
                 <a 
-                  href="#"
+                  href="/developer-selling"
                   className="block px-5 py-2.5 text-sm text-[#1e2a36] hover:bg-[#f0f2f4] hover:text-[#2f5f8f] border-l-3 border-transparent hover:border-[#D4AF37] transition-all pl-5 hover:pl-6 font-space-grotesk"
                 >
                   Developer Selling
@@ -316,14 +316,14 @@ export function Navbar() {
                 Listings
               </a>
               <a 
-                href="#"
+                href="/investor-relations"
                 onClick={closeMenu}
                 className="block text-[#1e2a36] hover:text-[#2f5f8f] border-l-2 border-[#E5E7EB] hover:border-[#D4AF37] pl-3 transition-all font-space-grotesk"
               >
                 Investor Relations
               </a>
               <a 
-                href="#"
+                href="/developer-selling"
                 onClick={closeMenu}
                 className="block text-[#1e2a36] hover:text-[#2f5f8f] border-l-2 border-[#E5E7EB] hover:border-[#D4AF37] pl-3 transition-all font-space-grotesk"
               >

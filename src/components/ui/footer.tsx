@@ -68,14 +68,14 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 hover:text-white transition-colors">
+                <Link href="/investor-relations" className="text-white/70 hover:text-white transition-colors">
                   Investor Relations
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white/70 hover:text-white transition-colors">
+                <Link href="/developer-selling" className="text-white/70 hover:text-white transition-colors">
                   Developer Selling
-                </a>
+                </Link>
               </li>
               <li>
                 <Link href="/contact" className="text-white/70 hover:text-white transition-colors">

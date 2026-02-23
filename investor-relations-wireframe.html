@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investor Relations Wireframe</title>
+  <style>
+    :root {
+      --bg-dark: #0d0f12;
+      --bg-mid: #1f2937;
+      --bg-soft: #f0f2f4;
+      --text-main: #1e2a36;
+      --text-dark: #111111;
+      --brand-blue: #2f5f8f;
+      --brand-blue-soft: #4d7bb0;
+      --brand-gold: #d4af37;
+      --line: #dde2e7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--text-main);
+      background: #ffffff;
+      line-height: 1.6;
+    }
+
+    .container {
+      width: min(1120px, 92%);
+      margin: 0 auto;
+    }
+
+    .label {
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--brand-blue-soft);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .hero {
+      background: linear-gradient(120deg, var(--bg-dark), var(--bg-mid));
+      color: #ffffff;
+      padding: 110px 0 84px;
+    }
+
+    .hero h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2rem, 4.8vw, 3.6rem);
+      line-height: 1.1;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 820px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: clamp(1rem, 1.8vw, 1.18rem);
+    }
+
+    .section {
+      padding: 64px 0;
+    }
+
+    .section.soft {
+      background: var(--bg-soft);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 26px;
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      color: var(--text-dark);
+      font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 10px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .stack li {
+      border-left: 4px solid var(--brand-gold);
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .cols {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .cta {
+      background: var(--bg-dark);
+      color: #ffffff;
+    }
+
+    .cta h2,
+    .cta p { color: #ffffff; }
+
+    .actions {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-block;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 9px;
+      padding: 12px 14px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .btn.primary { background: var(--brand-blue-soft); color: #ffffff; }
+    .btn.light { background: #ffffff; color: var(--text-dark); }
+    .btn.ghost { border: 1px solid rgba(255, 255, 255, 0.5); color: #ffffff; }
+
+    .note {
+      display: inline-block;
+      margin: 0 8px 8px 0;
+      border: 1px dashed rgba(255, 255, 255, 0.35);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    @media (max-width: 900px) {
+      .grid-2, .cols, .actions {
+        grid-template-columns: 1fr;
+      }
+      .hero { padding-top: 92px; }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div class="container">
+      <div class="label">Investor Relations</div>
+      <h1>Strategic Partnerships. Lasting Returns.</h1>
+      <p>
+        At The Specialist Realty Solutions and Services, we believe that real estate is not just about properties, it is about possibilities.
+        Our curated investment offerings are designed for discerning investors who value performance, transparency, and long-term growth.
+      </p>
+    </div>
+  </section>
+
+  <section class="section soft">
+    <div class="container">
+      <div class="card">
+        <p>
+          Whether you are a private investor, corporate partner, or institutional buyer, our team offers a seamless,
+          end-to-end experience rooted in market intelligence and elite property strategy.
+        </p>
+        <h2>Why Invest With Us</h2>
+        <div class="grid-2">
+          <ul class="stack">
+            <li>Proven Returns in high-demand urban and emerging markets</li>
+            <li>Portfolio Diversification across residential, commercial, and mixed-use assets</li>
+            <li>Data-Driven Strategy backed by advanced market insights</li>
+          </ul>
+          <ul class="stack">
+            <li>Dedicated Investor Relations for personalized service and reporting</li>
+            <li>Ethical, Sustainable Growth aligned with responsible development</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container cols">
+      <article class="card">
+        <h2>Investment Opportunities</h2>
+        <p>We offer exclusive access to:</p>
+        <ul class="stack">
+          <li>Pre-Construction Projects in high-yield zones</li>
+          <li>Income-Producing Rentals with optimized tenancy solutions</li>
+          <li>Luxury Property Redevelopments in premium locations</li>
+          <li>Equity Partnerships and Joint Venture Projects</li>
+        </ul>
+        <p>
+          Each opportunity is rigorously vetted by our acquisitions and legal teams to ensure integrity, security, and
+          strategic alignment with your financial goals.
+        </p>
+      </article>
+
+      <article class="card" style="background:#f8f9fa;">
+        <h2>The Specialist Experience</h2>
+        <ul class="stack">
+          <li>Tailored investment planning and guidance</li>
+          <li>Regular portfolio performance reports</li>
+          <li>Private previews of upcoming listings</li>
+          <li>Legal and financial coordination support</li>
+          <li>Direct access to our executive relations team</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="section cta">
+    <div class="container">
+      <div class="label" style="color:var(--brand-gold);">Ready to Invest With Confidence?</div>
+      <h2>We invite you to explore partnership with us.</h2>
+      <div class="actions">
+        <a href="#" class="btn primary">Download Our Investment Prospectus</a>
+        <a href="#" class="btn light">Schedule a Private Consultation</a>
+        <a href="#" class="btn ghost">Investor Portal Login</a>
+      </div>
+      <div style="margin-top:16px;">
+        <span class="note">Wireframe CTA placement</span>
+        <span class="note">Action hierarchy uses current brand palette</span>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

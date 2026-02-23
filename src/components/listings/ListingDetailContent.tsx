@@ -113,6 +113,12 @@ export function ListingDetailContent({
   onZoom,
   onRequestInfo,
 }: ListingDetailContentProps) {
+  const listingPath = `/listings/${listing.id}`;
+  const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? '';
+  const listingUrlForMessage = siteOrigin ? `${siteOrigin}${listingPath}` : listingPath;
+  const whatsappMessage = `I would like more details about this property\n\n${listingUrlForMessage}`;
+  const whatsappHref = `https://wa.me/639212303011?text=${encodeURIComponent(whatsappMessage)}`;
+
   const formatPrice = (price: number | null) => {
     if (!price) return 'Price on Request';
     return new Intl.NumberFormat('en-US', {
@@ -397,21 +403,7 @@ export function ListingDetailContent({
               <div>
                 <div className="text-sm font-medium text-[#111111]/70 mb-1">Phone</div>
                 <a
-                  href={(() => {
-                    // Construct the listing URL
-                    const listingUrl = typeof window !== 'undefined'
-                      ? `${window.location.origin}/listings/${listing.id}`
-                      : `/listings/${listing.id}`;
-                    
-                    // Create the WhatsApp message
-                    const message = `I would like more details about this property\n\n${listingUrl}`;
-                    
-                    // URL encode the message
-                    const encodedMessage = encodeURIComponent(message);
-                    
-                    // Return the WhatsApp URL with pre-filled message
-                    return `https://wa.me/639212303011?text=${encodedMessage}`;
-                  })()}
+                  href={whatsappHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-[#111111] hover:text-[#D4AF37] transition-colors flex items-center gap-2"

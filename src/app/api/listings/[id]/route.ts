@@ -5,8 +5,8 @@ import { UserRole, ActivityAction } from '@prisma/client';
 import { logListingActivity } from '@/lib/activity-logger';
 import { safeParseInt, safeParseFloat } from '@/lib/validation';
 import { logger } from '@/lib/logger';
-import { revalidatePath, revalidateTag } from 'next/cache';
-import { CACHE_TAGS, getCachedListing } from '@/lib/cache';
+import { getCachedListing } from '@/lib/cache';
+import { revalidateListingCaches } from '@/lib/listing-revalidation';
 
 export async function GET(
   request: NextRequest,
@@ -17,11 +17,15 @@ export async function GET(
     // Anonymous users can view published listings
     const user = await getAuthenticatedUser(request);
     const { id } = await params;
+    const isDashboardEditRequest = request.headers.get('x-dashboard-edit') === '1';
     
-    // Try to get from cache if published
-    let listing = await getCachedListing(id);
-    
-    // If not in cache or not published, fetch directly
+    // For authenticated dashboard edit flow, always fetch fresh listing data.
+    // For all other flows, keep current cache behavior.
+    let listing = null;
+    if (!(user && isDashboardEditRequest)) {
+      listing = await getCachedListing(id);
+    }
+
     if (!listing) {
       listing = await prisma.listing.findUnique({
         where: { id },
@@ -76,7 +80,9 @@ export async function GET(
 
     // Add cache headers for published listings
     const headers = new Headers();
-    if (listing.isPublished) {
+    if (user && isDashboardEditRequest) {
+      headers.set('Cache-Control', 'no-store');
+    } else if (listing.isPublished) {
       // Cache published listings for 5 minutes, revalidate in background
       headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
     }
@@ -182,11 +188,8 @@ export async function PUT(
       logger.error('Failed to log activity (non-critical):', activityError);
     }
 
-    // Revalidate cache when listing is updated
-    revalidateTag(CACHE_TAGS.LISTING(id), 'max');
-    revalidateTag(CACHE_TAGS.LISTINGS, 'max');
-    revalidatePath('/listings');
-    revalidatePath(`/listings/${id}`, 'page');
+    // Non-blocking cache revalidation for listing views
+    revalidateListingCaches(id);
     return NextResponse.json({ success: true, listing: updated });
   } catch (error) {
     logger.error('Error updating listing:', error);
