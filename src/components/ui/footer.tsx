@@ -6,7 +6,8 @@ export function Footer() {
     <footer className="bg-[#1F2937] border-t border-[#374151] relative z-20">
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+        <div className="px-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Column 1 — Branding */}
           <div>
             <div className="mb-4">
@@ -137,14 +138,17 @@ export function Footer() {
               </Link>
             </div>
           </div>
+          </div>
         </div>
       </div>
 
       {/* Bottom Bar */}
       <div className="border-t border-[#374151]">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-          <div className="text-center text-sm text-white/70">
+          <div className="px-2">
+            <div className="text-center text-sm text-white/70">
             <p>© The Specialist - Realty Solutions & Services. All rights reserved 2026.</p>
+            </div>
           </div>
         </div>
       </div>

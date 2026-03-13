@@ -88,7 +88,7 @@ export function FeaturedListings({ cardVariant }: FeaturedListingsProps) {
 
   if (loading) {
     return (
-      <div className="listing-grid">
+      <div className="listing-grid featured-listing-grid">
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className={`${cardVariant === 'landing' ? 'listing-card ' : ''}animate-pulse`}>
             <div className="h-64 bg-gray-200"></div>
@@ -114,7 +114,7 @@ export function FeaturedListings({ cardVariant }: FeaturedListingsProps) {
   }));
 
   return (
-    <div className="listing-grid">
+    <div className="listing-grid featured-listing-grid">
       {normalizedListings.map((listing) => (
         <ListingCard
           key={listing.id}

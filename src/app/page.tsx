@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
+import { Sparkles, House } from 'lucide-react';
 import { ScrollAnimation } from '@/components/ui/scroll-animation';
 import { HeroSearch } from '@/components/ui/hero-search';
 import { LogoutMessage } from '@/components/logout-message';
@@ -36,15 +37,15 @@ export default function Home() {
           {/* Hero Panel - Left */}
           <div className="hero-panel">
             <h1>Meet The Specialist</h1>
-            <p className="lead">Welcome to The Specialist Realty Solutions and Services—where elevated real estate guidance meets genuine client care.</p>
-            <p className="lead">With over 10 years of expertise in developer selling, title transfers, and appraisals, we help you make confident property decisions through expert support and a refreshingly honest approach.</p>
+            <p className="lead">Welcome to The Specialist Realty Solutions and Services. Elevated Real Estate guidance meets genuine client care.</p>
+            <p className="lead">With over 10 years of expertise in general brokerage, developer selling, documentation and valuation, we help you make confident property decisions through expert support and a refreshingly honest approach.</p>
             <p className="lead">Whether you're searching for a condominium, family home, or investment property, we make your journey smooth, informed, and truly rewarding.</p>
           </div>
 
           {/* Hero Actions Card - Right */}
           <div className="hero-actions-card">
             <div className="hero-actions-header">
-              <span className="section-icon">✦</span>
+              <Sparkles size={16} className="section-icon" />
               Quick Actions
             </div>
             <p className="hero-actions-intro">Ready to explore your next home? Browse our curated listings or book a personalized tour today.</p>
@@ -55,10 +56,9 @@ export default function Home() {
             
             <div className="hero-actions-sell">
               <div className="hero-actions-header">
-                <span className="section-icon">⌂</span>
+                <House size={16} className="section-icon" />
                 Sell Your Property
               </div>
-              <p className="enlist-message">LIST YOUR PROPERTIES WITH US</p>
               <div className="cta-row">
                 <a href="/contact" className="enlist-button">Enlist Now</a>
               </div>
@@ -79,7 +79,7 @@ export default function Home() {
           <div className="section-header-centered">
             <p className="eyebrow">Our Difference</p>
             <h2>Why Choose The Specialist Realty</h2>
-            <p>Expertise You Can Trust, Service You Can Feel</p>
+            <p className="why-choose-subtext">Expertise You Can Trust, Service You Can Feel</p>
           </div>
           
           <div className="why-choose-grid">
@@ -163,33 +163,33 @@ export default function Home() {
           <div className="section-header-centered">
             <p className="eyebrow">What We Do</p>
             <h2>Our Services</h2>
-            <p>Comprehensive real estate solutions for all your needs</p>
+            <p className="services-subtext">Comprehensive real estate solutions for all your needs</p>
           </div>
 
           <div className="cards-5">
             <article className="card">
               <h3>Buying</h3>
-              <p className="text-sm">Property search, negotiation, and purchase assistance</p>
+              <p className="text-base">Property search, negotiation, and purchase assistance</p>
             </article>
 
             <article className="card">
               <h3>Selling</h3>
-              <p className="text-sm">Marketing, pricing strategy, and buyer qualification</p>
+              <p className="text-base">Marketing, pricing strategy, and buyer qualification</p>
             </article>
 
             <article className="card">
               <h3>Leasing</h3>
-              <p className="text-sm">Unit showcasing, tenant screening, and lease agreements</p>
+              <p className="text-base">Unit showcasing, tenant screening, and lease agreements</p>
             </article>
 
             <article className="card">
               <h3>Documentation</h3>
-              <p className="text-sm">Title transfer, deed preparation, and BIR coordination</p>
+              <p className="text-base">Title transfer, deed preparation, and BIR coordination</p>
             </article>
 
             <article className="card">
               <h3>Valuation</h3>
-              <p className="text-sm">Market-based property assessments for informed decisions</p>
+              <p className="text-base">Market-based property assessments for informed decisions</p>
             </article>
           </div>
         </div>
@@ -197,7 +197,7 @@ export default function Home() {
 
       {/* Featured Listings Section - Phase 5 */}
       <section className="section featured">
-        <div className="container">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="section-header">
             <p className="eyebrow">Available Now</p>
             <h2>Featured Listings</h2>
@@ -230,4 +230,6 @@ export default function Home() {
     </div>
   );
 }
+
+
 

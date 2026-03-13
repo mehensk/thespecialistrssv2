@@ -123,13 +123,23 @@ function ContactPageContent() {
   return (
     <div className="min-h-screen bg-white pt-[84px]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-[#1F2937] to-[#111111] text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
-          <div className="text-center">
+      <section className="relative text-white py-16 md:py-20 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: 'url("https://images.pexels.com/photos/4158/apple-iphone-smartphone-desk.jpg?cs=srgb&dl=pexels-pixabay-4158.jpg&fm=jpg")',
+            backgroundPosition: 'center center',
+            backgroundSize: 'cover',
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0d0f12]/78 via-[#0d0f12]/68 to-[#1e2a36]/60"></div>
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 md:px-6">
+          <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl font-semibold mb-4 tracking-tight">
               Contact Us
             </h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto tracking-wide">
+            <p className="text-xl text-white/90 tracking-wide">
               Get in touch with us. We're here to help you find your perfect property or assist with your real estate needs.
             </p>
           </div>

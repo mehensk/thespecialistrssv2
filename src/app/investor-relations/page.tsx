@@ -50,7 +50,7 @@ const specialistExperience = [
 export default function InvestorRelationsPage() {
   return (
     <div className="min-h-screen bg-white">
-      <section className="relative overflow-hidden border-b border-[#dde2e7] pt-24 pb-16 md:pt-32 md:pb-20">
+      <section className="relative overflow-hidden border-b border-[#dde2e7] pt-[clamp(6.5rem,18vw,8.5rem)] pb-16 md:pt-32 md:pb-20">
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=1920&q=80"
