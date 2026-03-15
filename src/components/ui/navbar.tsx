@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -12,6 +12,7 @@ import { broadcastLogout } from '@/components/providers/LogoutSync';
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isLocalDevHost, setIsLocalDevHost] = useState(false);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
   const { data: session, status } = useSession();
@@ -88,6 +89,11 @@ export function Navbar() {
       window.location.href = '/?logout=success';
     }
   };
+
+  useEffect(() => {
+    const host = window.location.hostname.toLowerCase();
+    setIsLocalDevHost(host === 'localhost' || host === '127.0.0.1');
+  }, []);
 
   useEffect(() => {
     // Only track scroll on homepage
@@ -222,10 +228,10 @@ export function Navbar() {
 
         {/* Desktop CTA Buttons — Right-aligned */}
         <div className="hidden lg:flex items-center gap-3 flex-shrink-0 ml-10">
-          {/* Login link - always visible for easy development access */}
-          {!isAuthenticated && (
+          {/* Login link - local development only */}
+          {!isAuthenticated && isLocalDevHost && (
             <Link
-              href="/login"
+              href="/noisy-pixel-8146"
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-space-grotesk text-base font-medium transition-all ${
                 shouldBeTransparent
                   ? 'text-white hover:bg-white/20 border border-white/30'
@@ -260,10 +266,10 @@ export function Navbar() {
 
         {/* Mobile Buttons Container */}
         <div className="lg:hidden ml-auto flex items-center gap-1.5 flex-shrink-0">
-          {/* Login link - always visible for easy development access */}
-          {!isAuthenticated && (
+          {/* Login link - local development only */}
+          {!isAuthenticated && isLocalDevHost && (
             <Link
-              href="/login"
+              href="/noisy-pixel-8146"
               className={`flex items-center justify-center gap-1 px-2.5 py-2 rounded-md font-space-grotesk text-base font-medium transition-all min-w-[60px] ${
                 shouldBeTransparent
                   ? 'text-white hover:bg-white/20 border border-white/30'
@@ -353,9 +359,9 @@ export function Navbar() {
               </span>
             </MobileLink>
           )}
-          {!isAuthenticated && (
+          {!isAuthenticated && isLocalDevHost && (
             <Link
-              href="/login"
+              href="/noisy-pixel-8146"
               className="block text-center bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-4 py-2.5 rounded-md mt-2 shadow-md flex items-center justify-center gap-2 font-space-grotesk text-base font-medium"
               onClick={closeMenu}
             >

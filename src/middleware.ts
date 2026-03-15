@@ -6,6 +6,7 @@ import { hasServerRestarted } from '@/lib/server-start-time';
 // Session timeout constants (must match auth.ts)
 const SESSION_MAX_AGE = 24 * 60 * 60; // 24 hours in seconds
 const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
+const SECRET_LOGIN_PATH = '/noisy-pixel-8146';
 
 /**
  * Validate token similar to JWT callback
@@ -43,12 +44,47 @@ function validateToken(token: any): boolean {
   return true;
 }
 
+function getClientIp(request: NextRequest): string {
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
+
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0].trim();
+  }
+
+  if (realIp) {
+    return realIp;
+  }
+
+  return 'unknown-ip';
+}
+
+function logProbe(request: NextRequest, event: 'blocked_wp_admin_probe') {
+  console.warn('[SECURITY] Probe blocked', {
+    event,
+    path: request.nextUrl.pathname,
+    ip: getClientIp(request),
+    userAgent: request.headers.get('user-agent') || 'unknown-user-agent',
+    host: request.headers.get('host') || 'unknown-host',
+    timestamp: new Date().toISOString(),
+  });
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
+  if (pathname === '/wp-admin' || pathname.startsWith('/wp-admin/')) {
+    logProbe(request, 'blocked_wp_admin_probe');
+    return new NextResponse('Not Found', { status: 404 });
+  }
+
   // Public routes that don't require auth
-  const publicRoutes = ['/', '/listings', '/blog', '/contact', '/login', '/api/auth', '/403', '/auth/callback'];
-  if (publicRoutes.some(route => pathname === route || pathname.startsWith(route))) {
+  const exactPublicRoutes = [SECRET_LOGIN_PATH, '/403'];
+  const prefixPublicRoutes = ['/api/auth', '/auth/callback'];
+  if (
+    exactPublicRoutes.includes(pathname) ||
+    prefixPublicRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`))
+  ) {
     return NextResponse.next();
   }
 
@@ -101,6 +137,8 @@ export const config = {
   matcher: [
     '/admin/:path*',
     '/dashboard/:path*',
+    '/wp-admin',
+    '/wp-admin/:path*',
   ],
 };
 

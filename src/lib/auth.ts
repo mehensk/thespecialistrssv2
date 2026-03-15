@@ -265,7 +265,7 @@ const authOptions = {
     },
   },
   pages: {
-    signIn: '/login',
+    signIn: '/noisy-pixel-8146',
   },
   secret: process.env.NEXTAUTH_SECRET,
   trustHost: true, // Required for NextAuth v5 in serverless environments (Netlify, Vercel)

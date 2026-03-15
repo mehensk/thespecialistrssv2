@@ -7,6 +7,12 @@ import { SessionProvider } from '@/components/providers/SessionProvider';
 import { LogoutSync } from '@/components/providers/LogoutSync';
 import { ToastProvider } from '@/components/ui/toast';
 
+const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.URL ||
+  'http://localhost:3000'
+).replace(/\/$/, '');
+
 export const metadata: Metadata = {
   title: {
     default: 'The Specialist Realty Solutions',
@@ -14,7 +20,7 @@ export const metadata: Metadata = {
   },
   description:
     'Buy, sell, or invest with confidence. The Specialist Realty Solutions delivers expert real estate support and high-value listings.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://thespecialistrealty.com'),
+  metadataBase: new URL(siteUrl),
   alternates: {
     canonical: '/',
   },

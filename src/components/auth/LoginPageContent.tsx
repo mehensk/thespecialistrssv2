@@ -1,0 +1,242 @@
+'use client';
+
+import { useState, Suspense } from 'react';
+import { signIn, getSession } from 'next-auth/react';
+import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
+import { UserRole } from '@prisma/client';
+import { broadcastLogin } from '@/components/providers/LogoutSync';
+
+function LoginForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      console.log('[LOGIN] Attempting sign in for:', email);
+      // Use redirect: false to handle errors, then redirect manually
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      console.log('[LOGIN] Sign in result:', {
+        ok: result?.ok,
+        error: result?.error,
+        status: result?.status,
+        url: result?.url,
+      });
+
+      if (result?.error) {
+        console.error('[LOGIN] Sign in error:', result.error);
+        setError('Invalid email or password');
+        setLoading(false);
+        return;
+      }
+
+      if (result?.ok) {
+        // Session is established - wait for cookie to be set, then redirect
+        // Use a delay to ensure cookies are set before redirect
+        const delay = typeof window !== 'undefined' && window.location.hostname.includes('netlify')
+          ? 1200
+          : 500;
+        await new Promise(resolve => setTimeout(resolve, delay));
+
+        // Try to get session with retries - use both getSession() and API fetch
+        let session = await getSession();
+        let retries = 0;
+        const maxRetries = 12; // More retries for Netlify
+
+        while ((!session?.user?.role) && retries < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 250));
+
+          // Try getSession first
+          session = await getSession();
+
+          // If getSession doesn't work, try fetching from API directly
+          if (!session?.user?.role) {
+            try {
+              const response = await fetch('/api/auth/session', {
+                credentials: 'include',
+                cache: 'no-store'
+              });
+              if (response.ok) {
+                const sessionData = await response.json();
+                if (sessionData?.user?.role) {
+                  session = sessionData;
+                  break; // Found session, exit loop
+                }
+              }
+            } catch (err) {
+              // Ignore API errors, continue retrying
+            }
+          } else {
+            break; // Found session, exit loop
+          }
+
+          retries++;
+        }
+
+        console.log('[LOGIN] Final session check:', {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          hasRole: !!session?.user?.role,
+          role: session?.user?.role,
+          sessionData: session,
+        });
+
+        if (session?.user?.role) {
+          // Broadcast login to all tabs
+          broadcastLogin();
+
+          // Redirect directly based on role - client-side redirect is more reliable
+          const redirectPath = session.user.role === UserRole.ADMIN
+            ? '/admin/dashboard'
+            : '/dashboard';
+          const redirectUrl = `${window.location.origin}${redirectPath}`;
+          console.log('✅ Login successful, redirecting to:', redirectUrl, 'Role:', session.user.role);
+          // Use replace to ensure redirect completes and prevent back navigation
+          window.location.replace(redirectUrl);
+        } else {
+          // If session still not available, redirect to home and let user navigate manually
+          // The navbar will show they're logged in, so they can click the dashboard link
+          console.warn('⚠️ Session not available after retries, redirecting to home');
+          console.warn('⚠️ Session details:', {
+            session,
+            cookies: document.cookie,
+          });
+          window.location.replace(window.location.origin);
+        }
+      } else {
+        setError('An error occurred. Please try again.');
+        setLoading(false);
+      }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(
+        err?.message?.includes('JSON')
+          ? 'Connection error. Please check your network and try again.'
+          : 'An error occurred. Please try again.'
+      );
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white pt-[84px] flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-[#E5E7EB]">
+          <h1 className="text-3xl font-semibold text-[#111111] mb-2 text-center">
+            Sign In
+          </h1>
+          <p className="text-[#111111]/70 text-center mb-8">
+            Access your dashboard
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-[#111111] mb-2">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                placeholder="your@email.com"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-[#111111] mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 pr-12 border border-[#E5E7EB] rounded-md focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#111111]/50 hover:text-[#111111] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1F2937] rounded"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={0}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <Link
+              href="/"
+              className="text-[#111111]/70 hover:text-[#111111] text-sm"
+            >
+              ← Back to home
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPageContent() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white pt-[84px] flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-xl shadow-lg p-8 border border-[#E5E7EB]">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-32 mx-auto mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-48 mx-auto mb-8"></div>
+              <div className="space-y-6">
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
+  );
+}
