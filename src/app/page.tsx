@@ -91,7 +91,7 @@ export default function Home() {
                   <path d="m9 12 2 2 4-4"/>
                 </svg>
               </div>
-              <h3>Expert Guidance</h3>
+              <h3>Professional Guidance</h3>
               <div className="card-content">
                 <p>From property selection to final turnover, we guide you with clarity and confidence throughout the entire process.</p>
               </div>

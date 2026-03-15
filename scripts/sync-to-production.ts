@@ -18,6 +18,7 @@
 
 import { PrismaClient, Prisma } from '@prisma/client';
 import dotenv from 'dotenv';
+import { slugifyListingTitle } from '../src/lib/listing-slug';
 
 // Load local .env file
 dotenv.config();
@@ -150,6 +151,10 @@ async function syncToProduction() {
     let listingsSynced = 0;
     let listingsSkipped = 0;
     for (const listing of devListingsList) {
+      const listingSlug = listing.slug && listing.slug.trim().length > 0
+        ? listing.slug
+        : slugifyListingTitle(listing.title);
+
       try {
         // Ensure user exists in production (create if not)
         await productionPrisma.user.upsert({
@@ -169,6 +174,7 @@ async function syncToProduction() {
         await productionPrisma.listing.upsert({
           where: { id: listing.id },
           update: {
+            slug: listingSlug,
             title: listing.title,
             description: listing.description,
             price: listing.price,
@@ -195,6 +201,7 @@ async function syncToProduction() {
           },
           create: {
             id: listing.id,
+            slug: listingSlug,
             title: listing.title,
             description: listing.description,
             price: listing.price,

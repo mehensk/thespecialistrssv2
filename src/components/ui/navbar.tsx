@@ -178,7 +178,7 @@ export function Navbar() {
             
             {/* Dropdown Menu */}
             <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-              <div className="bg-white rounded-lg shadow-lg border border-[#dde2e7] min-w-[180px] overflow-hidden">
+              <div className="bg-white rounded-lg shadow-lg border border-[#dde2e7] min-w-[220px] overflow-hidden">
                 {/* Gold accent line at top */}
                 <div className="h-0.5 bg-gradient-to-r from-[#D4AF37] via-[#D4AF37]/30 to-transparent"></div>
                 
@@ -187,19 +187,19 @@ export function Navbar() {
                 
                 <a 
                   href="/listings"
-                  className="block px-5 py-2.5 text-base text-[#1e2a36] hover:bg-[#f0f2f4] hover:text-[#2f5f8f] border-l-3 border-transparent hover:border-[#D4AF37] transition-all pl-5 hover:pl-6 font-space-grotesk font-medium"
+                  className="block whitespace-nowrap px-5 py-2.5 text-base text-[#1e2a36] hover:bg-[#f0f2f4] hover:text-[#2f5f8f] border-l-3 border-transparent hover:border-[#D4AF37] transition-all pl-5 hover:pl-6 font-space-grotesk font-medium"
                 >
                   Listings
                 </a>
                 <a 
                   href="/investor-relations"
-                  className="block px-5 py-2.5 text-base text-[#1e2a36] hover:bg-[#f0f2f4] hover:text-[#2f5f8f] border-l-3 border-transparent hover:border-[#D4AF37] transition-all pl-5 hover:pl-6 font-space-grotesk font-medium"
+                  className="block whitespace-nowrap px-5 py-2.5 text-base text-[#1e2a36] hover:bg-[#f0f2f4] hover:text-[#2f5f8f] border-l-3 border-transparent hover:border-[#D4AF37] transition-all pl-5 hover:pl-6 font-space-grotesk font-medium"
                 >
                   Investor Relations
                 </a>
                 <a 
                   href="/developer-selling"
-                  className="block px-5 py-2.5 text-base text-[#1e2a36] hover:bg-[#f0f2f4] hover:text-[#2f5f8f] border-l-3 border-transparent hover:border-[#D4AF37] transition-all pl-5 hover:pl-6 font-space-grotesk font-medium"
+                  className="block whitespace-nowrap px-5 py-2.5 text-base text-[#1e2a36] hover:bg-[#f0f2f4] hover:text-[#2f5f8f] border-l-3 border-transparent hover:border-[#D4AF37] transition-all pl-5 hover:pl-6 font-space-grotesk font-medium"
                 >
                   Developer Selling
                 </a>

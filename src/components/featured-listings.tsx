@@ -5,6 +5,7 @@ import { ListingCard } from '@/components/listings/ListingCard';
 
 interface Listing {
   id: string;
+  slug: string | null;
   title: string;
   price: number | null;
   bedrooms: number | null;
@@ -50,6 +51,7 @@ export function FeaturedListings({ cardVariant }: FeaturedListingsProps) {
 
             return {
               id: listing.id,
+              slug: listing.slug ?? null,
               title: listing.title || '',
               price: listing.price || null,
               bedrooms,

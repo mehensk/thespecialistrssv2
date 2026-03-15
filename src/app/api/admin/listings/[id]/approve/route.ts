@@ -43,7 +43,7 @@ export async function POST(
     });
 
     // Non-blocking cache revalidation for listing views
-    revalidateListingCaches(id);
+    revalidateListingCaches(id, listing.slug);
     return NextResponse.json({ success: true, listing: updated });
   } catch (error) {
     console.error('Error approving listing:', error);

@@ -3,20 +3,26 @@
 import { Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { useToast } from '@/components/ui/toast';
 
 export function DeleteButton({ listingId, title }: { listingId: string; title: string }) {
   const router = useRouter();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleDelete = async () => {
+    const confirmed = window.confirm(`Are you sure to delete this listing: "${title}"?`);
+    if (!confirmed) {
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch(`/api/listings/${listingId}/delete`, {
         method: 'POST',
+        headers: {
+          'x-delete-confirmed': '1',
+        },
       });
 
       if (!response.ok) {
@@ -38,23 +44,15 @@ export function DeleteButton({ listingId, title }: { listingId: string; title: s
   return (
     <>
       <button
-        onClick={() => setShowConfirm(true)}
+        onClick={() => {
+          void handleDelete();
+        }}
         disabled={loading}
         className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         title="Delete listing"
       >
         <Trash2 size={16} />
       </button>
-      <ConfirmationModal
-        isOpen={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        onConfirm={handleDelete}
-        title="Delete Listing"
-        message={`Are you sure you want to delete "${title}"? This action cannot be undone.`}
-        confirmText="Delete"
-        confirmButtonClass="bg-red-600 hover:bg-red-700"
-        loading={loading}
-      />
     </>
   );
 }

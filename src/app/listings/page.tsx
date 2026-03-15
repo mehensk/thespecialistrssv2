@@ -55,6 +55,7 @@ function ListingsPageContent() {
             
             return {
               id: listing.id,
+              slug: listing.slug ?? null,
               price: listing.price || 0,
               bedrooms,
               bathrooms: listing.bathrooms === null || listing.bathrooms === undefined || listing.bathrooms === ''

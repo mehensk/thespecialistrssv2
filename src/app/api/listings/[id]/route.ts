@@ -31,6 +31,7 @@ export async function GET(
         where: { id },
         select: {
           id: true,
+          slug: true,
           title: true,
           description: true,
           price: true,
@@ -189,7 +190,7 @@ export async function PUT(
     }
 
     // Non-blocking cache revalidation for listing views
-    revalidateListingCaches(id);
+    revalidateListingCaches(id, updated.slug);
     return NextResponse.json({ success: true, listing: updated });
   } catch (error) {
     logger.error('Error updating listing:', error);

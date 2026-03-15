@@ -10,9 +10,11 @@ import { CompactListingCard } from '@/components/admin/CompactListingCard';
 import { SearchInput } from '@/components/ui/search-input';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { useToast } from '@/components/ui/toast';
+import { buildCanonicalListingPath } from '@/lib/listing-slug';
 
 interface Listing {
   id: string;
+  slug: string | null;
   propertyId: string | null;
   title: string;
   price: number | null;
@@ -212,7 +214,7 @@ export function AdminListingsView({ listings }: AdminListingsViewProps) {
                     <td className="px-4 py-2 text-xs">
                       <div className="flex items-center gap-1">
                         <Link
-                          href={`/listings/${listing.id}`}
+                          href={listing.slug ? buildCanonicalListingPath(listing.slug, listing.id) : `/listings/${listing.id}`}
                           className="p-1.5 text-[#111111]/70 hover:text-[#111111] hover:bg-[#F9FAFB] rounded-md transition-colors"
                           target="_blank"
                           title="View"

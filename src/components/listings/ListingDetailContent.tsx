@@ -8,9 +8,11 @@ import {
   Shirt, Package, Sparkles, ShoppingBag, GraduationCap, Bus, Building2, Waves as WaterWaves,
   Camera, Flame, ConciergeBell, TreePine, Briefcase, Tv, Wrench, AlertCircle, Building
 } from 'lucide-react';
+import { buildCanonicalListingPath } from '@/lib/listing-slug';
 
 interface Listing {
   id: string;
+  slug?: string | null;
   title: string;
   description: string;
   price: number | null;
@@ -113,7 +115,7 @@ export function ListingDetailContent({
   onZoom,
   onRequestInfo,
 }: ListingDetailContentProps) {
-  const listingPath = `/listings/${listing.id}`;
+  const listingPath = listing.slug ? buildCanonicalListingPath(listing.slug, listing.id) : `/listings/${listing.id}`;
   const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? '';
   const listingUrlForMessage = siteOrigin ? `${siteOrigin}${listingPath}` : listingPath;
   const whatsappMessage = `I would like more details about this property\n\n${listingUrlForMessage}`;

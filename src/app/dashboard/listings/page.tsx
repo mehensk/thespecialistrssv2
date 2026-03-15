@@ -16,6 +16,7 @@ async function getListings(userId: string) {
     where: { userId },
     select: {
       id: true,
+      slug: true,
       title: true,
       location: true,
       price: true,

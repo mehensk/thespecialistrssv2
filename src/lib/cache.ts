@@ -21,6 +21,7 @@ export async function getCachedListings(options?: {
         where: { isPublished: true },
         select: {
           id: true,
+          slug: true,
           title: true,
           price: true,
           location: true,
@@ -63,6 +64,7 @@ export async function getCachedListing(id: string) {
         where: { id },
         select: {
           id: true,
+          slug: true,
           title: true,
           description: true,
           price: true,
@@ -171,7 +173,7 @@ export async function getCachedListingIds(limit: number = 100) {
     async () => {
       const listings = await prisma.listing.findMany({
         where: { isPublished: true },
-        select: { id: true },
+        select: { id: true, slug: true },
         orderBy: { createdAt: 'desc' },
         take: limit,
       });

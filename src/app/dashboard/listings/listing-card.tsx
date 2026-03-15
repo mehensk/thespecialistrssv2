@@ -4,10 +4,12 @@ import Link from 'next/link';
 import { Eye, Edit, CheckCircle, Clock } from 'lucide-react';
 import { ApproveButton } from './approve-button';
 import { DeleteButton } from './delete-button';
+import { buildCanonicalListingPath } from '@/lib/listing-slug';
 
 interface ListingCardProps {
   listing: {
     id: string;
+    slug?: string | null;
     title: string;
     location: string;
     price: number | null;
@@ -17,6 +19,8 @@ interface ListingCardProps {
 }
 
 export function ListingCard({ listing, isAdmin }: ListingCardProps) {
+  const listingPath = listing.slug ? buildCanonicalListingPath(listing.slug, listing.id) : `/listings/${listing.id}`;
+
   return (
     <div className="bg-white rounded-xl shadow-lg border border-[#E5E7EB] overflow-hidden hover:shadow-xl transition-shadow">
       <Link
@@ -51,7 +55,7 @@ export function ListingCard({ listing, isAdmin }: ListingCardProps) {
       </Link>
       <div className="px-6 pb-6 flex items-center gap-2">
         <Link
-          href={`/listings/${listing.id}`}
+          href={listingPath}
           className="p-2 text-[#111111]/70 hover:text-[#111111] hover:bg-[#F9FAFB] rounded-md transition-colors"
           target="_blank"
           onClick={(e) => e.stopPropagation()}

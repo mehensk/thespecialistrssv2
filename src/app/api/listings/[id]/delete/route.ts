@@ -10,6 +10,11 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const deleteConfirmed = request.headers.get('x-delete-confirmed') === '1';
+    if (!deleteConfirmed) {
+      return NextResponse.json({ error: 'Delete confirmation required' }, { status: 400 });
+    }
+
     const user = await getAuthenticatedUser(request);
 
     if (!user) {
@@ -35,7 +40,7 @@ export async function POST(
     await prisma.listing.delete({ where: { id } });
 
     // Non-blocking cache revalidation for listing views
-    revalidateListingCaches(id);
+    revalidateListingCaches(id, listing.slug);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting listing:', error);

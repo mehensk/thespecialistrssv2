@@ -13,6 +13,7 @@
 
 import { PrismaClient, Prisma } from '@prisma/client';
 import dotenv from 'dotenv';
+import { slugifyListingTitle } from '../src/lib/listing-slug';
 
 // Load local .env file
 dotenv.config();
@@ -148,6 +149,10 @@ async function migrateToNeon() {
 
     let listingsMigrated = 0;
     for (const listing of localListingsList) {
+      const listingSlug = listing.slug && listing.slug.trim().length > 0
+        ? listing.slug
+        : slugifyListingTitle(listing.title);
+
       try {
         // Get Neon user ID (should already exist from user migration)
         const neonUserId = userMapping.get(listing.userId);
@@ -168,6 +173,7 @@ async function migrateToNeon() {
         await neonPrisma.listing.upsert({
           where: { id: listing.id },
           update: {
+            slug: listingSlug,
             title: listing.title,
             description: listing.description,
             price: listing.price,
@@ -194,6 +200,7 @@ async function migrateToNeon() {
           },
           create: {
             id: listing.id,
+            slug: listingSlug,
             title: listing.title,
             description: listing.description,
             price: listing.price,

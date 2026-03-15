@@ -31,12 +31,23 @@ export function CompactListingCard({ listing }: CompactListingCardProps) {
   // Convert createdAt to ISO string for consistent formatting
   const createdAtIso = new Date(listing.createdAt as string).toISOString().split('T')[0];
 
+  const handleDeleteClick = () => {
+    const confirmed = window.confirm('Are you sure to delete this listing?');
+    if (!confirmed) {
+      return;
+    }
+    void handleDelete();
+  };
+
   const handleDelete = async () => {
     setIsDeleting(true);
     
     try {
       const response = await fetch(`/api/admin/listings/${listing.id}/delete`, {
         method: 'POST',
+        headers: {
+          'x-delete-confirmed': '1',
+        },
       });
 
       if (response.ok) {
@@ -99,7 +110,7 @@ export function CompactListingCard({ listing }: CompactListingCardProps) {
             </div>
           )}
           <button
-            onClick={handleDelete}
+            onClick={handleDeleteClick}
             disabled={isDeleting}
             className="p-1.5 sm:p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             title="Delete"

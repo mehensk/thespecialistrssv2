@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Bed, Bath, Square, MapPin, Car, Calendar, Layers } from 'lucide-react';
 import { formatLocationDisplay, formatLocationWithLabel, formatBedrooms, formatBedroomsForTitle } from '@/lib/location-utils';
+import { buildCanonicalListingPath } from '@/lib/listing-slug';
 
 const propertyTypeMap: { [key: string]: string } = {
   condominium: 'Condominium',
@@ -17,6 +18,7 @@ const propertyTypeMap: { [key: string]: string } = {
 interface ListingCardProps {
   listing: {
     id: string;
+    slug?: string | null;
     title: string;
     price: number | null;
     bedrooms: number | null;
@@ -44,6 +46,8 @@ export function ListingCard({
   className = '',
   variant,
 }: ListingCardProps) {
+  const listingPath = listing.slug ? buildCanonicalListingPath(listing.slug, listing.id) : `/listings/${listing.id}`;
+
   const normalizeNumber = (value: number | string | null | undefined) => {
     if (value === null || value === undefined || value === '') {
       return null;
@@ -64,7 +68,7 @@ export function ListingCard({
 
   return (
     <Link
-      href={`/listings/${listing.id}`}
+      href={listingPath}
       className={`bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block group border border-[#E5E7EB] h-full flex flex-col${variant === 'landing' ? ' listing-card' : ''}${className ? ` ${className}` : ''}`}
     >
       <div className="relative h-56 w-full overflow-hidden bg-gray-100">

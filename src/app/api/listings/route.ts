@@ -8,6 +8,9 @@ import { logger } from '@/lib/logger';
 import { getCachedListings } from '@/lib/cache';
 import { getAuthenticatedUser, hasRequiredRole } from '@/lib/auth-helpers';
 import { revalidateListingCaches } from '@/lib/listing-revalidation';
+import { listingSlugWithSuffix, slugifyListingTitle } from '@/lib/listing-slug';
+
+const CREATE_LISTING_SLUG_MAX_RETRIES = 3;
 
 // Generate a unique property ID using timestamp and UUID
 function generatePropertyId(): string {
@@ -15,6 +18,23 @@ function generatePropertyId(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
   const uuid = randomUUID().substring(0, 8).toUpperCase();
   return `${prefix}-${timestamp}-${uuid}`;
+}
+
+function isUniqueConstraintError(error: unknown, targetField?: string): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002') {
+    return false;
+  }
+
+  if (!targetField) {
+    return true;
+  }
+
+  const target = (error.meta as { target?: string[] | string } | undefined)?.target;
+  if (Array.isArray(target)) {
+    return target.includes(targetField);
+  }
+
+  return target === targetField;
 }
 
 export async function GET(request: NextRequest) {
@@ -52,6 +72,7 @@ export async function GET(request: NextRequest) {
 
     const selectFields = {
       id: true,
+      slug: true,
       title: true,
       price: true,
       location: true,
@@ -156,45 +177,115 @@ export async function POST(request: NextRequest) {
       available,
     } = body;
 
-    // Generate a unique property ID
-    let propertyId = generatePropertyId();
-    
-    // Ensure uniqueness (very unlikely collision with timestamp + UUID, but check anyway)
-    let attempts = 0;
-    while (attempts < 10) {
-      const existing = await prisma.listing.findFirst({
-        where: { propertyId },
-      });
-      if (!existing) break;
-      propertyId = generatePropertyId();
-      attempts++;
+    const createPayload = {
+      title: title.trim(),
+      description: description.trim(),
+      price: safeParseFloat(price, 0),
+      location: location.trim(),
+      city: city ? city.trim() : null,
+      bedrooms: safeParseInt(bedrooms, 0, 50),
+      bathrooms: safeParseFloat(bathrooms, 0, 50),
+      size: safeParseFloat(size, 0, 1000000),
+      propertyType: propertyType || null,
+      listingType: listingType || null,
+      images: Array.isArray(images) ? images : [],
+      address: address ? address.trim() : null,
+      yearBuilt: safeParseInt(yearBuilt, 1800, new Date().getFullYear() + 10),
+      parking: safeParseInt(parking, 0, 100),
+      floor: safeParseInt(floor, 0, 200),
+      totalFloors: safeParseInt(totalFloors, 1, 200),
+      amenities: Array.isArray(amenities) ? amenities : amenities || {},
+      available: available !== undefined ? available : true,
+      userId: user.id,
+      isPublished: false as const, // Requires admin approval
+    };
+
+    let listingWithSlug: Awaited<ReturnType<typeof prisma.listing.create>> | null = null;
+    let createError: unknown = null;
+
+    for (let attempt = 1; attempt <= CREATE_LISTING_SLUG_MAX_RETRIES; attempt++) {
+      try {
+        listingWithSlug = await prisma.$transaction(async (tx) => {
+          // Generate a unique property ID
+          let propertyId = generatePropertyId();
+
+          // Ensure uniqueness (very unlikely collision with timestamp + UUID, but check anyway)
+          let propertyAttempts = 0;
+          while (propertyAttempts < 10) {
+            const existingProperty = await tx.listing.findFirst({
+              where: { propertyId },
+              select: { id: true },
+            });
+
+            if (!existingProperty) break;
+            propertyId = generatePropertyId();
+            propertyAttempts++;
+          }
+
+          const placeholderSlug = `pending-${Date.now().toString(36)}-${randomUUID().slice(0, 8).toLowerCase()}`;
+
+          const listing = await tx.listing.create({
+            data: {
+              ...createPayload,
+              propertyId,
+              slug: placeholderSlug,
+            },
+          });
+
+          const baseSlug = slugifyListingTitle(listing.title);
+          const existingBaseSlug = await tx.listing.findFirst({
+            where: {
+              id: { not: listing.id },
+              slug: baseSlug,
+            },
+            select: { id: true },
+          });
+
+          const preferredSlug = existingBaseSlug ? listingSlugWithSuffix(baseSlug, listing.id) : baseSlug;
+
+          try {
+            return await tx.listing.update({
+              where: { id: listing.id },
+              data: { slug: preferredSlug },
+            });
+          } catch (slugError) {
+            // Handle race where base slug became occupied between check and update.
+            if (!existingBaseSlug && isUniqueConstraintError(slugError, 'slug')) {
+              return tx.listing.update({
+                where: { id: listing.id },
+                data: { slug: listingSlugWithSuffix(baseSlug, listing.id) },
+              });
+            }
+
+            throw slugError;
+          }
+        });
+
+        createError = null;
+        break;
+      } catch (error) {
+        createError = error;
+
+        const isRetryable = isUniqueConstraintError(error, 'slug') || isUniqueConstraintError(error, 'propertyId');
+        if (!isRetryable || attempt === CREATE_LISTING_SLUG_MAX_RETRIES) {
+          break;
+        }
+      }
     }
 
-    const listing = await prisma.listing.create({
-      data: {
-        title: title.trim(),
-        description: description.trim(),
-        price: safeParseFloat(price, 0),
-        location: location.trim(),
-        city: city ? city.trim() : null,
-        bedrooms: safeParseInt(bedrooms, 0, 50),
-        bathrooms: safeParseFloat(bathrooms, 0, 50),
-        size: safeParseFloat(size, 0, 1000000),
-        propertyType: propertyType || null,
-        listingType: listingType || null,
-        images: Array.isArray(images) ? images : [],
-        address: address ? address.trim() : null,
-        yearBuilt: safeParseInt(yearBuilt, 1800, new Date().getFullYear() + 10),
-        parking: safeParseInt(parking, 0, 100),
-        floor: safeParseInt(floor, 0, 200),
-        totalFloors: safeParseInt(totalFloors, 1, 200),
-        amenities: Array.isArray(amenities) ? amenities : amenities || {},
-        propertyId,
-        available: available !== undefined ? available : true,
-        userId: user.id,
-        isPublished: false, // Requires admin approval
-      },
-    });
+    if (!listingWithSlug) {
+      const createErrorMessage = createError instanceof Error ? createError.message : String(createError);
+      const createErrorDetails = createError instanceof Error ? createError.stack : String(createError);
+      logger.error('Listing creation failed after retry attempts:', createError);
+      return NextResponse.json(
+        {
+          error: 'Internal server error',
+          details: createErrorMessage,
+          stack: process.env.NODE_ENV === 'development' ? createErrorDetails : undefined,
+        },
+        { status: 500 }
+      );
+    }
 
     // Get user details for logging
     const dbUser = await prisma.user.findUnique({
@@ -204,8 +295,8 @@ export async function POST(request: NextRequest) {
 
     // Log activity - don't let this break the response
     try {
-      await logListingActivity(user.id, ActivityAction.CREATE, listing.id, {
-        title: listing.title,
+      await logListingActivity(user.id, ActivityAction.CREATE, listingWithSlug.id, {
+        title: listingWithSlug.title,
         uploadedBy: user.id,
         uploadedByName: dbUser?.name || dbUser?.email || 'Unknown',
       });
@@ -214,8 +305,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Non-blocking cache revalidation for listing views
-    revalidateListingCaches(listing.id);
-    return NextResponse.json({ success: true, listing }, { status: 201 });
+    revalidateListingCaches(listingWithSlug.id, listingWithSlug.slug);
+    return NextResponse.json({ success: true, listing: listingWithSlug }, { status: 201 });
   } catch (error) {
     logger.error('Error creating listing:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';

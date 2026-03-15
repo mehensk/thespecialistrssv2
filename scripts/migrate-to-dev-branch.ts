@@ -13,6 +13,7 @@
 
 import { PrismaClient, Prisma } from '@prisma/client';
 import dotenv from 'dotenv';
+import { slugifyListingTitle } from '../src/lib/listing-slug';
 
 // Load local .env file
 dotenv.config();
@@ -142,6 +143,10 @@ async function migrateToDevBranch() {
     });
 
     for (const listing of localListingsList) {
+      const listingSlug = listing.slug && listing.slug.trim().length > 0
+        ? listing.slug
+        : slugifyListingTitle(listing.title);
+
       // Ensure user exists in dev branch
       if (listing.userId) {
         await devPrisma.user.upsert({
@@ -160,6 +165,7 @@ async function migrateToDevBranch() {
       await devPrisma.listing.upsert({
         where: { id: listing.id },
         update: {
+          slug: listingSlug,
           title: listing.title,
           description: listing.description,
           price: listing.price,
@@ -174,6 +180,7 @@ async function migrateToDevBranch() {
         },
         create: {
           id: listing.id,
+          slug: listingSlug,
           title: listing.title,
           description: listing.description,
           price: listing.price,

@@ -134,12 +134,24 @@ Improve mobile usability for listing create/edit flows and reset dashboard navig
 ### Root Cause
 - Edit flow can read cached/older listing payload instead of latest database state.
 
-### Planned Solution
+### Phase 1 Decisions (Locked)
 - Keep public listing pages cached for performance.
-- Force fresh reads for dashboard edit flow:
-- Bypass cached listing read for authenticated dashboard edit requests.
-- Use `cache: 'no-store'` in edit page fetch for listing data.
-- Keep existing `PUT /api/listings/[id]` save behavior and revalidation logic.
+- For authenticated dashboard Edit Listing reads, prefer fresh data over cache.
+- Keep existing `PUT /api/listings/[id]` save/revalidate behavior unchanged.
+
+### Phase 1 Completed Changes
+- Added dashboard edit request signal header: `x-dashboard-edit: 1`.
+- Updated API `GET /api/listings/[id]` to bypass cached listing reads when request is authenticated and flagged as dashboard edit.
+- Added `Cache-Control: no-store` on the same dashboard edit response path.
+- Updated Edit Listing page fetch to use `cache: 'no-store'` and send `x-dashboard-edit: 1`.
+
+### Phase 1 Completion Check (Code-Level)
+- Confirmed in code:
+- `src/app/api/listings/[id]/route.ts` contains `isDashboardEditRequest` handling and `Cache-Control: no-store` for this path.
+- `src/app/dashboard/listings/[id]/edit/page.tsx` fetch includes `cache: 'no-store'` and `x-dashboard-edit: 1`.
+- Lint status:
+- Direct eslint run on both touched files passed.
+- Note: Full manual mobile flow validation remains part of Phase 2.
 
 ### Acceptance Criteria
 1. Upload image in mobile `Edit Listing` and save.

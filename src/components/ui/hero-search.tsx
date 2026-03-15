@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin } from 'lucide-react';
+import { toCanonicalQuery } from '@/lib/search-contract';
 
 export function HeroSearch() {
   const router = useRouter();
@@ -12,15 +13,15 @@ export function HeroSearch() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Build query params
-    const params = new URLSearchParams();
-    params.set('listingType', listingType);
-    if (location) params.set('location', location);
-    if (propertyType) params.set('type', propertyType);
+    const params = toCanonicalQuery({
+      listingType,
+      location,
+      type: propertyType,
+    });
 
     // Navigate to listings page with search params
-    router.push(`/listings?${params.toString()}`);
+    const query = params.toString();
+    router.push(query ? `/listings?${query}` : '/listings');
   };
 
   return (

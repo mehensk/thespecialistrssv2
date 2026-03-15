@@ -8,14 +8,40 @@ import { LogoutSync } from '@/components/providers/LogoutSync';
 import { ToastProvider } from '@/components/ui/toast';
 
 export const metadata: Metadata = {
-  title: 'The Specialist | Luxury Real Estate',
-  description: 'Premium real estate services',
+  title: {
+    default: 'The Specialist Realty Solutions',
+    template: '%s | The Specialist Realty Solutions',
+  },
+  description:
+    'Buy, sell, or invest with confidence. The Specialist Realty Solutions delivers expert real estate support and high-value listings.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://thespecialistrealty.com'),
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     type: 'website',
-    locale: 'en_US',
+    locale: 'en_PH',
     url: '/',
-    siteName: 'The Specialist Realty',
+    siteName: 'The Specialist Realty Solutions',
+    title: 'The Specialist Realty Solutions',
+    description:
+      'Buy, sell, or invest with confidence. The Specialist Realty Solutions delivers expert real estate support and high-value listings.',
+    images: [
+      {
+        url: '/home-og.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'The Specialist Realty Solutions',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'The Specialist Realty Solutions',
+    description:
+      'Buy, sell, or invest with confidence. The Specialist Realty Solutions delivers expert real estate support and high-value listings.',
+    images: ['/home-og.png'],
   },
 };
 

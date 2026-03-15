@@ -7,9 +7,11 @@ import Image from 'next/image';
 import { Heart, Share2, Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { ListingDetailContent } from './ListingDetailContent';
+import { buildCanonicalListingPath } from '@/lib/listing-slug';
 
 interface Listing {
   id: string;
+  slug?: string | null;
   title: string;
   description: string;
   price: number | null;
@@ -117,11 +119,12 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
 
   const handleConfirmRequestInfo = () => {
     if (!listing) return;
+    const listingPath = listing.slug ? buildCanonicalListingPath(listing.slug, listing.id) : `/listings/${listing.id}`;
     
     // Build the property link
     const propertyLink = typeof window !== 'undefined' 
-      ? `${window.location.origin}/listings/${listing.id}`
-      : `/listings/${listing.id}`;
+      ? `${window.location.origin}${listingPath}`
+      : listingPath;
     
     // Build the message according to user's format
     const propertyTitle = listing.title || 'Property';

@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed": "tsx prisma/seed.ts",
+    "backfill:listings:slug": "tsx scripts/backfill-listing-slugs.ts",
+    "validate:listings:slug": "tsx scripts/validate-listing-slugs.ts",
     "export:listings": "tsx scripts/export-listings.ts",
     "delete:external-blogs": "tsx scripts/delete-external-image-blogs.ts",
     "migrate:images": "tsx scripts/migrate-images-to-cloudinary.ts",

@@ -44,18 +44,18 @@ export function MobileDashboardNav({
         setViewportBottomOffset(0);
         return;
       }
-      const offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      setViewportBottomOffset(offset);
+
+      // Keep nav anchored during normal scroll. Only shift when the on-screen keyboard is likely open.
+      const keyboardOffset = Math.max(0, window.innerHeight - vv.height);
+      setViewportBottomOffset(keyboardOffset > 120 ? keyboardOffset : 0);
     };
 
     updateViewportOffset();
     window.visualViewport?.addEventListener('resize', updateViewportOffset);
-    window.visualViewport?.addEventListener('scroll', updateViewportOffset);
     window.addEventListener('resize', updateViewportOffset);
 
     return () => {
       window.visualViewport?.removeEventListener('resize', updateViewportOffset);
-      window.visualViewport?.removeEventListener('scroll', updateViewportOffset);
       window.removeEventListener('resize', updateViewportOffset);
     };
   }, []);
