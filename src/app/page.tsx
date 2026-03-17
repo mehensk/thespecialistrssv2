@@ -36,7 +36,9 @@ export default function Home() {
         <div className="container hero-split-grid">
           {/* Hero Panel - Left */}
           <div className="hero-panel">
-            <h1>Meet The Specialist</h1>
+            <h1>
+              Meet <span style={{ color: 'var(--gold)' }}>The Specialist</span>
+            </h1>
             <p className="lead">Welcome to The Specialist Realty Solutions and Services. Elevated Real Estate guidance meets genuine client care.</p>
             <p className="lead">With over 10 years of expertise in general brokerage, developer selling, documentation and valuation, we help you make confident property decisions through expert support and a refreshingly honest approach.</p>
             <p className="lead">Whether you're searching for a condominium, family home, or investment property, we make your journey smooth, informed, and truly rewarding.</p>

@@ -9,12 +9,31 @@ export const metadata: Metadata = {
     'Buyer-focused guidance to accredited developer projects, with trusted support from consultation through project matching.',
 };
 
-const developers: Array<{ name: string; logo: string; alt: string; darkTile?: boolean }> = [
+const developers: Array<{
+  name: string;
+  logo: string;
+  alt: string;
+  darkTile?: boolean;
+  zoomClass?: string;
+}> = [
+  {
+    name: 'Rockwell Primaries',
+    logo: '/images/developers/rockwell-primaries.svg',
+    alt: 'Rockwell logo',
+  },
+  {
+    name: 'Shang Properties, Inc.',
+    logo: '/images/developers/shang-properties.png',
+    alt: 'Shang Properties logo',
+    darkTile: true,
+    zoomClass: 'scale-[1.85] md:scale-[2.05]',
+  },
   {
     name: 'Federal Land, Inc.',
     logo: '/images/developers/federal-land.webp',
     alt: 'Federal Land, Inc. official logo',
     darkTile: true,
+    zoomClass: 'scale-[1.35] md:scale-[1.5]',
   },
   {
     name: 'DMCI Project Developers, Inc. (DMCI Homes)',
@@ -25,6 +44,7 @@ const developers: Array<{ name: string; logo: string; alt: string; darkTile?: bo
     name: 'RLC Residences (Robinsons Land Corporation)',
     logo: '/images/developers/rlc-residences.webp',
     alt: 'RLC Residences official logo',
+    zoomClass: 'scale-[1.2] md:scale-[1.3]',
   },
   {
     name: 'SM Development Corporation (SMDC)',
@@ -36,6 +56,7 @@ const developers: Array<{ name: string; logo: string; alt: string; darkTile?: bo
     logo: '/images/developers/antel-land.png',
     alt: 'Antel Land official logo',
     darkTile: true,
+    zoomClass: 'scale-[1.3] md:scale-[1.4]',
   },
   {
     name: 'Cathay Land Inc.',
@@ -103,7 +124,7 @@ export default function DeveloperSellingPage() {
                       alt={developer.alt}
                       width={280}
                       height={80}
-                      className="h-auto max-h-10 w-auto max-w-full object-contain md:max-h-9 sm:max-h-8"
+                      className={`h-auto max-h-10 w-auto max-w-full object-contain md:max-h-9 sm:max-h-8 ${developer.zoomClass ?? ''}`}
                     />
                   </div>
                   <p className="text-center text-base font-semibold text-[#0d0f12]">{developer.name}</p>

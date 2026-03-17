@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="160" viewBox="0 0 560 160" role="img" aria-label="Shang Properties placeholder logo">
+  <rect width="560" height="160" fill="#f5f7fa"/>
+  <rect x="8" y="8" width="544" height="144" fill="none" stroke="#c9d2dc" stroke-width="2" stroke-dasharray="8 6"/>
+  <text x="280" y="70" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#1e2a36">
+    SHANG PROPERTIES
+  </text>
+  <text x="280" y="102" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#4b5d70">
+    Placeholder Logo
+  </text>
+</svg>
