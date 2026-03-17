@@ -17,7 +17,7 @@ const developers: Array<{
   zoomClass?: string;
 }> = [
   {
-    name: 'Rockwell Primaries',
+    name: 'Rockwell Land Corporation',
     logo: '/images/developers/rockwell-primaries.svg',
     alt: 'Rockwell logo',
   },

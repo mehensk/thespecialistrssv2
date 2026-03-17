@@ -9,8 +9,79 @@ import { getCachedListings } from '@/lib/cache';
 import { getAuthenticatedUser, hasRequiredRole } from '@/lib/auth-helpers';
 import { revalidateListingCaches } from '@/lib/listing-revalidation';
 import { listingSlugWithSuffix, slugifyListingTitle } from '@/lib/listing-slug';
+import { parseSearchParams } from '@/lib/search-contract';
+import { emitListingsTelemetry } from '@/lib/listings-observability';
 
 const CREATE_LISTING_SLUG_MAX_RETRIES = 3;
+const DEFAULT_LISTINGS_PAGE = 1;
+const DEFAULT_PUBLIC_SORT = 'newest';
+
+type ListingSortBy = 'newest' | 'price-low' | 'price-high' | 'size-small' | 'size-large';
+
+interface ListingsPaginationMetadata {
+  page: number;
+  limit: number | null;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+function parseSortBy(value: string | null): ListingSortBy {
+  switch (value) {
+    case 'price-low':
+    case 'price-high':
+    case 'size-small':
+    case 'size-large':
+    case 'newest':
+      return value;
+    default:
+      return DEFAULT_PUBLIC_SORT;
+  }
+}
+
+function getListingOrderBy(sortBy: ListingSortBy): Prisma.ListingOrderByWithRelationInput[] {
+  switch (sortBy) {
+    case 'price-low':
+      return [{ price: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }];
+    case 'price-high':
+      return [{ price: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }];
+    case 'size-small':
+      return [{ size: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }];
+    case 'size-large':
+      return [{ size: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }];
+    case 'newest':
+    default:
+      return [{ createdAt: 'desc' }];
+  }
+}
+
+function getPaginationMetadata(
+  page: number,
+  limit: number | null,
+  total: number
+): ListingsPaginationMetadata {
+  if (!limit) {
+    return {
+      page: DEFAULT_LISTINGS_PAGE,
+      limit: null,
+      total,
+      totalPages: total > 0 ? 1 : 0,
+      hasNextPage: false,
+      hasPrevPage: false,
+    };
+  }
+
+  const totalPages = Math.ceil(total / limit);
+  return {
+    page,
+    limit,
+    total,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPrevPage: page > 1,
+  };
+}
 
 // Generate a unique property ID using timestamp and UUID
 function generatePropertyId(): string {
@@ -38,35 +109,184 @@ function isUniqueConstraintError(error: unknown, targetField?: string): boolean 
 }
 
 export async function GET(request: NextRequest) {
+  const requestStartedAt = Date.now();
+  let telemetryMode: 'public_fast_path' | 'public_fallback_unauth' | 'authenticated_non_public' = 'public_fallback_unauth';
+  let telemetryPublishedParam: string | null = null;
+  let telemetrySortBy: ListingSortBy = DEFAULT_PUBLIC_SORT;
+  let telemetryPage = DEFAULT_LISTINGS_PAGE;
+  let telemetryLimit: number | null = null;
+  let telemetryOffset: number | undefined;
+  let telemetryHasLocationFilter = false;
+  let telemetryHasTypeFilter = false;
+  let telemetryHasListingTypeFilter = false;
+  let telemetryHasPriceFilter = false;
+  let telemetryHasSizeFilter = false;
+  let telemetryHasBedroomsFilter = false;
+  let telemetryHasBathroomsFilter = false;
+
   try {
-    // Try to get authenticated user, but don't fail if not present
-    // This endpoint is public - no authentication required
-    const user = await getAuthenticatedUser(request);
-    
     const searchParams = request.nextUrl.searchParams;
     const published = searchParams.get('published');
-    const limit = searchParams.get('limit');
+    telemetryPublishedParam = published;
     const offset = searchParams.get('offset');
+    const legacyOffset = offset ? safeParseInt(offset, 0) ?? undefined : undefined;
+    const { params } = parseSearchParams(searchParams);
+    const sortBy = parseSortBy(searchParams.get('sortBy'));
+    telemetrySortBy = sortBy;
+    const limit = params.limit ?? null;
+    telemetryLimit = limit;
+    const page = limit
+      ? legacyOffset !== undefined
+        ? Math.floor(legacyOffset / limit) + 1
+        : params.page ?? DEFAULT_LISTINGS_PAGE
+      : DEFAULT_LISTINGS_PAGE;
+    telemetryPage = page;
+    const skip = limit ? legacyOffset ?? (page - 1) * limit : undefined;
+    telemetryOffset = skip;
+    const take = limit ?? undefined;
+    const orderBy = getListingOrderBy(sortBy);
+    telemetryHasLocationFilter = !!params.location;
+    telemetryHasTypeFilter = !!params.type;
+    telemetryHasListingTypeFilter = !!params.listingType;
+    telemetryHasPriceFilter = params.minPrice !== null || params.maxPrice !== null;
+    telemetryHasSizeFilter = params.minSize !== null || params.maxSize !== null;
+    telemetryHasBedroomsFilter = params.bedrooms !== null;
+    telemetryHasBathroomsFilter = params.bathrooms !== null;
 
-    // Use cached data for published listings or unauthenticated users
-    if (published === 'true' || !user) {
-      const take = limit ? safeParseInt(limit, 1, 100) ?? undefined : undefined;
-      const skip = offset ? safeParseInt(offset, 0) ?? undefined : undefined;
-      
-      const listings = await getCachedListings({ limit: take, offset: skip });
+    const filterWhere: Prisma.ListingWhereInput = {
+      ...(params.listingType ? { listingType: params.listingType } : {}),
+      ...(params.type ? { propertyType: params.type } : {}),
+      ...(params.bedrooms !== null ? { bedrooms: { gte: params.bedrooms } } : {}),
+      ...(params.bathrooms !== null ? { bathrooms: { gte: params.bathrooms } } : {}),
+      ...(params.minPrice !== null || params.maxPrice !== null
+        ? {
+            price: {
+              ...(params.minPrice !== null ? { gte: params.minPrice } : {}),
+              ...(params.maxPrice !== null ? { lte: params.maxPrice } : {}),
+            },
+          }
+        : {}),
+      ...(params.minSize !== null || params.maxSize !== null
+        ? {
+            size: {
+              ...(params.minSize !== null ? { gte: params.minSize } : {}),
+              ...(params.maxSize !== null ? { lte: params.maxSize } : {}),
+            },
+          }
+        : {}),
+      ...(params.location
+        ? {
+            OR: [
+              { city: { contains: params.location, mode: 'insensitive' } },
+              { location: { contains: params.location, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
 
-      // Add cache headers for public listings
+    const publicSelectFields = {
+      id: true,
+      slug: true,
+      title: true,
+      price: true,
+      location: true,
+      city: true,
+      address: true,
+      bedrooms: true,
+      bathrooms: true,
+      size: true,
+      propertyType: true,
+      listingType: true,
+      images: true,
+      parking: true,
+      yearBuilt: true,
+      floor: true,
+      totalFloors: true,
+      createdAt: true,
+    };
+
+    const getPublicListingsResponse = async (mode: 'public_fast_path' | 'public_fallback_unauth') => {
+      const where: Prisma.ListingWhereInput = {
+        AND: [{ isPublished: true }, filterWhere],
+      };
+
+      // Preserve Phase 2 optimized path for common unfiltered/newest requests.
+      const isDefaultPublicQuery = !params.location
+        && !params.type
+        && !params.listingType
+        && params.minPrice === null
+        && params.maxPrice === null
+        && params.minSize === null
+        && params.maxSize === null
+        && params.bedrooms === null
+        && params.bathrooms === null
+        && sortBy === 'newest';
+
+      const [listings, total] = await Promise.all([
+        isDefaultPublicQuery
+          ? getCachedListings({ limit: take, offset: skip })
+          : prisma.listing.findMany({
+              where,
+              select: publicSelectFields,
+              orderBy,
+              take,
+              skip,
+            }),
+        prisma.listing.count({ where }),
+      ]);
+
+      const pagination = getPaginationMetadata(page, limit, total);
       const headers = new Headers();
       headers.set('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=30');
+      emitListingsTelemetry({
+        mode,
+        publishedParam: published,
+        sortBy,
+        page,
+        limit,
+        offset: skip,
+        hasLocationFilter: !!params.location,
+        hasTypeFilter: !!params.type,
+        hasListingTypeFilter: !!params.listingType,
+        hasPriceFilter: params.minPrice !== null || params.maxPrice !== null,
+        hasSizeFilter: params.minSize !== null || params.maxSize !== null,
+        hasBedroomsFilter: params.bedrooms !== null,
+        hasBathroomsFilter: params.bathrooms !== null,
+        usedDefaultCachedPath: isDefaultPublicQuery,
+        cacheHeaderApplied: true,
+        durationMs: Date.now() - requestStartedAt,
+        resultCount: listings.length,
+        totalCount: total,
+        statusCode: 200,
+      });
+      return NextResponse.json({ listings, pagination }, { headers });
+    };
 
-      return NextResponse.json({ listings }, { headers });
+    // Public fast path should not depend on auth lookups.
+    if (published === 'true') {
+      telemetryMode = 'public_fast_path';
+      return getPublicListingsResponse('public_fast_path');
     }
+
+    // Try to get authenticated user, but don't fail if not present.
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
+      telemetryMode = 'public_fallback_unauth';
+      return getPublicListingsResponse('public_fallback_unauth');
+    }
+    telemetryMode = 'authenticated_non_public';
 
     // For authenticated users, show all published listings plus their own unpublished ones
     const where: Prisma.ListingWhereInput = {
-      OR: [
-        { isPublished: true },
-        { userId: user.id },
+      AND: [
+        {
+          OR: [
+            { isPublished: true },
+            { userId: user.id },
+          ],
+        },
+        filterWhere,
       ],
     };
 
@@ -94,19 +314,62 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    const take = limit ? safeParseInt(limit, 1, 100) ?? undefined : undefined;
-    const skip = offset ? safeParseInt(offset, 0) ?? undefined : undefined;
-
     const listings = await prisma.listing.findMany({
       where,
       select: selectFields,
-      orderBy: { createdAt: 'desc' },
+      orderBy,
       take,
       skip,
     });
 
-    return NextResponse.json({ listings });
+    const total = await prisma.listing.count({ where });
+    const pagination = getPaginationMetadata(page, limit, total);
+    emitListingsTelemetry({
+      mode: 'authenticated_non_public',
+      publishedParam: published,
+      sortBy,
+      page,
+      limit,
+      offset: skip,
+      hasLocationFilter: !!params.location,
+      hasTypeFilter: !!params.type,
+      hasListingTypeFilter: !!params.listingType,
+      hasPriceFilter: params.minPrice !== null || params.maxPrice !== null,
+      hasSizeFilter: params.minSize !== null || params.maxSize !== null,
+      hasBedroomsFilter: params.bedrooms !== null,
+      hasBathroomsFilter: params.bathrooms !== null,
+      usedDefaultCachedPath: false,
+      cacheHeaderApplied: false,
+      durationMs: Date.now() - requestStartedAt,
+      resultCount: listings.length,
+      totalCount: total,
+      statusCode: 200,
+    });
+
+    return NextResponse.json({ listings, pagination });
   } catch (error) {
+    emitListingsTelemetry({
+      mode: telemetryMode,
+      publishedParam: telemetryPublishedParam,
+      sortBy: telemetrySortBy,
+      page: telemetryPage,
+      limit: telemetryLimit,
+      offset: telemetryOffset,
+      hasLocationFilter: telemetryHasLocationFilter,
+      hasTypeFilter: telemetryHasTypeFilter,
+      hasListingTypeFilter: telemetryHasListingTypeFilter,
+      hasPriceFilter: telemetryHasPriceFilter,
+      hasSizeFilter: telemetryHasSizeFilter,
+      hasBedroomsFilter: telemetryHasBedroomsFilter,
+      hasBathroomsFilter: telemetryHasBathroomsFilter,
+      usedDefaultCachedPath: false,
+      cacheHeaderApplied: false,
+      durationMs: Date.now() - requestStartedAt,
+      resultCount: 0,
+      totalCount: 0,
+      statusCode: 500,
+      errorCategory: error instanceof Error ? error.name : 'UnknownError',
+    });
     logger.error('Error fetching listings:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(

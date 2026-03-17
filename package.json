@@ -25,6 +25,7 @@
     "analyze:db": "tsx scripts/analyze-db-storage.ts",
     "optimize:db": "tsx scripts/optimize-db-storage.ts",
     "cleanup:activities": "tsx scripts/cleanup-activities.ts",
+    "benchmark:listings:phase4": "tsx scripts/benchmark-listings-phase4.ts",
     "postinstall": "node ./scripts/postinstall.js",
     "build:netlify": "node ./scripts/simulate-netlify-build.js",
     "build:netlify-local": "node ./scripts/build-netlify-local.js",

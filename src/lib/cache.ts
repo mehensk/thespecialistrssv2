@@ -1,6 +1,5 @@
 import { unstable_cache } from 'next/cache';
 import { prisma } from './prisma';
-import { Prisma } from '@prisma/client';
 
 // Cache tags for revalidation
 export const CACHE_TAGS = {
@@ -38,9 +37,6 @@ export async function getCachedListings(options?: {
           floor: true,
           totalFloors: true,
           createdAt: true,
-          user: {
-            select: { name: true, email: true },
-          },
         },
         orderBy: { createdAt: 'desc' },
         take: options?.limit,

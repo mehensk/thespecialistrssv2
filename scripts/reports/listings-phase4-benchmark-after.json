@@ -1,0 +1,93 @@
+{
+  "stage": "after",
+  "startedAt": "2026-03-17T17:08:18.678Z",
+  "finishedAt": "2026-03-17T17:08:36.147Z",
+  "warmupRuns": 3,
+  "measuredRuns": 12,
+  "scenarios": [
+    {
+      "name": "public-default-newest",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 140.12,
+      "p50Ms": 129.06,
+      "p95Ms": 259.25,
+      "minMs": 127.05,
+      "maxMs": 259.25,
+      "sampleRows": 12,
+      "sampleTotal": 17
+    },
+    {
+      "name": "public-listingType-sale-newest",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 139.96,
+      "p50Ms": 129.38,
+      "p95Ms": 257.97,
+      "minMs": 127.36,
+      "maxMs": 257.97,
+      "sampleRows": 12,
+      "sampleTotal": 13
+    },
+    {
+      "name": "public-propertyType-condominium-newest",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 129.45,
+      "p50Ms": 129.58,
+      "p95Ms": 131.16,
+      "minMs": 127.64,
+      "maxMs": 131.16,
+      "sampleRows": 8,
+      "sampleTotal": 8
+    },
+    {
+      "name": "public-price-range-sort-price-low",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 129.34,
+      "p50Ms": 129.45,
+      "p95Ms": 132.06,
+      "minMs": 127.35,
+      "maxMs": 132.06,
+      "sampleRows": 10,
+      "sampleTotal": 10
+    },
+    {
+      "name": "public-size-range-sort-size-large",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 146.17,
+      "p50Ms": 129.67,
+      "p95Ms": 255.24,
+      "minMs": 127.27,
+      "maxMs": 255.24,
+      "sampleRows": 8,
+      "sampleTotal": 8
+    },
+    {
+      "name": "public-location-contains",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 140.48,
+      "p50Ms": 130.08,
+      "p95Ms": 258.09,
+      "minMs": 127.82,
+      "maxMs": 258.09,
+      "sampleRows": 0,
+      "sampleTotal": 0
+    },
+    {
+      "name": "nonpublic-auth-equivalent",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 154.74,
+      "p50Ms": 130.63,
+      "p95Ms": 257.63,
+      "minMs": 127.88,
+      "maxMs": 257.63,
+      "sampleRows": 12,
+      "sampleTotal": 17
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "stage": "before",
+  "startedAt": "2026-03-17T16:58:11.425Z",
+  "finishedAt": "2026-03-17T16:58:23.113Z",
+  "warmupRuns": 3,
+  "measuredRuns": 12,
+  "scenarios": [
+    {
+      "name": "public-default-newest",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 93.26,
+      "p50Ms": 86.42,
+      "p95Ms": 171.39,
+      "minMs": 84.35,
+      "maxMs": 171.39,
+      "sampleRows": 12,
+      "sampleTotal": 17
+    },
+    {
+      "name": "public-listingType-sale-newest",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 93.42,
+      "p50Ms": 86.83,
+      "p95Ms": 169.87,
+      "minMs": 84.47,
+      "maxMs": 169.87,
+      "sampleRows": 12,
+      "sampleTotal": 13
+    },
+    {
+      "name": "public-propertyType-condominium-newest",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 85.85,
+      "p50Ms": 85.06,
+      "p95Ms": 87.82,
+      "minMs": 84.18,
+      "maxMs": 87.82,
+      "sampleRows": 8,
+      "sampleTotal": 8
+    },
+    {
+      "name": "public-price-range-sort-price-low",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 93.49,
+      "p50Ms": 86.96,
+      "p95Ms": 169,
+      "minMs": 84.3,
+      "maxMs": 169,
+      "sampleRows": 10,
+      "sampleTotal": 10
+    },
+    {
+      "name": "public-size-range-sort-size-large",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 93.2,
+      "p50Ms": 86.92,
+      "p95Ms": 170.5,
+      "minMs": 84.08,
+      "maxMs": 170.5,
+      "sampleRows": 8,
+      "sampleTotal": 8
+    },
+    {
+      "name": "public-location-contains",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 86.51,
+      "p50Ms": 86.9,
+      "p95Ms": 87.7,
+      "minMs": 84.59,
+      "maxMs": 87.7,
+      "sampleRows": 0,
+      "sampleTotal": 0
+    },
+    {
+      "name": "nonpublic-auth-equivalent",
+      "runs": 12,
+      "warmups": 3,
+      "avgMs": 86.7,
+      "p50Ms": 86.67,
+      "p95Ms": 90.32,
+      "minMs": 84.56,
+      "maxMs": 90.32,
+      "sampleRows": 12,
+      "sampleTotal": 17
+    }
+  ]
+}

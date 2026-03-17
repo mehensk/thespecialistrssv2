@@ -56,6 +56,11 @@ model Listing {
   @@index([userId])
   @@index([isPublished])
   @@index([userId, isPublished]) // Composite index for faster filtered counts
+  @@index([isPublished, createdAt(sort: Desc)])
+  @@index([isPublished, listingType, createdAt(sort: Desc)])
+  @@index([isPublished, propertyType, createdAt(sort: Desc)])
+  @@index([isPublished, price])
+  @@index([isPublished, size])
 }
 
 model BlogPost {

@@ -6,20 +6,188 @@ import { Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { groupCitiesForFilter } from '@/lib/location-utils';
 import { ListingCard } from '@/components/listings/ListingCard';
 
-// Cities will be dynamically generated from fetched listings
+type ListingTypeValue = 'sale' | 'rent';
+type SortByValue = 'newest' | 'price-low' | 'price-high' | 'size-small' | 'size-large';
+
+interface ListingViewModel {
+  id: string;
+  slug: string | null;
+  price: number;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  size: number | null;
+  city: string;
+  type: string;
+  listingType: ListingTypeValue;
+  image: string;
+  location: string;
+  title: string;
+  address: string;
+  parking: number | null;
+  yearBuilt: number | null;
+  floor: number | null;
+  totalFloors: number | null;
+  createdAt: string;
+}
+
+interface ListingsPagination {
+  page: number;
+  limit: number | null;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+const MAX_FETCH_ATTEMPTS = 3;
+const FETCH_TIMEOUT_MS = 8000;
+const FALLBACK_LISTING_IMAGE = '/images/hero-condo.jpg';
+const RETRYABLE_STATUS_CODES = new Set([408, 425, 429, 500, 502, 503, 504]);
+const SORT_OPTIONS: SortByValue[] = ['newest', 'price-low', 'price-high', 'size-small', 'size-large'];
+const PROPERTIES_PER_PAGE = 12;
+
+interface ListingsApiResponse {
+  listings?: unknown[];
+  pagination?: {
+    page?: unknown;
+    limit?: unknown;
+    total?: unknown;
+    totalPages?: unknown;
+    hasNextPage?: unknown;
+    hasPrevPage?: unknown;
+  };
+  error?: string;
+}
+
+function normalizeString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  const numericValue = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(numericValue) ? numericValue : null;
+}
+
+function normalizeInteger(value: unknown, fallback: number): number {
+  const numeric = normalizeNumber(value);
+  if (numeric === null) return fallback;
+  const integer = Math.floor(numeric);
+  return integer >= 0 ? integer : fallback;
+}
+
+function normalizeBoolean(value: unknown, fallback: boolean): boolean {
+  if (typeof value === 'boolean') return value;
+  return fallback;
+}
+
+function normalizeListingType(value: unknown): ListingTypeValue {
+  return value === 'rent' ? 'rent' : 'sale';
+}
+
+function normalizeSortBy(value: string | null): SortByValue {
+  if (value && SORT_OPTIONS.includes(value as SortByValue)) {
+    return value as SortByValue;
+  }
+  return 'newest';
+}
+
+function normalizePage(value: string | null): number {
+  if (!value) return 1;
+  const parsedValue = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsedValue) || parsedValue < 1) {
+    return 1;
+  }
+  return parsedValue;
+}
+
+function normalizeListing(listing: Record<string, unknown>): ListingViewModel {
+  const rawImages = Array.isArray(listing.images) ? listing.images : [];
+  const primaryImage = rawImages.find((image): image is string => typeof image === 'string' && image.trim().length > 0);
+
+  const normalizedLocation = normalizeString(listing.location);
+  const normalizedCity = normalizeString(listing.city) || normalizedLocation;
+
+  return {
+    id: normalizeString(listing.id),
+    slug: normalizeString(listing.slug) || null,
+    price: normalizeNumber(listing.price) ?? 0,
+    bedrooms: normalizeNumber(listing.bedrooms),
+    bathrooms: normalizeNumber(listing.bathrooms),
+    size: normalizeNumber(listing.size),
+    city: normalizedCity,
+    type: normalizeString(listing.propertyType),
+    listingType: normalizeListingType(listing.listingType),
+    image: primaryImage ?? FALLBACK_LISTING_IMAGE,
+    location: normalizedLocation,
+    title: normalizeString(listing.title),
+    address: normalizeString(listing.address),
+    parking: normalizeNumber(listing.parking),
+    yearBuilt: normalizeNumber(listing.yearBuilt),
+    floor: normalizeNumber(listing.floor),
+    totalFloors: normalizeNumber(listing.totalFloors),
+    createdAt: normalizeString(listing.createdAt),
+  };
+}
+
+function getRetryDelayMs(attempt: number): number {
+  return 300 * Math.pow(2, attempt - 1);
+}
+
+function isRetryableStatus(status: number): boolean {
+  return RETRYABLE_STATUS_CODES.has(status);
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function normalizePagination(
+  pagination: ListingsApiResponse['pagination'] | undefined,
+  fallbackPage: number,
+  fallbackCount: number
+): ListingsPagination {
+  const page = Math.max(1, normalizeInteger(pagination?.page, fallbackPage));
+  const limit = normalizeNumber(pagination?.limit);
+  const total = Math.max(0, normalizeInteger(pagination?.total, fallbackCount));
+  const totalPages = Math.max(0, normalizeInteger(pagination?.totalPages, total > 0 ? 1 : 0));
+
+  return {
+    page,
+    limit,
+    total,
+    totalPages,
+    hasNextPage: normalizeBoolean(pagination?.hasNextPage, page < totalPages),
+    hasPrevPage: normalizeBoolean(pagination?.hasPrevPage, page > 1),
+  };
+}
 
 function ListingsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
-  // State for fetched listings
-  const [listings, setListings] = useState<any[]>([]);
+
+  const initialListingType = searchParams.get('listingType');
+  const initialSortBy = normalizeSortBy(searchParams.get('sortBy'));
+  const initialPage = normalizePage(searchParams.get('page'));
+
+  const [listings, setListings] = useState<ListingViewModel[]>([]);
+  const [pagination, setPagination] = useState<ListingsPagination>({
+    page: initialPage,
+    limit: PROPERTIES_PER_PAGE,
+    total: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
   const [loading, setLoading] = useState(true);
-  
-  // Filter states
-  const listingTypeParam = searchParams.get('listingType');
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [retryNonce, setRetryNonce] = useState(0);
+
   const [listingType, setListingType] = useState<'sale' | 'rent' | ''>(
-    (listingTypeParam === 'sale' || listingTypeParam === 'rent') ? listingTypeParam : ''
+    initialListingType === 'sale' || initialListingType === 'rent' ? initialListingType : ''
   );
   const [searchLocation, setSearchLocation] = useState(searchParams.get('location') || '');
   const [selectedCity, setSelectedCity] = useState(searchParams.get('location') || '');
@@ -30,69 +198,168 @@ function ListingsPageContent() {
   const [bathrooms, setBathrooms] = useState(searchParams.get('bathrooms') || '');
   const [minSize, setMinSize] = useState(searchParams.get('minSize') || '');
   const [maxSize, setMaxSize] = useState(searchParams.get('maxSize') || '');
-  const [sortBy, setSortBy] = useState('newest');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<SortByValue>(initialSortBy);
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const isInitialMount = useRef(true);
-  
-  const propertiesPerPage = 12;
 
-  // Fetch listings from API
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchListings = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/listings?published=true');
-        const data = await response.json();
-        
-        if (response.ok && data.listings) {
-          // Transform API listings to match expected format
-          const transformedListings = data.listings.map((listing: any) => {
-            // Properly handle bedrooms - preserve null/undefined, convert to number otherwise
-            const bedrooms = listing.bedrooms === null || listing.bedrooms === undefined || listing.bedrooms === ''
-              ? null
-              : Number(listing.bedrooms);
-            
-            return {
-              id: listing.id,
-              slug: listing.slug ?? null,
-              price: listing.price || 0,
-              bedrooms,
-              bathrooms: listing.bathrooms === null || listing.bathrooms === undefined || listing.bathrooms === ''
-                ? null
-                : Number(listing.bathrooms),
-              size: listing.size === null || listing.size === undefined || listing.size === ''
-                ? null
-                : Number(listing.size),
-              city: listing.city || listing.location || '',
-              type: listing.propertyType || '',
-              listingType: listing.listingType || 'sale',
-              image: listing.images && listing.images.length > 0 ? listing.images[0] : '/images/hero-condo.jpg',
-              location: listing.location,
-              title: listing.title,
-              address: listing.address,
-              parking: listing.parking || null,
-              yearBuilt: listing.yearBuilt || null,
-              floor: listing.floor || null,
-              totalFloors: listing.totalFloors || null,
-              createdAt: listing.createdAt || '',
-            };
-          });
-          setListings(transformedListings);
+      setLoading(true);
+      setLoadingError(null);
+
+      const queryParams = new URLSearchParams();
+      queryParams.set('published', 'true');
+      queryParams.set('page', String(currentPage));
+      queryParams.set('limit', String(PROPERTIES_PER_PAGE));
+      queryParams.set('sortBy', sortBy);
+
+      if (listingType) queryParams.set('listingType', listingType);
+      if (selectedCity) queryParams.set('location', selectedCity);
+      if (minPrice) queryParams.set('minPrice', minPrice);
+      if (maxPrice) queryParams.set('maxPrice', maxPrice);
+      if (propertyType) queryParams.set('type', propertyType);
+      if (bedrooms) queryParams.set('bedrooms', bedrooms);
+      if (bathrooms) queryParams.set('bathrooms', bathrooms);
+      if (minSize) queryParams.set('minSize', minSize);
+      if (maxSize) queryParams.set('maxSize', maxSize);
+
+      let lastErrorMessage = 'Unable to load properties right now. Please try again.';
+
+      for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+        try {
+          const response = await fetch(`/api/listings?${queryParams.toString()}`, { signal: controller.signal });
+          let data: ListingsApiResponse | null = null;
+
+          try {
+            const parsed = await response.json();
+            data = parsed && typeof parsed === 'object' ? (parsed as ListingsApiResponse) : null;
+          } catch {
+            data = null;
+          }
+
+          if (!response.ok) {
+            const apiMessage = typeof data?.error === 'string' ? data.error : 'Failed to load properties.';
+            const retryableHttpError = isRetryableStatus(response.status);
+            lastErrorMessage = apiMessage;
+
+            if (retryableHttpError && attempt < MAX_FETCH_ATTEMPTS) {
+              await delay(getRetryDelayMs(attempt));
+              continue;
+            }
+
+            if (!isCancelled) {
+              setListings([]);
+              setPagination({
+                page: currentPage,
+                limit: PROPERTIES_PER_PAGE,
+                total: 0,
+                totalPages: 0,
+                hasNextPage: false,
+                hasPrevPage: currentPage > 1,
+              });
+              setLoadingError(apiMessage);
+            }
+
+            return;
+          }
+
+          const listingsPayload = Array.isArray(data?.listings) ? data.listings : [];
+          const transformedListings = listingsPayload.map((listing: unknown) =>
+            normalizeListing((listing as Record<string, unknown>) ?? {})
+          );
+          const normalizedPagination = normalizePagination(data?.pagination, currentPage, transformedListings.length);
+
+          if (!isCancelled) {
+            setListings(transformedListings);
+            setPagination(normalizedPagination);
+            setLoadingError(null);
+          }
+
+          return;
+        } catch (error) {
+          const isAbortError = error instanceof DOMException && error.name === 'AbortError';
+          const isRetryableFailure = isAbortError || error instanceof TypeError;
+
+          if (isAbortError) {
+            lastErrorMessage = 'Request timed out while loading properties. Please try again.';
+          } else if (error instanceof Error && error.message) {
+            lastErrorMessage = error.message;
+          }
+
+          if (isRetryableFailure && attempt < MAX_FETCH_ATTEMPTS) {
+            await delay(getRetryDelayMs(attempt));
+            continue;
+          }
+
+          if (!isCancelled) {
+            setListings([]);
+            setPagination({
+              page: currentPage,
+              limit: PROPERTIES_PER_PAGE,
+              total: 0,
+              totalPages: 0,
+              hasNextPage: false,
+              hasPrevPage: currentPage > 1,
+            });
+            setLoadingError(lastErrorMessage);
+          }
+
+          return;
+        } finally {
+          window.clearTimeout(timeoutId);
         }
-      } catch (error) {
-        console.error('Error fetching listings:', error);
-      } finally {
-        setLoading(false);
+      }
+
+      if (!isCancelled) {
+        setListings([]);
+        setPagination({
+          page: currentPage,
+          limit: PROPERTIES_PER_PAGE,
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: currentPage > 1,
+        });
+        setLoadingError(lastErrorMessage);
       }
     };
 
-    fetchListings();
-  }, []);
+    void fetchListings().finally(() => {
+      if (!isCancelled) {
+        setLoading(false);
+      }
+    });
 
-  // Get unique cities from fetched listings, grouped by Metro Manila and Outside
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    retryNonce,
+    listingType,
+    selectedCity,
+    minPrice,
+    maxPrice,
+    propertyType,
+    bedrooms,
+    bathrooms,
+    minSize,
+    maxSize,
+    sortBy,
+    currentPage,
+  ]);
+
+  const retryFetch = () => {
+    setRetryNonce((current) => current + 1);
+  };
+
   const { metroManilaCities, outsideCities } = useMemo(() => {
-    const allCities = Array.from(new Set(listings.map(p => p.city).filter(Boolean))).sort();
+    const allCities = Array.from(new Set(listings.map((listing) => listing.city).filter(Boolean))).sort();
     const grouped = groupCitiesForFilter(allCities);
     return {
       metroManilaCities: grouped.metroManila,
@@ -100,71 +367,7 @@ function ListingsPageContent() {
     };
   }, [listings]);
 
-  // Filter and sort properties
-  const filteredAndSortedProperties = useMemo(() => {
-    let filtered = [...listings];
-
-    // Apply filters
-    if (listingType) {
-      filtered = filtered.filter(p => p.listingType === listingType);
-    }
-    if (selectedCity) {
-      filtered = filtered.filter(p => p.city.toLowerCase().includes(selectedCity.toLowerCase()));
-    }
-    if (minPrice) {
-      filtered = filtered.filter(p => p.price >= parseInt(minPrice));
-    }
-    if (maxPrice) {
-      filtered = filtered.filter(p => p.price <= parseInt(maxPrice));
-    }
-    if (propertyType) {
-      filtered = filtered.filter(p => p.type === propertyType);
-    }
-    if (bedrooms) {
-      const bedCount = parseInt(bedrooms);
-      filtered = filtered.filter(p => p.bedrooms >= bedCount);
-    }
-    if (bathrooms) {
-      const bathCount = parseInt(bathrooms);
-      filtered = filtered.filter(p => p.bathrooms >= bathCount);
-    }
-    if (minSize) {
-      filtered = filtered.filter(p => p.size >= parseInt(minSize));
-    }
-    if (maxSize) {
-      filtered = filtered.filter(p => p.size <= parseInt(maxSize));
-    }
-
-    // Apply sorting
-    switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'newest':
-        // Keep original order (newest first)
-        break;
-      case 'size-small':
-        filtered.sort((a, b) => a.size - b.size);
-        break;
-      case 'size-large':
-        filtered.sort((a, b) => b.size - a.size);
-        break;
-    }
-
-    return filtered;
-  }, [listings, listingType, selectedCity, minPrice, maxPrice, propertyType, bedrooms, bathrooms, minSize, maxSize, sortBy]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredAndSortedProperties.length / propertiesPerPage);
-  const startIndex = (currentPage - 1) * propertiesPerPage;
-  const paginatedProperties = filteredAndSortedProperties.slice(startIndex, startIndex + propertiesPerPage);
-
-  // Update URL when filters change (but not on initial mount)
   useEffect(() => {
-    // Skip URL update on initial mount to prevent refresh loop
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
@@ -180,17 +383,30 @@ function ListingsPageContent() {
     if (bathrooms) params.set('bathrooms', bathrooms);
     if (minSize) params.set('minSize', minSize);
     if (maxSize) params.set('maxSize', maxSize);
-    
+    if (sortBy !== 'newest') params.set('sortBy', sortBy);
+    if (currentPage > 1) params.set('page', String(currentPage));
+
     const newUrl = params.toString() ? `/listings?${params.toString()}` : '/listings';
     const currentUrl = window.location.pathname + window.location.search;
-    
-    // Only update URL if it's different to prevent infinite loop
+
     if (newUrl !== currentUrl) {
       router.replace(newUrl, { scroll: false });
     }
-  }, [listingType, selectedCity, minPrice, maxPrice, propertyType, bedrooms, bathrooms, minSize, maxSize]);
+  }, [
+    router,
+    listingType,
+    selectedCity,
+    minPrice,
+    maxPrice,
+    propertyType,
+    bedrooms,
+    bathrooms,
+    minSize,
+    maxSize,
+    sortBy,
+    currentPage,
+  ]);
 
-  // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [listingType, selectedCity, minPrice, maxPrice, propertyType, bedrooms, bathrooms, minSize, maxSize, sortBy]);
@@ -211,9 +427,11 @@ function ListingsPageContent() {
     setBathrooms('');
     setMinSize('');
     setMaxSize('');
+    setSortBy('newest');
     setCurrentPage(1);
   };
 
+  const totalPages = pagination.totalPages;
   const hasActiveFilters = listingType || selectedCity || minPrice || maxPrice || propertyType || bedrooms || bathrooms || minSize || maxSize;
 
   if (loading) {
@@ -231,19 +449,16 @@ function ListingsPageContent() {
   return (
     <div className="min-h-screen bg-white pt-[84px]">
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 pb-16">
-        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-semibold text-[#111111] mb-4 tracking-tight">
             Browse Properties
           </h1>
           <p className="text-lg text-[#111111]/70">
-            {filteredAndSortedProperties.length} {filteredAndSortedProperties.length === 1 ? 'property' : 'properties'} found
+            {pagination.total} {pagination.total === 1 ? 'property' : 'properties'} found
           </p>
         </div>
 
-        {/* Top Search Bar */}
         <div className="mb-6">
-          {/* Rent/Sale/All Tabs */}
           <div className="flex gap-2 mb-4">
             <button
               type="button"
@@ -279,7 +494,7 @@ function ListingsPageContent() {
               Rent
             </button>
           </div>
-          
+
           <form onSubmit={handleSearch} className="flex gap-4">
             <div className="flex-1 relative">
               <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#1F2937]" />
@@ -316,7 +531,6 @@ function ListingsPageContent() {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filter Sidebar */}
           <aside className={`lg:w-64 flex-shrink-0 ${isFilterOpen ? 'block' : 'hidden lg:block'}`}>
             <div className="bg-white rounded-xl p-6 lg:sticky lg:top-[100px] lg:self-start lg:max-h-[calc(100vh-180px)] lg:overflow-y-auto lg:z-10 lg:shadow-lg lg:mb-8">
               <div className="flex items-center justify-between mb-6">
@@ -340,7 +554,6 @@ function ListingsPageContent() {
               )}
 
               <div className="space-y-6">
-                {/* Location Filter */}
                 <div>
                   <label className="block text-sm font-medium text-[#111111] mb-2">
                     Location
@@ -353,14 +566,14 @@ function ListingsPageContent() {
                     <option value="">All Locations</option>
                     {metroManilaCities.length > 0 && (
                       <optgroup label="Metro Manila">
-                        {metroManilaCities.map(city => (
+                        {metroManilaCities.map((city) => (
                           <option key={city} value={city}>{city}</option>
                         ))}
                       </optgroup>
                     )}
                     {outsideCities.length > 0 && (
                       <optgroup label="Outside Metro Manila">
-                        {outsideCities.map(city => (
+                        {outsideCities.map((city) => (
                           <option key={city} value={city}>{city}</option>
                         ))}
                       </optgroup>
@@ -368,7 +581,6 @@ function ListingsPageContent() {
                   </select>
                 </div>
 
-                {/* Price Range */}
                 <div>
                   <label className="block text-sm font-medium text-[#111111] mb-2">
                     Price Range
@@ -393,7 +605,6 @@ function ListingsPageContent() {
                   </div>
                 </div>
 
-                {/* Bedrooms */}
                 <div>
                   <label className="block text-sm font-medium text-[#111111] mb-2">
                     Bedrooms
@@ -412,7 +623,6 @@ function ListingsPageContent() {
                   </select>
                 </div>
 
-                {/* Bathrooms */}
                 <div>
                   <label className="block text-sm font-medium text-[#111111] mb-2">
                     Bathrooms
@@ -430,7 +640,6 @@ function ListingsPageContent() {
                   </select>
                 </div>
 
-                {/* Size Range */}
                 <div>
                   <label className="block text-sm font-medium text-[#111111] mb-2">
                     Size (sqm)
@@ -458,9 +667,7 @@ function ListingsPageContent() {
             </div>
           </aside>
 
-          {/* Main Content */}
           <div className="flex-1">
-            {/* Sort and Filter Toggle */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -474,7 +681,7 @@ function ListingsPageContent() {
                 <label className="text-sm text-[#111111]/70">Sort by:</label>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={(e) => setSortBy(normalizeSortBy(e.target.value))}
                   className="px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent text-[#111111] bg-white"
                 >
                   <option value="newest">Newest First</option>
@@ -486,11 +693,21 @@ function ListingsPageContent() {
               </div>
             </div>
 
-            {/* Properties Grid */}
-            {paginatedProperties.length > 0 ? (
+            {loadingError ? (
+              <div className="text-center py-16">
+                <p className="text-xl text-[#111111]/70 mb-4">We couldn&apos;t load listings</p>
+                <p className="text-[#111111]/50 mb-6">Please try again.</p>
+                <button
+                  onClick={retryFetch}
+                  className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-lg hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : listings.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  {paginatedProperties.map((property) => (
+                  {listings.map((property) => (
                     <ListingCard
                       key={property.id}
                       listing={property}
@@ -501,18 +718,17 @@ function ListingsPageContent() {
                   ))}
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2">
                     <button
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                      disabled={!pagination.hasPrevPage}
                       className="p-2 border border-[#E5E7EB] rounded-lg hover:bg-[#F9FAFB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronLeft size={20} className="text-[#1F2937]" />
                     </button>
-                    
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
@@ -525,10 +741,10 @@ function ListingsPageContent() {
                         {page}
                       </button>
                     ))}
-                    
+
                     <button
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                      disabled={!pagination.hasNextPage}
                       className="p-2 border border-[#E5E7EB] rounded-lg hover:bg-[#F9FAFB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronRight size={20} className="text-[#1F2937]" />
@@ -557,13 +773,15 @@ function ListingsPageContent() {
 
 export default function ListingsPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-white pt-[84px] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg text-[#111111]/70">Loading properties...</p>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white pt-[84px] flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-lg text-[#111111]/70">Loading properties...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <ListingsPageContent />
     </Suspense>
   );
