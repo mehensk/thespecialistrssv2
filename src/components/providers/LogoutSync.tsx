@@ -32,11 +32,12 @@ export function LogoutSync() {
               credentials: 'include',
             });
             
-            // Sign out client-side
-            await signOut({ 
-              redirect: true,
-              callbackUrl: '/?logout=success'
+            // Sign out client-side without NextAuth redirect resolution,
+            // then force same-origin navigation.
+            await signOut({
+              redirect: false,
             });
+            window.location.href = '/?logout=success';
           } catch (error) {
             console.error('Logout sync error:', error);
             // Fallback: force redirect
@@ -72,11 +73,12 @@ export function LogoutSync() {
               credentials: 'include',
             });
             
-            // Sign out client-side
-            await signOut({ 
-              redirect: true,
-              callbackUrl: '/?logout=success'
+            // Sign out client-side without NextAuth redirect resolution,
+            // then force same-origin navigation.
+            await signOut({
+              redirect: false,
             });
+            window.location.href = '/?logout=success';
             
             // Clear the flag
             localStorage.removeItem('auth-logout');
