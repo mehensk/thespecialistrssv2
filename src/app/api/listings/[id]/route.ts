@@ -7,6 +7,7 @@ import { safeParseInt, safeParseFloat } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { getCachedListing } from '@/lib/cache';
 import { revalidateListingCaches } from '@/lib/listing-revalidation';
+import { canonicalizeListingType, canonicalizePropertyType } from '@/lib/search-contract';
 
 export async function GET(
   request: NextRequest,
@@ -148,6 +149,38 @@ export async function PUT(
       available,
     } = body;
 
+    let normalizedPropertyType = listing.propertyType;
+    if (propertyType !== undefined) {
+      if (propertyType === null || propertyType === '') {
+        normalizedPropertyType = null;
+      } else {
+        const canonicalPropertyType = canonicalizePropertyType(String(propertyType));
+        if (!canonicalPropertyType) {
+          return NextResponse.json(
+            { error: 'Invalid propertyType. Must be a supported property type.' },
+            { status: 400 }
+          );
+        }
+        normalizedPropertyType = canonicalPropertyType;
+      }
+    }
+
+    let normalizedListingType = listing.listingType;
+    if (listingType !== undefined) {
+      if (listingType === null || listingType === '') {
+        normalizedListingType = null;
+      } else {
+        const canonicalListingType = canonicalizeListingType(String(listingType));
+        if (!canonicalListingType) {
+          return NextResponse.json(
+            { error: 'Invalid listingType. Must be "sale" or "rent".' },
+            { status: 400 }
+          );
+        }
+        normalizedListingType = canonicalListingType;
+      }
+    }
+
     const updated = await prisma.listing.update({
       where: { id },
       data: {
@@ -159,8 +192,8 @@ export async function PUT(
         bedrooms: bedrooms !== undefined ? safeParseInt(bedrooms, 0, 50) : listing.bedrooms,
         bathrooms: bathrooms !== undefined ? safeParseFloat(bathrooms, 0, 50) : listing.bathrooms,
         size: size !== undefined ? safeParseFloat(size, 0, 1000000) : listing.size,
-        propertyType: propertyType !== undefined ? propertyType : listing.propertyType,
-        listingType: listingType !== undefined ? listingType : listing.listingType,
+        propertyType: normalizedPropertyType,
+        listingType: normalizedListingType,
         images: images !== undefined ? (Array.isArray(images) ? images : []) : listing.images,
         address: address !== undefined ? (address ? address.trim() : null) : listing.address,
         yearBuilt: yearBuilt !== undefined ? safeParseInt(yearBuilt, 1800, new Date().getFullYear() + 10) : listing.yearBuilt,

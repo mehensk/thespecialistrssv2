@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { groupCitiesForFilter } from '@/lib/location-utils';
 import { ListingCard } from '@/components/listings/ListingCard';
+import { parseSearchParams, toCanonicalQuery } from '@/lib/search-contract';
 
-type ListingTypeValue = 'sale' | 'rent';
+type ListingTypeValue = 'sale' | 'rent' | 'unknown';
 type SortByValue = 'newest' | 'price-low' | 'price-high' | 'size-small' | 'size-large';
 
 interface ListingViewModel {
@@ -59,6 +60,11 @@ interface ListingsApiResponse {
   error?: string;
 }
 
+interface ListingsFacetsResponse {
+  cities?: unknown[];
+  error?: string;
+}
+
 function normalizeString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -85,7 +91,10 @@ function normalizeBoolean(value: unknown, fallback: boolean): boolean {
 }
 
 function normalizeListingType(value: unknown): ListingTypeValue {
-  return value === 'rent' ? 'rent' : 'sale';
+  if (value === 'sale' || value === 'rent') {
+    return value;
+  }
+  return 'unknown';
 }
 
 function normalizeSortBy(value: string | null): SortByValue {
@@ -102,6 +111,30 @@ function normalizePage(value: string | null): number {
     return 1;
   }
   return parsedValue;
+}
+
+function toFilterInput(value: number | null): string {
+  return value === null ? '' : String(value);
+}
+
+function normalizeLocationInput(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function normalizeCityList(values: string[]): string[] {
+  const seen = new Set<string>();
+  const normalized: string[] = [];
+
+  values.forEach((value) => {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    normalized.push(trimmed);
+  });
+
+  return normalized.sort((a, b) => a.localeCompare(b));
 }
 
 function normalizeListing(listing: Record<string, unknown>): ListingViewModel {
@@ -168,10 +201,9 @@ function normalizePagination(
 function ListingsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-
-  const initialListingType = searchParams.get('listingType');
+  const { params: initialParams } = parseSearchParams(searchParams);
   const initialSortBy = normalizeSortBy(searchParams.get('sortBy'));
-  const initialPage = normalizePage(searchParams.get('page'));
+  const initialPage = initialParams.page ?? normalizePage(searchParams.get('page'));
 
   const [listings, setListings] = useState<ListingViewModel[]>([]);
   const [pagination, setPagination] = useState<ListingsPagination>({
@@ -185,23 +217,26 @@ function ListingsPageContent() {
   const [loading, setLoading] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [retryNonce, setRetryNonce] = useState(0);
+  const [searchRequestToken, setSearchRequestToken] = useState(0);
+  const [searchSubmitting, setSearchSubmitting] = useState(false);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [cityFacetOptions, setCityFacetOptions] = useState<string[]>([]);
 
   const [listingType, setListingType] = useState<'sale' | 'rent' | ''>(
-    initialListingType === 'sale' || initialListingType === 'rent' ? initialListingType : ''
+    initialParams.listingType ?? ''
   );
-  const [searchLocation, setSearchLocation] = useState(searchParams.get('location') || '');
-  const [selectedCity, setSelectedCity] = useState(searchParams.get('location') || '');
-  const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '');
-  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
-  const [propertyType, setPropertyType] = useState(searchParams.get('type') || '');
-  const [bedrooms, setBedrooms] = useState(searchParams.get('bedrooms') || '');
-  const [bathrooms, setBathrooms] = useState(searchParams.get('bathrooms') || '');
-  const [minSize, setMinSize] = useState(searchParams.get('minSize') || '');
-  const [maxSize, setMaxSize] = useState(searchParams.get('maxSize') || '');
+  const [searchLocation, setSearchLocation] = useState(initialParams.location ?? '');
+  const [selectedCity, setSelectedCity] = useState(initialParams.location ?? '');
+  const [minPrice, setMinPrice] = useState(toFilterInput(initialParams.minPrice));
+  const [maxPrice, setMaxPrice] = useState(toFilterInput(initialParams.maxPrice));
+  const [propertyType, setPropertyType] = useState(initialParams.type ?? '');
+  const [bedrooms, setBedrooms] = useState(toFilterInput(initialParams.bedrooms));
+  const [bathrooms, setBathrooms] = useState(toFilterInput(initialParams.bathrooms));
+  const [minSize, setMinSize] = useState(toFilterInput(initialParams.minSize));
+  const [maxSize, setMaxSize] = useState(toFilterInput(initialParams.maxSize));
   const [sortBy, setSortBy] = useState<SortByValue>(initialSortBy);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const isInitialMount = useRef(true);
 
   useEffect(() => {
     let isCancelled = false;
@@ -210,21 +245,21 @@ function ListingsPageContent() {
       setLoading(true);
       setLoadingError(null);
 
-      const queryParams = new URLSearchParams();
+      const queryParams = toCanonicalQuery({
+        location: selectedCity,
+        type: propertyType,
+        listingType,
+        minPrice,
+        maxPrice,
+        minSize,
+        maxSize,
+        bedrooms,
+        bathrooms,
+        page: currentPage,
+        limit: PROPERTIES_PER_PAGE,
+      });
       queryParams.set('published', 'true');
-      queryParams.set('page', String(currentPage));
-      queryParams.set('limit', String(PROPERTIES_PER_PAGE));
       queryParams.set('sortBy', sortBy);
-
-      if (listingType) queryParams.set('listingType', listingType);
-      if (selectedCity) queryParams.set('location', selectedCity);
-      if (minPrice) queryParams.set('minPrice', minPrice);
-      if (maxPrice) queryParams.set('maxPrice', maxPrice);
-      if (propertyType) queryParams.set('type', propertyType);
-      if (bedrooms) queryParams.set('bedrooms', bedrooms);
-      if (bathrooms) queryParams.set('bathrooms', bathrooms);
-      if (minSize) queryParams.set('minSize', minSize);
-      if (maxSize) queryParams.set('maxSize', maxSize);
 
       let lastErrorMessage = 'Unable to load properties right now. Please try again.';
 
@@ -333,6 +368,8 @@ function ListingsPageContent() {
     void fetchListings().finally(() => {
       if (!isCancelled) {
         setLoading(false);
+        setHasLoadedOnce(true);
+        setSearchSubmitting(false);
       }
     });
 
@@ -341,6 +378,7 @@ function ListingsPageContent() {
     };
   }, [
     retryNonce,
+    searchRequestToken,
     listingType,
     selectedCity,
     minPrice,
@@ -358,33 +396,77 @@ function ListingsPageContent() {
     setRetryNonce((current) => current + 1);
   };
 
+  useEffect(() => {
+    let isCancelled = false;
+
+    const fetchCityFacets = async () => {
+      try {
+        const queryParams = toCanonicalQuery({
+          listingType,
+          type: propertyType,
+          minPrice,
+          maxPrice,
+          minSize,
+          maxSize,
+          bedrooms,
+          bathrooms,
+        });
+        queryParams.set('published', 'true');
+
+        const response = await fetch(`/api/listings/facets?${queryParams.toString()}`);
+        if (!response.ok) {
+          return;
+        }
+
+        const data = (await response.json()) as ListingsFacetsResponse;
+        const rawCities = Array.isArray(data?.cities)
+          ? data.cities.filter((city): city is string => typeof city === 'string')
+          : [];
+        const normalizedCities = normalizeCityList(rawCities);
+
+        if (!isCancelled) {
+          setCityFacetOptions(normalizedCities);
+        }
+      } catch {
+        // Keep current options on transient failures.
+      }
+    };
+
+    void fetchCityFacets();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [listingType, propertyType, minPrice, maxPrice, bedrooms, bathrooms, minSize, maxSize]);
+
   const { metroManilaCities, outsideCities } = useMemo(() => {
-    const allCities = Array.from(new Set(listings.map((listing) => listing.city).filter(Boolean))).sort();
-    const grouped = groupCitiesForFilter(allCities);
+    const fallbackCities = listings.map((listing) => listing.city).filter(Boolean);
+    const mergedCities = normalizeCityList([...cityFacetOptions, ...fallbackCities]);
+    const cityValue = selectedCity.trim();
+    const cityAlreadyListed = cityValue
+      && mergedCities.some((city) => city.toLowerCase() === cityValue.toLowerCase());
+    const cityPool = cityAlreadyListed || !cityValue ? mergedCities : [cityValue, ...mergedCities];
+    const grouped = groupCitiesForFilter(cityPool);
     return {
       metroManilaCities: grouped.metroManila,
       outsideCities: grouped.outside,
     };
-  }, [listings]);
+  }, [cityFacetOptions, listings, selectedCity]);
 
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
-    const params = new URLSearchParams();
-    if (listingType) params.set('listingType', listingType);
-    if (selectedCity) params.set('location', selectedCity);
-    if (minPrice) params.set('minPrice', minPrice);
-    if (maxPrice) params.set('maxPrice', maxPrice);
-    if (propertyType) params.set('type', propertyType);
-    if (bedrooms) params.set('bedrooms', bedrooms);
-    if (bathrooms) params.set('bathrooms', bathrooms);
-    if (minSize) params.set('minSize', minSize);
-    if (maxSize) params.set('maxSize', maxSize);
+    const params = toCanonicalQuery({
+      listingType,
+      location: selectedCity,
+      minPrice,
+      maxPrice,
+      type: propertyType,
+      bedrooms,
+      bathrooms,
+      minSize,
+      maxSize,
+      page: currentPage > 1 ? currentPage : null,
+    });
     if (sortBy !== 'newest') params.set('sortBy', sortBy);
-    if (currentPage > 1) params.set('page', String(currentPage));
 
     const newUrl = params.toString() ? `/listings?${params.toString()}` : '/listings';
     const currentUrl = window.location.pathname + window.location.search;
@@ -413,7 +495,12 @@ function ListingsPageContent() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setSelectedCity(searchLocation);
+    const normalizedLocation = normalizeLocationInput(searchLocation);
+    setSearchLocation(normalizedLocation);
+    setSelectedCity(normalizedLocation);
+    setCurrentPage(1);
+    setSearchSubmitting(true);
+    setSearchRequestToken((current) => current + 1);
   };
 
   const clearFilters = () => {
@@ -434,7 +521,7 @@ function ListingsPageContent() {
   const totalPages = pagination.totalPages;
   const hasActiveFilters = listingType || selectedCity || minPrice || maxPrice || propertyType || bedrooms || bathrooms || minSize || maxSize;
 
-  if (loading) {
+  if (loading && !hasLoadedOnce) {
     return (
       <div className="min-h-screen bg-white pt-[84px]">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 pb-16">
@@ -523,11 +610,16 @@ function ListingsPageContent() {
             </select>
             <button
               type="submit"
-              className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-lg hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium shadow-lg hover:shadow-xl"
+              disabled={loading}
+              aria-busy={searchSubmitting && loading}
+              className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-lg hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 disabled:shadow-none"
             >
-              Search
+              {searchSubmitting && loading ? 'Searching...' : 'Search'}
             </button>
           </form>
+          {loading && hasLoadedOnce && (
+            <p className="mt-3 text-sm text-[#111111]/60">Updating results...</p>
+          )}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -560,7 +652,11 @@ function ListingsPageContent() {
                   </label>
                   <select
                     value={selectedCity}
-                    onChange={(e) => setSelectedCity(e.target.value)}
+                    onChange={(e) => {
+                      const nextCity = e.target.value;
+                      setSelectedCity(nextCity);
+                      setSearchLocation(nextCity);
+                    }}
                     className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent text-[#111111] bg-white"
                   >
                     <option value="">All Locations</option>

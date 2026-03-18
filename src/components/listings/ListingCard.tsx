@@ -65,6 +65,19 @@ export function ListingCard({
 
   const priceValue = normalizeNumber(listing.price);
   const hasPrice = priceValue !== null && Number.isFinite(priceValue) && priceValue > 0;
+  const normalizedListingType = listing.listingType === 'rent' || listing.listingType === 'sale'
+    ? listing.listingType
+    : 'unknown';
+  const listingTypeLabel = normalizedListingType === 'rent'
+    ? 'Rent'
+    : normalizedListingType === 'sale'
+      ? 'Sale'
+      : 'Unset';
+  const listingTypeBadgeClass = normalizedListingType === 'rent'
+    ? 'bg-[#D4AF37]/95 text-white'
+    : normalizedListingType === 'sale'
+      ? 'bg-[#1F2937]/95 text-white'
+      : 'bg-[#6B7280]/90 text-white';
 
   return (
     <Link
@@ -83,11 +96,9 @@ export function ListingCard({
         {/* Rent/Sale Badge - Top Right */}
         <div className="absolute top-3 right-3">
           <span
-            className={`px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider shadow-lg backdrop-blur-sm ${
-              listing.listingType === 'rent' ? 'bg-[#D4AF37]/95 text-white' : 'bg-[#1F2937]/95 text-white'
-            }`}
+            className={`px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wider shadow-lg backdrop-blur-sm ${listingTypeBadgeClass}`}
           >
-            {listing.listingType === 'rent' ? 'Rent' : 'Sale'}
+            {listingTypeLabel}
           </span>
         </div>
       </div>
@@ -98,7 +109,7 @@ export function ListingCard({
             {(listing.type || '').toLowerCase() === 'lot' ? (
               <>
                 {listing.size && listing.size > 0 && `${listing.size} sqm `}
-                Lot for {listing.listingType === 'rent' ? 'Rent' : 'Sale'}
+                Lot for {listingTypeLabel}
                 {listing.city && ` in ${listing.city}`}
               </>
             ) : (
@@ -106,7 +117,7 @@ export function ListingCard({
                 {formatBedroomsForTitle(listing.bedrooms, listing.type)}
                 {propertyTypeMap[listing.type || ''] || listing.type || 'Property'}
                 {' for '}
-                {listing.listingType === 'rent' ? 'Rent' : 'Sale'}
+                {listingTypeLabel}
               </>
             )}
           </h3>
@@ -116,7 +127,7 @@ export function ListingCard({
         <div className="mb-3">
           <p className="text-2xl md:text-3xl font-bold text-[#111111] tracking-tight w-full">
             {hasPrice ? `₱${priceValue.toLocaleString()}` : 'Price on request'}
-            {hasPrice && listing.listingType === 'rent' && (
+            {hasPrice && normalizedListingType === 'rent' && (
               <span className="text-base font-medium text-[#111111]/60 ml-1">/mo</span>
             )}
           </p>
