@@ -3,7 +3,13 @@
 import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { groupCitiesForFilter } from '@/lib/location-utils';
+import {
+  getMetroManilaDropdownOptions,
+  getMetroManilaCityDisplayLabel,
+  METRO_MANILA_FILTER_VALUE,
+  OUTSIDE_METRO_MANILA_FILTER_VALUE,
+  parseLocationFilterValue,
+} from '@/lib/location-utils';
 import { ListingCard } from '@/components/listings/ListingCard';
 import { parseSearchParams, toCanonicalQuery } from '@/lib/search-contract';
 
@@ -121,6 +127,15 @@ function normalizeLocationInput(value: string): string {
   return value.replace(/\s+/g, ' ').trim();
 }
 
+function getLocationInputLabel(filterValue: string | null | undefined): string {
+  const parsed = parseLocationFilterValue(filterValue);
+  if (parsed.kind === 'metro') return 'Metro Manila';
+  if (parsed.kind === 'outside') return 'Outside Metro Manila';
+  if (parsed.kind === 'ncr-city') return getMetroManilaCityDisplayLabel(parsed.city);
+  if (parsed.kind === 'text') return parsed.text;
+  return '';
+}
+
 function normalizeCityList(values: string[]): string[] {
   const seen = new Set<string>();
   const normalized: string[] = [];
@@ -202,6 +217,7 @@ function ListingsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { params: initialParams } = parseSearchParams(searchParams);
+  const initialLocationFilter = initialParams.location ?? '';
   const initialSortBy = normalizeSortBy(searchParams.get('sortBy'));
   const initialPage = initialParams.page ?? normalizePage(searchParams.get('page'));
 
@@ -223,8 +239,8 @@ function ListingsPageContent() {
   const [listingType, setListingType] = useState<'sale' | 'rent' | ''>(
     initialParams.listingType ?? ''
   );
-  const [searchLocation, setSearchLocation] = useState(initialParams.location ?? '');
-  const [selectedCity, setSelectedCity] = useState(initialParams.location ?? '');
+  const [searchLocation, setSearchLocation] = useState(getLocationInputLabel(initialLocationFilter));
+  const [selectedCity, setSelectedCity] = useState(initialLocationFilter);
   const [minPrice, setMinPrice] = useState(toFilterInput(initialParams.minPrice));
   const [maxPrice, setMaxPrice] = useState(toFilterInput(initialParams.maxPrice));
   const [propertyType, setPropertyType] = useState(initialParams.type ?? '');
@@ -487,19 +503,11 @@ function ListingsPageContent() {
     };
   }, [listingType, propertyType, minPrice, maxPrice, bedrooms, bathrooms, minSize, maxSize]);
 
-  const { metroManilaCities, outsideCities } = useMemo(() => {
+  const metroManilaCityOptions = useMemo(() => {
     const fallbackCities = listings.map((listing) => listing.city).filter(Boolean);
     const mergedCities = normalizeCityList([...cityFacetOptions, ...fallbackCities]);
-    const cityValue = selectedCity.trim();
-    const cityAlreadyListed = cityValue
-      && mergedCities.some((city) => city.toLowerCase() === cityValue.toLowerCase());
-    const cityPool = cityAlreadyListed || !cityValue ? mergedCities : [cityValue, ...mergedCities];
-    const grouped = groupCitiesForFilter(cityPool);
-    return {
-      metroManilaCities: grouped.metroManila,
-      outsideCities: grouped.outside,
-    };
-  }, [cityFacetOptions, listings, selectedCity]);
+    return getMetroManilaDropdownOptions(mergedCities);
+  }, [cityFacetOptions, listings]);
 
   useEffect(() => {
     const params = toCanonicalQuery({
@@ -545,7 +553,17 @@ function ListingsPageContent() {
     e.preventDefault();
     const normalizedLocation = normalizeLocationInput(searchLocation);
     setSearchLocation(normalizedLocation);
-    setSelectedCity(normalizedLocation);
+    const parsedSelection = parseLocationFilterValue(selectedCity);
+    const selectedLabel = getLocationInputLabel(selectedCity);
+    const keepStructuredFilter =
+      (parsedSelection.kind === 'metro'
+        || parsedSelection.kind === 'outside'
+        || parsedSelection.kind === 'ncr-city')
+      && selectedLabel === normalizedLocation;
+
+    if (!keepStructuredFilter) {
+      setSelectedCity(normalizedLocation);
+    }
     setCurrentPage(1);
     setRetryNonce((current) => current + 1);
   };
@@ -706,22 +724,19 @@ function ListingsPageContent() {
                     onChange={(e) => {
                       const nextCity = e.target.value;
                       setSelectedCity(nextCity);
-                      setSearchLocation(nextCity);
+                      setSearchLocation(getLocationInputLabel(nextCity));
                     }}
                     className="w-full px-4 py-2 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent text-[#111111] bg-white"
                   >
                     <option value="">All Locations</option>
-                    {metroManilaCities.length > 0 && (
+                    <option value={METRO_MANILA_FILTER_VALUE}>Metro Manila</option>
+                    <option value={OUTSIDE_METRO_MANILA_FILTER_VALUE}>Outside Metro Manila</option>
+                    {metroManilaCityOptions.length > 0 && (
                       <optgroup label="Metro Manila">
-                        {metroManilaCities.map((city) => (
-                          <option key={city} value={city}>{city}</option>
-                        ))}
-                      </optgroup>
-                    )}
-                    {outsideCities.length > 0 && (
-                      <optgroup label="Outside Metro Manila">
-                        {outsideCities.map((city) => (
-                          <option key={city} value={city}>{city}</option>
+                        {metroManilaCityOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
                         ))}
                       </optgroup>
                     )}

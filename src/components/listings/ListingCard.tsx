@@ -1,7 +1,13 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Bed, Bath, Square, MapPin, Car, Calendar, Layers } from 'lucide-react';
-import { formatLocationDisplay, formatLocationWithLabel, formatBedrooms, formatBedroomsForTitle } from '@/lib/location-utils';
+import {
+  formatLocationDisplay,
+  formatLocationWithLabel,
+  formatBedrooms,
+  formatBedroomsForTitle,
+  formatCityDisplayLabel,
+} from '@/lib/location-utils';
 import { buildCanonicalListingPath } from '@/lib/listing-slug';
 
 const propertyTypeMap: { [key: string]: string } = {
@@ -78,6 +84,7 @@ export function ListingCard({
     : normalizedListingType === 'sale'
       ? 'bg-[#1F2937]/95 text-white'
       : 'bg-[#6B7280]/90 text-white';
+  const cityDisplayLabel = formatCityDisplayLabel(listing.city);
 
   return (
     <Link
@@ -110,7 +117,7 @@ export function ListingCard({
               <>
                 {listing.size && listing.size > 0 && `${listing.size} sqm `}
                 Lot for {listingTypeLabel}
-                {listing.city && ` in ${listing.city}`}
+                {cityDisplayLabel && ` in ${cityDisplayLabel}`}
               </>
             ) : (
               <>

@@ -9,6 +9,7 @@ import {
   Camera, Flame, ConciergeBell, TreePine, Briefcase, Tv, Wrench, AlertCircle, Building
 } from 'lucide-react';
 import { buildCanonicalListingPath } from '@/lib/listing-slug';
+import { formatLocationWithLabel } from '@/lib/location-utils';
 
 interface Listing {
   id: string;
@@ -227,8 +228,7 @@ export function ListingDetailContent({
             </h1>
             <div className="flex items-center gap-2 text-[#111111]/70">
               <MapPin size={18} />
-              <span>{listing.location}</span>
-              {listing.city && <span>• {listing.city}</span>}
+              <span>{formatLocationWithLabel(listing.city, listing.location, listing.address)}</span>
             </div>
           </div>
 

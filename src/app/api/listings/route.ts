@@ -10,6 +10,12 @@ import { revalidateListingCaches } from '@/lib/listing-revalidation';
 import { listingSlugWithSuffix, slugifyListingTitle } from '@/lib/listing-slug';
 import { parseSearchParams } from '@/lib/search-contract';
 import { emitListingsTelemetry } from '@/lib/listings-observability';
+import {
+  canonicalizeMetroManilaCity,
+  parseLocationFilterValue,
+  METRO_MANILA_CITIES,
+  getMetroManilaSearchTerms,
+} from '@/lib/location-utils';
 
 const CREATE_LISTING_SLUG_MAX_RETRIES = 3;
 const DEFAULT_LISTINGS_PAGE = 1;
@@ -80,6 +86,94 @@ function getPaginationMetadata(
     hasNextPage: page < totalPages,
     hasPrevPage: page > 1,
   };
+}
+
+function normalizePersistedCity(city: unknown): string | null {
+  if (typeof city !== 'string') return null;
+  const trimmed = city.trim();
+  if (!trimmed) return null;
+  const canonical = canonicalizeMetroManilaCity(trimmed);
+  return canonical ?? trimmed;
+}
+
+function buildMetroManilaSearchTerms(): string[] {
+  const terms = new Set<string>();
+  METRO_MANILA_CITIES.forEach((city) => {
+    getMetroManilaSearchTerms(city).forEach((term) => {
+      terms.add(term);
+    });
+  });
+  return Array.from(terms);
+}
+
+function buildFieldMetroMatch(field: 'city' | 'location', terms: string[]): Prisma.ListingWhereInput {
+  return {
+    OR: terms.map((term) => ({
+      [field]: { contains: term, mode: 'insensitive' },
+    })),
+  };
+}
+
+function buildOutsideCityClause(terms: string[]): Prisma.ListingWhereInput {
+  return {
+    OR: [
+      { city: null },
+      { city: { equals: '' } },
+      { NOT: buildFieldMetroMatch('city', terms) },
+    ],
+  };
+}
+
+function buildOutsideLocationClause(terms: string[]): Prisma.ListingWhereInput {
+  return {
+    OR: [
+      { location: { equals: '' } },
+      { NOT: buildFieldMetroMatch('location', terms) },
+    ],
+  };
+}
+
+function buildLocationFilter(location: string | null): Prisma.ListingWhereInput {
+  if (!location) return {};
+
+  const parsed = parseLocationFilterValue(location);
+  const metroTerms = buildMetroManilaSearchTerms();
+  const metroCityMatch = buildFieldMetroMatch('city', metroTerms);
+  const metroLocationMatch = buildFieldMetroMatch('location', metroTerms);
+
+  if (parsed.kind === 'metro') {
+    return { OR: [metroCityMatch, metroLocationMatch] };
+  }
+
+  if (parsed.kind === 'outside') {
+    return {
+      AND: [
+        buildOutsideCityClause(metroTerms),
+        buildOutsideLocationClause(metroTerms),
+      ],
+    };
+  }
+
+  if (parsed.kind === 'ncr-city') {
+    const terms = getMetroManilaSearchTerms(parsed.city);
+    return {
+      OR: terms.flatMap((term) => [
+        { city: { contains: term, mode: 'insensitive' } },
+        { location: { contains: term, mode: 'insensitive' } },
+      ]),
+    };
+  }
+
+  if (parsed.kind === 'text') {
+    return {
+      OR: [
+        { city: { contains: parsed.text, mode: 'insensitive' } },
+        { location: { contains: parsed.text, mode: 'insensitive' } },
+      ],
+    };
+  }
+
+  return {};
 }
 
 // Generate a unique property ID using timestamp and UUID
@@ -173,14 +267,7 @@ export async function GET(request: NextRequest) {
             },
           }
         : {}),
-      ...(params.location
-        ? {
-            OR: [
-              { city: { contains: params.location, mode: 'insensitive' } },
-              { location: { contains: params.location, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
+      ...buildLocationFilter(params.location),
     };
 
     const publicSelectFields = {
@@ -432,7 +519,7 @@ export async function POST(request: NextRequest) {
       description: description.trim(),
       price: safeParseFloat(price, 0),
       location: location.trim(),
-      city: city ? city.trim() : null,
+      city: normalizePersistedCity(city),
       bedrooms: safeParseInt(bedrooms, 0, 50),
       bathrooms: safeParseFloat(bathrooms, 0, 50),
       size: safeParseFloat(size, 0, 1000000),

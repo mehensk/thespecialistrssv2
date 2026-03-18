@@ -8,6 +8,15 @@ import { logger } from '@/lib/logger';
 import { getCachedListing } from '@/lib/cache';
 import { revalidateListingCaches } from '@/lib/listing-revalidation';
 import { canonicalizeListingType, canonicalizePropertyType } from '@/lib/search-contract';
+import { canonicalizeMetroManilaCity } from '@/lib/location-utils';
+
+function normalizePersistedCity(city: unknown): string | null {
+  if (typeof city !== 'string') return null;
+  const trimmed = city.trim();
+  if (!trimmed) return null;
+  const canonical = canonicalizeMetroManilaCity(trimmed);
+  return canonical ?? trimmed;
+}
 
 export async function GET(
   request: NextRequest,
@@ -188,7 +197,7 @@ export async function PUT(
         description: description !== undefined ? description.trim() : listing.description,
         price: price !== undefined ? safeParseFloat(price, 0) : listing.price,
         location: location !== undefined ? location.trim() : listing.location,
-        city: city !== undefined ? (city ? city.trim() : null) : listing.city,
+        city: city !== undefined ? normalizePersistedCity(city) : listing.city,
         bedrooms: bedrooms !== undefined ? safeParseInt(bedrooms, 0, 50) : listing.bedrooms,
         bathrooms: bathrooms !== undefined ? safeParseFloat(bathrooms, 0, 50) : listing.bathrooms,
         size: size !== undefined ? safeParseFloat(size, 0, 1000000) : listing.size,

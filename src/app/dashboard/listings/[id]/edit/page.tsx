@@ -6,7 +6,7 @@ import { use } from 'react';
 import Link from 'next/link';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { isMetroManilaCity, METRO_MANILA_CITIES } from '@/lib/location-utils';
+import { isMetroManilaCity, METRO_MANILA_CITIES, getMetroManilaDropdownOptions } from '@/lib/location-utils';
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection';
 import { ListingImagesSection } from '@/components/listings/ListingImagesSection';
 import { 
@@ -119,6 +119,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
     'building',
     'commercial',
   ];
+  const metroManilaCityOptions = getMetroManilaDropdownOptions([...METRO_MANILA_CITIES]);
 
   // Essential amenities with icons (30 most important)
   const amenitiesList: { name: string; icon: LucideIcon; category: string }[] = [
@@ -428,6 +429,25 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
+          {/* Desktop Sticky Actions */}
+          <div className="hidden lg:block sticky top-[96px] z-20 -mx-8 px-8 py-3 bg-white/95 backdrop-blur border-b border-[#E5E7EB]">
+            <div className="flex items-center gap-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Updating...' : 'Update Listing'}
+              </button>
+              <Link
+                href="/dashboard/listings"
+                className="bg-white border-2 border-[#1F2937] text-[#1F2937] px-6 py-3 rounded-md hover:bg-[#1F2937] hover:text-white transition-all duration-300 font-medium"
+              >
+                Cancel
+              </Link>
+            </div>
+          </div>
+
           {/* Basic Information Section */}
           <CollapsibleSection
             title="Basic Information"
@@ -508,8 +528,10 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
                 >
                   <option value="">Select City</option>
                   <optgroup label="Metro Manila">
-                    {METRO_MANILA_CITIES.map(city => (
-                      <option key={city} value={city}>{city}</option>
+                    {metroManilaCityOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
                     ))}
                   </optgroup>
                   <option value="outside">Outside Metro Manila</option>
@@ -787,22 +809,6 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
             </div>
           )}
 
-          {/* Submit Buttons */}
-          <div className="hidden lg:flex lg:items-center gap-4 pt-4 border-t border-[#E5E7EB]">
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-md hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Updating...' : 'Update Listing'}
-            </button>
-            <Link
-              href="/dashboard/listings"
-              className="bg-white border-2 border-[#1F2937] text-[#1F2937] px-6 py-3 rounded-md hover:bg-[#1F2937] hover:text-white transition-all duration-300 font-medium"
-            >
-              Cancel
-            </Link>
-          </div>
         </form>
       </div>
     </div>
