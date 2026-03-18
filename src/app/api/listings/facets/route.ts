@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
 
     const cities = normalizeCities(records.map((record) => record.city || record.location));
     const headers = new Headers();
-    headers.set('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=30');
+    headers.set('Cache-Control', 'no-store');
 
     return NextResponse.json({ cities }, { headers });
   } catch (error) {

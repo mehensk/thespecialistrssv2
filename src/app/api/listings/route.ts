@@ -15,6 +15,7 @@ import { emitListingsTelemetry } from '@/lib/listings-observability';
 const CREATE_LISTING_SLUG_MAX_RETRIES = 3;
 const DEFAULT_LISTINGS_PAGE = 1;
 const DEFAULT_PUBLIC_SORT = 'newest';
+const DEFAULT_PUBLIC_LIMIT = 12;
 
 type ListingSortBy = 'newest' | 'price-low' | 'price-high' | 'size-small' | 'size-large';
 
@@ -210,20 +211,27 @@ export async function GET(request: NextRequest) {
         AND: [{ isPublished: true }, filterWhere],
       };
 
-      // Preserve Phase 2 optimized path for common unfiltered/newest requests.
-      const isDefaultPublicQuery = !params.location
-        && !params.type
-        && !params.listingType
-        && params.minPrice === null
-        && params.maxPrice === null
-        && params.minSize === null
-        && params.maxSize === null
-        && params.bedrooms === null
-        && params.bathrooms === null
-        && sortBy === 'newest';
+      // Keep CDN caching only for default unfiltered first-page queries.
+      const hasAnyFilter = !!params.location
+        || !!params.type
+        || !!params.listingType
+        || params.minPrice !== null
+        || params.maxPrice !== null
+        || params.minSize !== null
+        || params.maxSize !== null
+        || params.bedrooms !== null
+        || params.bathrooms !== null;
+      const isDefaultPagination = page === DEFAULT_LISTINGS_PAGE
+        && (legacyOffset === undefined || legacyOffset === 0)
+        && (limit === null || limit === DEFAULT_PUBLIC_LIMIT);
+      const isDefaultSort = sortBy === 'newest';
+      const isDefaultPublicQuery = !hasAnyFilter
+        && isDefaultPagination
+        && isDefaultSort;
+      const shouldCachePublicResponse = isDefaultPublicQuery;
 
       const [listings, total] = await Promise.all([
-        isDefaultPublicQuery
+        shouldCachePublicResponse
           ? getCachedListings({ limit: take, offset: skip })
           : prisma.listing.findMany({
               where,
@@ -237,7 +245,12 @@ export async function GET(request: NextRequest) {
 
       const pagination = getPaginationMetadata(page, limit, total);
       const headers = new Headers();
-      headers.set('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=30');
+      headers.set(
+        'Cache-Control',
+        shouldCachePublicResponse
+          ? 'public, s-maxage=15, stale-while-revalidate=30'
+          : 'no-store'
+      );
       emitListingsTelemetry({
         mode,
         publishedParam: published,
@@ -252,7 +265,7 @@ export async function GET(request: NextRequest) {
         hasSizeFilter: params.minSize !== null || params.maxSize !== null,
         hasBedroomsFilter: params.bedrooms !== null,
         hasBathroomsFilter: params.bathrooms !== null,
-        usedDefaultCachedPath: isDefaultPublicQuery,
+        usedDefaultCachedPath: shouldCachePublicResponse,
         cacheHeaderApplied: true,
         durationMs: Date.now() - requestStartedAt,
         resultCount: listings.length,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { groupCitiesForFilter } from '@/lib/location-utils';
@@ -237,9 +237,16 @@ function ListingsPageContent() {
   const [sortBy, setSortBy] = useState<SortByValue>(initialSortBy);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const activeListingsRequestIdRef = useRef(0);
+  const listingsAbortControllerRef = useRef<AbortController | null>(null);
+  const activeFacetsRequestIdRef = useRef(0);
+  const facetsAbortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     let isCancelled = false;
+    const requestId = activeListingsRequestIdRef.current + 1;
+    activeListingsRequestIdRef.current = requestId;
+    listingsAbortControllerRef.current?.abort();
 
     const fetchListings = async () => {
       setLoading(true);
@@ -264,8 +271,17 @@ function ListingsPageContent() {
       let lastErrorMessage = 'Unable to load properties right now. Please try again.';
 
       for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+        if (isCancelled || requestId !== activeListingsRequestIdRef.current) {
+          return;
+        }
+
         const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+        listingsAbortControllerRef.current = controller;
+        let didTimeout = false;
+        const timeoutId = window.setTimeout(() => {
+          didTimeout = true;
+          controller.abort();
+        }, FETCH_TIMEOUT_MS);
 
         try {
           const response = await fetch(`/api/listings?${queryParams.toString()}`, { signal: controller.signal });
@@ -284,11 +300,14 @@ function ListingsPageContent() {
             lastErrorMessage = apiMessage;
 
             if (retryableHttpError && attempt < MAX_FETCH_ATTEMPTS) {
+              if (isCancelled || requestId !== activeListingsRequestIdRef.current) {
+                return;
+              }
               await delay(getRetryDelayMs(attempt));
               continue;
             }
 
-            if (!isCancelled) {
+            if (!isCancelled && requestId === activeListingsRequestIdRef.current) {
               setListings([]);
               setPagination({
                 page: currentPage,
@@ -310,7 +329,7 @@ function ListingsPageContent() {
           );
           const normalizedPagination = normalizePagination(data?.pagination, currentPage, transformedListings.length);
 
-          if (!isCancelled) {
+          if (!isCancelled && requestId === activeListingsRequestIdRef.current) {
             setListings(transformedListings);
             setPagination(normalizedPagination);
             setLoadingError(null);
@@ -319,6 +338,9 @@ function ListingsPageContent() {
           return;
         } catch (error) {
           const isAbortError = error instanceof DOMException && error.name === 'AbortError';
+          if (isAbortError && !didTimeout) {
+            return;
+          }
           const isRetryableFailure = isAbortError || error instanceof TypeError;
 
           if (isAbortError) {
@@ -328,11 +350,14 @@ function ListingsPageContent() {
           }
 
           if (isRetryableFailure && attempt < MAX_FETCH_ATTEMPTS) {
+            if (isCancelled || requestId !== activeListingsRequestIdRef.current) {
+              return;
+            }
             await delay(getRetryDelayMs(attempt));
             continue;
           }
 
-          if (!isCancelled) {
+          if (!isCancelled && requestId === activeListingsRequestIdRef.current) {
             setListings([]);
             setPagination({
               page: currentPage,
@@ -348,10 +373,13 @@ function ListingsPageContent() {
           return;
         } finally {
           window.clearTimeout(timeoutId);
+          if (listingsAbortControllerRef.current === controller) {
+            listingsAbortControllerRef.current = null;
+          }
         }
       }
 
-      if (!isCancelled) {
+      if (!isCancelled && requestId === activeListingsRequestIdRef.current) {
         setListings([]);
         setPagination({
           page: currentPage,
@@ -366,7 +394,7 @@ function ListingsPageContent() {
     };
 
     void fetchListings().finally(() => {
-      if (!isCancelled) {
+      if (!isCancelled && requestId === activeListingsRequestIdRef.current) {
         setLoading(false);
         setHasLoadedOnce(true);
         setSearchSubmitting(false);
@@ -375,6 +403,9 @@ function ListingsPageContent() {
 
     return () => {
       isCancelled = true;
+      if (activeListingsRequestIdRef.current === requestId) {
+        listingsAbortControllerRef.current?.abort();
+      }
     };
   }, [
     retryNonce,
@@ -398,9 +429,15 @@ function ListingsPageContent() {
 
   useEffect(() => {
     let isCancelled = false;
+    const requestId = activeFacetsRequestIdRef.current + 1;
+    activeFacetsRequestIdRef.current = requestId;
+    facetsAbortControllerRef.current?.abort();
 
     const fetchCityFacets = async () => {
+      let controller: AbortController | null = null;
       try {
+        controller = new AbortController();
+        facetsAbortControllerRef.current = controller;
         const queryParams = toCanonicalQuery({
           listingType,
           type: propertyType,
@@ -413,7 +450,7 @@ function ListingsPageContent() {
         });
         queryParams.set('published', 'true');
 
-        const response = await fetch(`/api/listings/facets?${queryParams.toString()}`);
+        const response = await fetch(`/api/listings/facets?${queryParams.toString()}`, { signal: controller.signal });
         if (!response.ok) {
           return;
         }
@@ -424,11 +461,18 @@ function ListingsPageContent() {
           : [];
         const normalizedCities = normalizeCityList(rawCities);
 
-        if (!isCancelled) {
+        if (!isCancelled && requestId === activeFacetsRequestIdRef.current) {
           setCityFacetOptions(normalizedCities);
         }
-      } catch {
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return;
+        }
         // Keep current options on transient failures.
+      } finally {
+        if (controller && facetsAbortControllerRef.current === controller) {
+          facetsAbortControllerRef.current = null;
+        }
       }
     };
 
@@ -436,6 +480,9 @@ function ListingsPageContent() {
 
     return () => {
       isCancelled = true;
+      if (activeFacetsRequestIdRef.current === requestId) {
+        facetsAbortControllerRef.current?.abort();
+      }
     };
   }, [listingType, propertyType, minPrice, maxPrice, bedrooms, bathrooms, minSize, maxSize]);
 
