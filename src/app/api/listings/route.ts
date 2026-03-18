@@ -5,7 +5,6 @@ import { logListingActivity } from '@/lib/activity-logger';
 import { safeParseInt, safeParseFloat, validateListingInput } from '@/lib/validation';
 import { randomUUID } from 'crypto';
 import { logger } from '@/lib/logger';
-import { getCachedListings } from '@/lib/cache';
 import { getAuthenticatedUser, hasRequiredRole } from '@/lib/auth-helpers';
 import { revalidateListingCaches } from '@/lib/listing-revalidation';
 import { listingSlugWithSuffix, slugifyListingTitle } from '@/lib/listing-slug';
@@ -15,7 +14,6 @@ import { emitListingsTelemetry } from '@/lib/listings-observability';
 const CREATE_LISTING_SLUG_MAX_RETRIES = 3;
 const DEFAULT_LISTINGS_PAGE = 1;
 const DEFAULT_PUBLIC_SORT = 'newest';
-const DEFAULT_PUBLIC_LIMIT = 12;
 
 type ListingSortBy = 'newest' | 'price-low' | 'price-high' | 'size-small' | 'size-large';
 
@@ -211,46 +209,22 @@ export async function GET(request: NextRequest) {
         AND: [{ isPublished: true }, filterWhere],
       };
 
-      // Keep CDN caching only for default unfiltered first-page queries.
-      const hasAnyFilter = !!params.location
-        || !!params.type
-        || !!params.listingType
-        || params.minPrice !== null
-        || params.maxPrice !== null
-        || params.minSize !== null
-        || params.maxSize !== null
-        || params.bedrooms !== null
-        || params.bathrooms !== null;
-      const isDefaultPagination = page === DEFAULT_LISTINGS_PAGE
-        && (legacyOffset === undefined || legacyOffset === 0)
-        && (limit === null || limit === DEFAULT_PUBLIC_LIMIT);
-      const isDefaultSort = sortBy === 'newest';
-      const isDefaultPublicQuery = !hasAnyFilter
-        && isDefaultPagination
-        && isDefaultSort;
-      const shouldCachePublicResponse = isDefaultPublicQuery;
+      const shouldCachePublicResponse = false;
 
       const [listings, total] = await Promise.all([
-        shouldCachePublicResponse
-          ? getCachedListings({ limit: take, offset: skip })
-          : prisma.listing.findMany({
-              where,
-              select: publicSelectFields,
-              orderBy,
-              take,
-              skip,
-            }),
+        prisma.listing.findMany({
+          where,
+          select: publicSelectFields,
+          orderBy,
+          take,
+          skip,
+        }),
         prisma.listing.count({ where }),
       ]);
 
       const pagination = getPaginationMetadata(page, limit, total);
       const headers = new Headers();
-      headers.set(
-        'Cache-Control',
-        shouldCachePublicResponse
-          ? 'public, s-maxage=15, stale-while-revalidate=30'
-          : 'no-store'
-      );
+      headers.set('Cache-Control', 'no-store');
       emitListingsTelemetry({
         mode,
         publishedParam: published,

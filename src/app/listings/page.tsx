@@ -217,8 +217,6 @@ function ListingsPageContent() {
   const [loading, setLoading] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [retryNonce, setRetryNonce] = useState(0);
-  const [searchRequestToken, setSearchRequestToken] = useState(0);
-  const [searchSubmitting, setSearchSubmitting] = useState(false);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [cityFacetOptions, setCityFacetOptions] = useState<string[]>([]);
 
@@ -237,7 +235,28 @@ function ListingsPageContent() {
   const [sortBy, setSortBy] = useState<SortByValue>(initialSortBy);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const listingsQueryString = useMemo(() => {
+    const queryParams = toCanonicalQuery({
+      location: selectedCity,
+      type: propertyType,
+      listingType,
+      minPrice,
+      maxPrice,
+      minSize,
+      maxSize,
+      bedrooms,
+      bathrooms,
+      page: currentPage,
+      limit: PROPERTIES_PER_PAGE,
+    });
+    queryParams.set('published', 'true');
+    queryParams.set('sortBy', sortBy);
+    return queryParams.toString();
+  }, [listingType, selectedCity, minPrice, maxPrice, propertyType, bedrooms, bathrooms, minSize, maxSize, sortBy, currentPage]);
+  const [pendingQueryKey, setPendingQueryKey] = useState(listingsQueryString);
+  const [appliedQueryKey, setAppliedQueryKey] = useState<string | null>(null);
   const activeListingsRequestIdRef = useRef(0);
+  const latestRequestedQueryKeyRef = useRef(listingsQueryString);
   const listingsAbortControllerRef = useRef<AbortController | null>(null);
   const activeFacetsRequestIdRef = useRef(0);
   const facetsAbortControllerRef = useRef<AbortController | null>(null);
@@ -246,32 +265,24 @@ function ListingsPageContent() {
     let isCancelled = false;
     const requestId = activeListingsRequestIdRef.current + 1;
     activeListingsRequestIdRef.current = requestId;
+    const requestQueryKey = listingsQueryString;
+    latestRequestedQueryKeyRef.current = requestQueryKey;
+    setPendingQueryKey(requestQueryKey);
     listingsAbortControllerRef.current?.abort();
+
+    const isLatestActiveRequest = () =>
+      !isCancelled
+      && requestId === activeListingsRequestIdRef.current
+      && requestQueryKey === latestRequestedQueryKeyRef.current;
 
     const fetchListings = async () => {
       setLoading(true);
       setLoadingError(null);
 
-      const queryParams = toCanonicalQuery({
-        location: selectedCity,
-        type: propertyType,
-        listingType,
-        minPrice,
-        maxPrice,
-        minSize,
-        maxSize,
-        bedrooms,
-        bathrooms,
-        page: currentPage,
-        limit: PROPERTIES_PER_PAGE,
-      });
-      queryParams.set('published', 'true');
-      queryParams.set('sortBy', sortBy);
-
       let lastErrorMessage = 'Unable to load properties right now. Please try again.';
 
       for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
-        if (isCancelled || requestId !== activeListingsRequestIdRef.current) {
+        if (!isLatestActiveRequest()) {
           return;
         }
 
@@ -284,7 +295,7 @@ function ListingsPageContent() {
         }, FETCH_TIMEOUT_MS);
 
         try {
-          const response = await fetch(`/api/listings?${queryParams.toString()}`, { signal: controller.signal });
+          const response = await fetch(`/api/listings?${requestQueryKey}`, { signal: controller.signal });
           let data: ListingsApiResponse | null = null;
 
           try {
@@ -300,14 +311,14 @@ function ListingsPageContent() {
             lastErrorMessage = apiMessage;
 
             if (retryableHttpError && attempt < MAX_FETCH_ATTEMPTS) {
-              if (isCancelled || requestId !== activeListingsRequestIdRef.current) {
+              if (!isLatestActiveRequest()) {
                 return;
               }
               await delay(getRetryDelayMs(attempt));
               continue;
             }
 
-            if (!isCancelled && requestId === activeListingsRequestIdRef.current) {
+            if (isLatestActiveRequest()) {
               setListings([]);
               setPagination({
                 page: currentPage,
@@ -329,10 +340,11 @@ function ListingsPageContent() {
           );
           const normalizedPagination = normalizePagination(data?.pagination, currentPage, transformedListings.length);
 
-          if (!isCancelled && requestId === activeListingsRequestIdRef.current) {
+          if (isLatestActiveRequest()) {
             setListings(transformedListings);
             setPagination(normalizedPagination);
             setLoadingError(null);
+            setAppliedQueryKey(requestQueryKey);
           }
 
           return;
@@ -350,14 +362,14 @@ function ListingsPageContent() {
           }
 
           if (isRetryableFailure && attempt < MAX_FETCH_ATTEMPTS) {
-            if (isCancelled || requestId !== activeListingsRequestIdRef.current) {
+            if (!isLatestActiveRequest()) {
               return;
             }
             await delay(getRetryDelayMs(attempt));
             continue;
           }
 
-          if (!isCancelled && requestId === activeListingsRequestIdRef.current) {
+          if (isLatestActiveRequest()) {
             setListings([]);
             setPagination({
               page: currentPage,
@@ -379,7 +391,7 @@ function ListingsPageContent() {
         }
       }
 
-      if (!isCancelled && requestId === activeListingsRequestIdRef.current) {
+      if (isLatestActiveRequest()) {
         setListings([]);
         setPagination({
           page: currentPage,
@@ -394,10 +406,9 @@ function ListingsPageContent() {
     };
 
     void fetchListings().finally(() => {
-      if (!isCancelled && requestId === activeListingsRequestIdRef.current) {
+      if (isLatestActiveRequest()) {
         setLoading(false);
         setHasLoadedOnce(true);
-        setSearchSubmitting(false);
       }
     });
 
@@ -409,17 +420,7 @@ function ListingsPageContent() {
     };
   }, [
     retryNonce,
-    searchRequestToken,
-    listingType,
-    selectedCity,
-    minPrice,
-    maxPrice,
-    propertyType,
-    bedrooms,
-    bathrooms,
-    minSize,
-    maxSize,
-    sortBy,
+    listingsQueryString,
     currentPage,
   ]);
 
@@ -546,8 +547,7 @@ function ListingsPageContent() {
     setSearchLocation(normalizedLocation);
     setSelectedCity(normalizedLocation);
     setCurrentPage(1);
-    setSearchSubmitting(true);
-    setSearchRequestToken((current) => current + 1);
+    setRetryNonce((current) => current + 1);
   };
 
   const clearFilters = () => {
@@ -567,6 +567,7 @@ function ListingsPageContent() {
 
   const totalPages = pagination.totalPages;
   const hasActiveFilters = listingType || selectedCity || minPrice || maxPrice || propertyType || bedrooms || bathrooms || minSize || maxSize;
+  const isUpdatingResults = hasLoadedOnce && loading && pendingQueryKey !== appliedQueryKey;
 
   if (loading && !hasLoadedOnce) {
     return (
@@ -635,7 +636,11 @@ function ListingsPageContent() {
               <input
                 type="text"
                 value={searchLocation}
-                onChange={(e) => setSearchLocation(e.target.value)}
+                onChange={(e) => {
+                  const nextLocation = e.target.value;
+                  setSearchLocation(nextLocation);
+                  setSelectedCity(normalizeLocationInput(nextLocation));
+                }}
                 placeholder="Search by location..."
                 className="w-full pl-10 pr-4 py-3 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent text-[#111111] placeholder:text-[#111111]/50 shadow-sm"
               />
@@ -657,14 +662,13 @@ function ListingsPageContent() {
             </select>
             <button
               type="submit"
-              disabled={loading}
-              aria-busy={searchSubmitting && loading}
+              aria-busy={isUpdatingResults}
               className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-lg hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 disabled:shadow-none"
             >
-              {searchSubmitting && loading ? 'Searching...' : 'Search'}
+              {isUpdatingResults ? 'Searching...' : 'Search'}
             </button>
           </form>
-          {loading && hasLoadedOnce && (
+          {isUpdatingResults && (
             <p className="mt-3 text-sm text-[#111111]/60">Updating results...</p>
           )}
         </div>
