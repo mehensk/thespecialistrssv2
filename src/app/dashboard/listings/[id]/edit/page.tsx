@@ -6,7 +6,12 @@ import { use } from 'react';
 import Link from 'next/link';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { isMetroManilaCity, METRO_MANILA_CITIES, getMetroManilaDropdownOptions } from '@/lib/location-utils';
+import {
+  isMetroManilaCity,
+  METRO_MANILA_CITIES,
+  getMetroManilaCityDropdownOptions,
+  canonicalizeMetroManilaCity,
+} from '@/lib/location-utils';
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection';
 import { ListingImagesSection } from '@/components/listings/ListingImagesSection';
 import { 
@@ -119,7 +124,7 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
     'building',
     'commercial',
   ];
-  const metroManilaCityOptions = getMetroManilaDropdownOptions([...METRO_MANILA_CITIES]);
+  const metroManilaCityOptions = getMetroManilaCityDropdownOptions([...METRO_MANILA_CITIES]);
 
   // Essential amenities with icons (30 most important)
   const amenitiesList: { name: string; icon: LucideIcon; category: string }[] = [
@@ -200,14 +205,15 @@ export default function EditListingPage({ params }: { params: Promise<{ id: stri
         }
 
         // Set form data with existing listing data
-        const cityValue = listing.city || '';
-        const isOutside = cityValue && !isMetroManilaCity(cityValue);
+        const rawCityValue = listing.city || '';
+        const canonicalCityValue = canonicalizeMetroManilaCity(rawCityValue) || rawCityValue;
+        const isOutside = canonicalCityValue && !isMetroManilaCity(canonicalCityValue);
         
         setFormData({
           title: listing.title || '',
           description: listing.description || '',
           location: listing.location || '',
-          city: cityValue,
+          city: canonicalCityValue,
           address: listing.address || '',
           price: listing.price ? listing.price.toString() : '',
           listingType: listing.listingType || '',

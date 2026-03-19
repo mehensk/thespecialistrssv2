@@ -58,13 +58,24 @@ const METRO_CANONICAL_BY_NORMALIZED = new Map<string, MetroManilaCity>(
 const MANILA_LABEL = 'City of Manila';
 const PATEROS_LABEL = 'Municipality of Pateros';
 
+function unwrapNcrCityToken(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  const lowerValue = trimmed.toLowerCase();
+  const lowerPrefix = NCR_CITY_FILTER_PREFIX.toLowerCase();
+  if (lowerValue.startsWith(lowerPrefix)) {
+    return trimmed.slice(NCR_CITY_FILTER_PREFIX.length).trim();
+  }
+  return trimmed;
+}
+
 /**
  * Normalize Metro Manila city variants to canonical values.
  * Example: "Muntinlupa City" => "Muntinlupa".
  */
 export function canonicalizeMetroManilaCity(city: string | null | undefined): MetroManilaCity | null {
   if (!city) return null;
-  const normalized = stripMunicipalityAndCitySuffix(city);
+  const normalized = stripMunicipalityAndCitySuffix(unwrapNcrCityToken(city));
   if (!normalized) return null;
   return METRO_CANONICAL_BY_NORMALIZED.get(normalized) ?? null;
 }
@@ -152,7 +163,7 @@ export function getMetroManilaSearchTerms(city: MetroManilaCity): string[] {
  * Build NCR city options from listing-backed city values.
  * Ordering: Manila first, middle alphabetical, Pateros last.
  */
-export function getMetroManilaDropdownOptions(cities: string[]): Array<{ value: string; label: string }> {
+function buildOrderedMetroManilaCities(cities: string[]): MetroManilaCity[] {
   const uniqueCities = new Set<MetroManilaCity>();
   cities.forEach((city) => {
     const canonical = canonicalizeMetroManilaCity(city);
@@ -167,8 +178,27 @@ export function getMetroManilaDropdownOptions(cities: string[]): Array<{ value: 
   ordered.push(...middle);
   if (uniqueCities.has('Pateros')) ordered.push('Pateros');
 
+  return ordered;
+}
+
+/**
+ * NCR dropdown options for browse filter (token values).
+ */
+export function getMetroManilaDropdownOptions(cities: string[]): Array<{ value: string; label: string }> {
+  const ordered = buildOrderedMetroManilaCities(cities);
   return ordered.map((city) => ({
     value: createMetroManilaCityFilterValue(city),
+    label: getMetroManilaCityDisplayLabel(city),
+  }));
+}
+
+/**
+ * NCR dropdown options for create/edit forms (canonical city values).
+ */
+export function getMetroManilaCityDropdownOptions(cities: string[]): Array<{ value: string; label: string }> {
+  const ordered = buildOrderedMetroManilaCities(cities);
+  return ordered.map((city) => ({
+    value: city,
     label: getMetroManilaCityDisplayLabel(city),
   }));
 }
@@ -212,8 +242,13 @@ export function formatLocationWithLabel(
   const cityLabel = canonicalCity ? getMetroManilaCityDisplayLabel(canonicalCity) : null;
 
   if (address) {
+    const trimmedAddress = address.trim();
+    if (!trimmedAddress) {
+      return cityLabel || address;
+    }
+
     if (canonicalCity && cityLabel) {
-      const parts = address
+      const parts = trimmedAddress
         .split(',')
         .map((part) => part.trim())
         .filter(Boolean);
@@ -226,9 +261,19 @@ export function formatLocationWithLabel(
           return parts.join(', ');
         }
       }
+
+      const normalizedAddress = normalizeForComparison(trimmedAddress);
+      const normalizedCanonicalCity = normalizeForComparison(canonicalCity);
+      const normalizedCityLabel = normalizeForComparison(cityLabel);
+      if (
+        !normalizedAddress.includes(normalizedCanonicalCity)
+        && !normalizedAddress.includes(normalizedCityLabel)
+      ) {
+        return `${trimmedAddress.replace(/,\s*$/, '')}, ${cityLabel}`;
+      }
     }
 
-    return address;
+    return trimmedAddress;
   }
 
   if (city) {

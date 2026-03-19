@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { isMetroManilaCity, METRO_MANILA_CITIES, getMetroManilaDropdownOptions } from '@/lib/location-utils';
+import { isMetroManilaCity, METRO_MANILA_CITIES, getMetroManilaCityDropdownOptions } from '@/lib/location-utils';
 import { CollapsibleSection } from '@/components/shared/CollapsibleSection';
 import { ListingImagesSection } from '@/components/listings/ListingImagesSection';
 import { 
@@ -109,7 +109,7 @@ export default function NewListingPage() {
     'building',
     'commercial',
   ];
-  const metroManilaCityOptions = getMetroManilaDropdownOptions([...METRO_MANILA_CITIES]);
+  const metroManilaCityOptions = getMetroManilaCityDropdownOptions([...METRO_MANILA_CITIES]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     await handleImageUpload(e, formData.images.length);
