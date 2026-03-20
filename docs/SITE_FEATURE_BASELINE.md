@@ -1,6 +1,6 @@
 # Site Feature Baseline (Living Document)
 
-Last audited: 2026-03-16
+Last audited: 2026-03-19
 Scope: Implemented + In Progress
 Format: Feature Matrix
 
@@ -21,6 +21,7 @@ Single source of truth for what this site already has (and what is partially imp
 | Styling/UI | Tailwind v4 + custom CSS, lucide icons, Geist fonts | `package.json`, `src/app/globals.css`, `src/app/layout.tsx` |
 | Auth model | NextAuth v5 credentials, JWT session, role-based access (`ADMIN`, `AGENT`, `WRITER`) | `src/lib/auth.ts`, `prisma/schema.prisma` |
 | Data layer | Prisma + PostgreSQL with `User`, `Listing`, `BlogPost`, `Activity` | `prisma/schema.prisma`, `src/lib/prisma.ts` |
+| Search/filter contract | Canonical query parsing + Metro Manila location normalization for listing filters | `src/lib/search-contract.ts`, `src/lib/location-utils.ts` |
 | Media pipeline | Sharp preprocessing + Cloudinary (prod/serverless), local file fallback (dev) | `src/app/api/upload/route.ts`, `src/lib/cloudinary.ts` |
 | Caching/ISR | `unstable_cache`, tag/path revalidation, sitemap generation | `src/lib/cache.ts`, `src/lib/listing-revalidation.ts`, `src/app/sitemap.ts` |
 | Deployment targets | Netlify build, standalone output for server/VPS | `netlify.toml`, `next.config.ts` |
@@ -31,7 +32,7 @@ Single source of truth for what this site already has (and what is partially imp
 |---|---|---|---|---|---|
 | Global shell (navbar, footer, session/toast providers) | Public + Auth users | implemented | NextAuth session read | Keep top-level providers in root layout | `src/app/layout.tsx`, `src/components/ui/navbar.tsx` |
 | Home landing page with hero search and featured listings | Public | implemented | `/api/listings?published=true` | Split above-the-fold static + client fetched listing cards | `src/app/page.tsx`, `src/components/ui/hero-search.tsx`, `src/components/featured-listings.tsx` |
-| Listings browse page (filter, sort, pagination, URL sync) | Public | implemented | `/api/listings?published=true` | Client-side filter state with URL query synchronization | `src/app/listings/page.tsx` |
+| Listings browse page (server-driven filters, facets, pagination, URL sync, retry/timeout handling) | Public | implemented | `/api/listings`, `/api/listings/facets` | Canonical query state + abortable fetch + resilient retry flow | `src/app/listings/page.tsx`, `src/lib/search-contract.ts` |
 | Listing detail page (canonical slug path, gallery zoom, inquiry CTA) | Public + owner/admin for unpublished | implemented | `/api/listings/[id]` data contract, SEO schema | Canonical slug resolver + fallback redirect + rich detail client | `src/app/listings/[id]/page.tsx`, `src/components/listings/ListingDetailClient.tsx` |
 | Blog index page | Public | implemented | `/api/blog-posts?published=true` | Card feed with client fetch and lightweight loading state | `src/app/blog/page.tsx` |
 | Blog detail page with metadata + schema | Public (published only) | implemented | Prisma query via server page | Server-rendered article with SEO metadata and JSON-LD | `src/app/blog/[slug]/page.tsx`, `src/components/seo/blog-schema.tsx` |
@@ -51,7 +52,8 @@ Single source of truth for what this site already has (and what is partially imp
 | Credentials auth, session, JWT role injection, timeout checks | `/api/auth/[...nextauth]`, `auth` callbacks | Public login; protected session checks | `User`, JWT token claims | n/a | implemented | none | `src/app/api/auth/[...nextauth]/route.ts`, `src/lib/auth.ts` |
 | Logout cookie invalidation endpoint | `/api/auth/logout` | Auth user expected | Auth cookies | n/a | implemented | none | `src/app/api/auth/logout/route.ts` |
 | Middleware route protection for dashboard/admin + probe blocking | middleware | Token presence/validity | n/a | n/a | implemented | Admin role enforced in layouts, not middleware | `src/middleware.ts` |
-| Listings list + create | `/api/listings` | GET public; POST admin/agent | `Listing`, `Activity` | Cached GET, tag/path revalidation on writes | implemented | none | `src/app/api/listings/route.ts` |
+| Listings list + create | `/api/listings` | GET public; POST admin/agent | `Listing`, `Activity` | Public GET is currently `no-store`; writes still trigger listing revalidation | implemented | none | `src/app/api/listings/route.ts` |
+| Listings facets for dynamic city options | `/api/listings/facets` | Public | `Listing` (published subset) | `no-store` response; supports filter-aware city facet generation | implemented | none | `src/app/api/listings/facets/route.ts` |
 | Listing read + update | `/api/listings/[id]` | Published public; unpublished owner/admin; PUT owner/admin | `Listing`, `Activity` | Cached read except dashboard edit no-store, write revalidation | implemented | none | `src/app/api/listings/[id]/route.ts` |
 | Listing delete (owner) | `/api/listings/[id]/delete` | Owner only | `Listing`, `Activity` | Listing revalidation | implemented | none | `src/app/api/listings/[id]/delete/route.ts` |
 | Blog list + create | `/api/blog-posts` | GET public for published; POST auth user | `BlogPost`, `Activity` | Cached GET, tag/path revalidation on writes | implemented | none | `src/app/api/blog-posts/route.ts` |
@@ -76,8 +78,9 @@ Single source of truth for what this site already has (and what is partially imp
 | Approval workflow | implemented | Listings/blogs default unpublished, explicit admin approval endpoints set approver and timestamp | `prisma/schema.prisma`, `src/app/api/admin/listings/[id]/approve/route.ts`, `src/app/api/admin/blogs/[id]/approve/route.ts` |
 | Media handling | implemented | Sharp optimization, Cloudinary in serverless/prod, local storage in dev | `src/app/api/upload/route.ts`, `src/lib/cloudinary.ts` |
 | SEO | implemented | Metadata, canonical listing paths, JSON-LD for listing/blog, sitemap | `src/app/layout.tsx`, `src/app/listings/[id]/page.tsx`, `src/app/blog/[slug]/page.tsx`, `src/app/sitemap.ts` |
-| Caching and revalidation | implemented | Tag/path revalidation for listing/blog mutations, cached public feeds | `src/lib/cache.ts`, `src/lib/listing-revalidation.ts`, API mutation routes |
+| Caching and revalidation | implemented | Mixed strategy: tag/path revalidation for mutations, blog cache paths, and `no-store` listings search responses | `src/lib/cache.ts`, `src/lib/listing-revalidation.ts`, listings/blog API routes |
 | Observability/activity logs | implemented | Activity log model + helper instrumentation in auth/content/admin actions | `prisma/schema.prisma`, `src/lib/activity-logger.ts`, `src/app/admin/logs/page.tsx` |
+| Listings request telemetry | implemented | Optional env-gated request metrics for `/api/listings` (filters, duration, result counts, status) | `src/lib/listings-observability.ts`, `src/app/api/listings/route.ts` |
 | Security hardening | in-progress | Probe blocking and hidden login are present; route-level rate limiting not fully rolled out | `src/middleware.ts`, `src/lib/rate-limit.ts`, `src/app/login/page.tsx` |
 
 ## Reuse Blueprint (Copy-First Modules)
@@ -104,12 +107,13 @@ Single source of truth for what this site already has (and what is partially imp
 ## Validation Checklist (Ongoing)
 - Public pages accounted for: `/`, `/how-we-work`, `/developer-selling`, `/investor-relations`, `/listings`, `/listings/[id]`, `/blog`, `/blog/[slug]`, `/contact`, `/403`, secret login route.
 - Protected app routes accounted for: `/dashboard/*`, `/admin/*`.
-- API groups accounted for: auth, listings, blogs/blog-posts, admin users, admin listings/blogs actions, upload, recaptcha, health, user password.
+- API groups accounted for: auth, listings, listings facets, blogs/blog-posts, admin users, admin listings/blogs actions, upload, recaptcha, health, user password.
 - Core systems accounted for: auth, middleware, prisma schema, caching/revalidation, sitemap.
 - Consistency check: protected backend rows include auth/role constraints.
 
 ## Update Log
 - 2026-03-16: Initial baseline created from direct code audit of frontend pages, dashboard/admin surfaces, API groups, auth, media, caching, SEO, and ops config.
+- 2026-03-19: Updated baseline to current codebase: added listings facets endpoint coverage, updated listings browse/search architecture notes, and aligned caching/observability entries with current behavior.
 
 ## Suggested Features Before Final Launch
 

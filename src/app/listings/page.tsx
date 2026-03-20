@@ -648,8 +648,8 @@ function ListingsPageContent() {
             </button>
           </div>
 
-          <form onSubmit={handleSearch} className="flex gap-4">
-            <div className="flex-1 relative">
+          <form onSubmit={handleSearch} className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-4">
+            <div className="relative min-w-0">
               <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#1F2937]" />
               <input
                 type="text"
@@ -660,13 +660,13 @@ function ListingsPageContent() {
                   setSelectedCity(normalizeLocationInput(nextLocation));
                 }}
                 placeholder="Search by location..."
-                className="w-full pl-10 pr-4 py-3 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent text-[#111111] placeholder:text-[#111111]/50 shadow-sm"
+                className="w-full pl-10 pr-4 py-3 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent text-base text-[#111111] placeholder:text-[#111111]/50 shadow-sm"
               />
             </div>
             <select
               value={propertyType}
               onChange={(e) => setPropertyType(e.target.value)}
-              className="px-4 py-3 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent text-[#111111] bg-white shadow-sm"
+              className="w-full sm:w-auto px-4 py-3 border border-[#E5E7EB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1F2937] focus:border-transparent text-[#111111] bg-white shadow-sm"
             >
               <option value="">All Types</option>
               <option value="condominium">Condominium</option>
@@ -681,7 +681,7 @@ function ListingsPageContent() {
             <button
               type="submit"
               aria-busy={isUpdatingResults}
-              className="bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-lg hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 disabled:shadow-none"
+              className="w-full sm:w-auto bg-gradient-to-r from-[#1F2937] to-[#111111] text-white px-6 py-3 rounded-lg hover:from-[#1A232E] hover:to-[#0F1419] transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70 disabled:shadow-none"
             >
               {isUpdatingResults ? 'Searching...' : 'Search'}
             </button>
