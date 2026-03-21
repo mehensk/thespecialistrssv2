@@ -46,6 +46,12 @@ const listingSelect = {
 
 type ListingRecord = Prisma.ListingGetPayload<{ select: typeof listingSelect }>;
 
+const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.URL ||
+  'http://localhost:3000'
+).replace(/\/$/, '');
+
 async function canAccessListing(listing: { isPublished: boolean; userId: string }) {
   if (listing.isPublished) {
     return true;
@@ -166,7 +172,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       };
     }
 
-    const title = `${listing.title} | The Specialist Realty`;
+    const title = `${listing.title} | The Specialist Realty Solutions`;
     // Only show bedrooms in metadata if it's > 0 or it's a condominium with 0 (Studio)
     const bedroomsText = listing.bedrooms !== null && listing.bedrooms !== undefined
       ? (listing.bedrooms === 0 && listing.propertyType?.toLowerCase() === 'condominium'
@@ -181,7 +187,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       : `View ${listing.title} in ${listing.city || listing.location}. ${bedroomsText ? `${bedroomsText} ` : ''}${listing.bathrooms ? `${listing.bathrooms} bathrooms ` : ''}${listing.price ? `PHP ${listing.price.toLocaleString()}` : 'Price on request'}.`;
 
     const image = listing.images && listing.images.length > 0 ? listing.images[0] : undefined;
-    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://thespecialistrealty.com').replace(/\/$/, '');
     const canonicalPath = resolved.canonicalPath ?? buildCanonicalListingPath(listing.slug, listing.id);
     const canonicalUrl = `${siteUrl}${canonicalPath}`;
 
@@ -243,7 +248,6 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     permanentRedirect(resolved.canonicalPath);
   }
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://thespecialistrealty.com').replace(/\/$/, '');
   const canonicalPath = resolved.canonicalPath ?? buildCanonicalListingPath(listing.slug, listing.id);
   const canonicalUrl = `${siteUrl}${canonicalPath}`;
 
