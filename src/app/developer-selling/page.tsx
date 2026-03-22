@@ -2,11 +2,15 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollAnimation } from '@/components/ui/scroll-animation';
+import { getSiteUrl } from '@/lib/site-url';
 
 export const metadata: Metadata = {
-  title: 'Developer Selling | The Specialist Realty',
+  title: 'Developer Selling',
   description:
     'Buyer-focused guidance to accredited developer projects, with trusted support from consultation through project matching.',
+  alternates: {
+    canonical: `${getSiteUrl()}/developer-selling`,
+  },
 };
 
 const developers: Array<{

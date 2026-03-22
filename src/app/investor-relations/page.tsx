@@ -2,11 +2,15 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollAnimation } from '@/components/ui/scroll-animation';
+import { getSiteUrl } from '@/lib/site-url';
 
 export const metadata: Metadata = {
-  title: 'Investor Relations | The Specialist Realty',
+  title: 'Investor Relations',
   description:
     'Strategic real estate partnerships for private, corporate, and institutional investors focused on performance, transparency, and long-term growth.',
+  alternates: {
+    canonical: `${getSiteUrl()}/investor-relations`,
+  },
 };
 
 const benefitItems = [

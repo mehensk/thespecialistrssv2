@@ -207,7 +207,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const resolved = await resolveListingFromSegment(segment);
     if (!resolved.listing) {
       return {
-        title: 'Property Not Found | The Specialist Realty',
+        title: 'Property Not Found',
         description: 'The property you are looking for does not exist.',
         robots: {
           index: false,
@@ -221,7 +221,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
     if (!hasAccess) {
       return {
-        title: 'Property Not Found | The Specialist Realty',
+        title: 'Property Not Found',
         description: 'The property you are looking for does not exist.',
         robots: {
           index: false,
@@ -266,8 +266,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   } catch (error) {
     console.error('Error generating metadata:', error);
     return {
-      title: 'Property | The Specialist Realty',
-      description: 'View property details on The Specialist Realty',
+      title: 'Property',
+      description: 'View property details on The Specialist Realty Solutions',
       robots: {
         index: false,
         follow: false,

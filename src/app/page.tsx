@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
@@ -5,6 +6,18 @@ import { Sparkles, House } from 'lucide-react';
 import { ScrollAnimation } from '@/components/ui/scroll-animation';
 import { HeroSearch } from '@/components/ui/hero-search';
 import { LogoutMessage } from '@/components/logout-message';
+import { getSiteUrl } from '@/lib/site-url';
+
+const siteUrl = getSiteUrl();
+
+export const metadata: Metadata = {
+  title: 'Home',
+  description:
+    'Buy, sell, or invest with confidence through The Specialist Realty Solutions and Services.',
+  alternates: {
+    canonical: `${siteUrl}/`,
+  },
+};
 
 // Lazy load FeaturedListings component - it's below the fold
 const FeaturedListings = dynamic(() => import('@/components/featured-listings').then(mod => ({ default: mod.FeaturedListings })), {

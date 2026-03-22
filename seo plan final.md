@@ -3,6 +3,10 @@
 ## Source of Truth
 This file replaces prior planning docs as the active plan for listing URL SEO migration.
 
+## Global Constraint: Blog Freeze
+- No blog SEO/code/metadata/rendering/caching changes in any phase (including 4.6-11) until all non-blog phases in this plan are completed and explicitly closed.
+- Blog URLs may remain in passive discovery checks only; no implementation changes are allowed under this plan window.
+
 ## Goal (Plain Language)
 Make listing URLs readable using listing titles, while keeping old links working and protecting SEO.
 
@@ -141,6 +145,27 @@ Phase 4.5 exit criteria:
   - Sitemap lists canonical listing URLs only.
 - Prior accepted behavior for redirects/access/indexability remains unchanged.
 
+---
+
+### Phase 4.6: Canonical and Metadata Consistency Hardening (Non-Blog)
+What we do:
+- Add explicit self-canonical metadata on core static pages that currently rely only on layout defaults.
+- Expand sitemap coverage to include canonical core static pages plus canonical listing URLs (non-blog only).
+- Normalize title suffix policy to one brand format: `The Specialist Realty Solutions`.
+
+What we explicitly exclude:
+- No blog metadata, blog rendering mode, or blog caching changes.
+
+Why this matters:
+- Reduces canonical ambiguity on static templates.
+- Improves crawl discovery by expanding sitemap coverage beyond listings.
+- Removes title suffix inconsistency that can weaken brand trust and CTR.
+
+How to test success:
+- Sampled static pages emit correct self-canonical URLs.
+- `/sitemap.xml` contains intended canonical static + listing URLs only.
+- No mixed brand suffixes across sampled non-blog pages.
+
 ## SEO Rules (Required)
 - Canonical policy: new slug URL only.
 - Sitemap policy: include canonical listing URLs only.
@@ -149,64 +174,123 @@ Phase 4.5 exit criteria:
 - Structured data URL fields must match canonical URL.
 - Unpublished/private listings must be non-indexable (`noindex`) if renderable in restricted contexts.
 - Keep legacy redirect permanently.
+- Brand suffix standard is `The Specialist Realty Solutions`.
+- Brand suffix is owned by template policy; page-level metadata must not append a second suffix.
 
 ## Data/ID Rule
 - Keep existing internal `Listing.id` unchanged.
 - Use short deterministic suffix derived from `Listing.id` for public URL uniqueness.
 
-## MVP Execution Status (Updated 2026-03-15)
+## MVP Execution Status (Updated 2026-03-23)
 
 ### Phase 1 Status: Completed and validated
-- Existing listings have valid slugs.
-- New listing creation assigns slug safely.
-- Backfill + validation gate completed with zero failures in prior validation handoff.
+Completed:
+- Listing slugs are implemented and required in schema.
+- Existing listings were backfilled successfully.
+- Slug quality validation passed (`Missing: 0`, `Invalid format: 0`, `Duplicates: 0`).
 
-### Phase 2 Status: Completed (implemented)
-Implemented files:
-- `src/lib/listing-slug.ts`
+Decisions locked:
+- One-time full backfill.
+- Deterministic collision handling via ID-based suffix.
+- Slug frozen after create/backfill (no automatic slug mutation on title edit).
+
+Evidence:
+- `prisma migrate status` -> database up to date.
+- `npm run validate:listings:slug` -> all zero-error counts.
+
+### Phase 2 Status: Completed
+Completed:
+- Canonical listing path helpers added.
+- Listing route resolves canonical slug segment and legacy raw ID.
+- Canonical mismatch permanently redirects to canonical.
+- Listing metadata canonical and `og:url` aligned to canonical URL.
+- Unpublished authorized pages emit non-indexable metadata.
+
+### Phase 3 Status: Completed
+Completed:
+- Legacy `/listings/{id}` route permanently redirects in one hop to canonical URL.
+- Redirect behavior uses Next.js permanent redirect semantics (`308`).
+- Access-control ordering preserved (privacy behavior unchanged).
+
+### Phase 4 Status: Completed
+Completed:
+- Internal listing links were switched to canonical URL generation.
+- Defensive fallback to `/listings/{id}` remains only when slug is unavailable.
+- Canonical URL helpers are now used across public listing link surfaces.
+
+### Phase 4.5 Status: Implemented in code, pending live external verification
+Completed in code:
+- Added `robots.txt` route with sitemap reference.
+- Explicit crawler allow entries added for `facebookexternalhit` and `Facebot`.
+- Sitemap uses shared canonical site URL source.
+- Metadata base URL and SEO absolute URL utility aligned to same site URL source.
+- Listing metadata title now avoids duplicate brand-appending at page level.
+- Listing meta description builder now generates cleaner single-line SEO snippets.
+- Typecheck passes (`tsc --noEmit`).
+
+Files updated in Phase 4.5:
+- `src/app/robots.ts`
+- `src/lib/site-url.ts`
+- `src/app/sitemap.ts`
+- `src/app/layout.tsx`
+- `src/lib/seo-utils.ts`
 - `src/app/listings/[id]/page.tsx`
 
-Locked behaviors:
-- Canonical helpers added:
-  - `shortIdFromListingId`
-  - `buildCanonicalListingSegment`
-  - `buildCanonicalListingPath`
-  - `parseCanonicalListingSegment`
-  - `isCanonicalListingSegment`
-- Listing route resolves canonical slug segment and legacy raw ID.
-- Canonical mismatch redirects permanently to canonical URL.
-- Metadata canonical + OG URL aligned to canonical URL.
-- Unpublished authorized pages are non-indexable (`noindex, nofollow`).
-- Internal links intentionally not switched in Phase 2.
+Decisions locked in Phase 4.5:
+- Canonical host must be single-source and consistent (`https://www.thespecialistofficial.com` in production).
+- Brand appears once in title output chain (layout template owns brand suffix).
+- Crawler-path instability is treated as an operational risk with evidence-based escalation.
 
-### Phase 3 Status: Completed (implemented + revalidated)
-Implementation update:
-- Legacy raw ID path `/listings/{id}` now permanently redirects to canonical slug URL in one hop.
-- Redirect status used in implementation is **308 Permanent Redirect** (Next.js `permanentRedirect` behavior), by explicit decision.
-- Access control ordering is preserved: access check runs before redirect, keeping unpublished privacy behavior intact.
+Still required before formally closing Phase 4.5:
+- Verify live `https://www.thespecialistofficial.com/robots.txt` returns `200` and expected rules.
+- Verify live `https://www.thespecialistofficial.com/sitemap.xml` contains the audited listing URL.
 
-Phase 3 validation evidence (latest re-check against running local server):
-- Legacy URL:
-  - `/listings/cmieor3mv0001uskgmf64f8zt`
-  - Response: `308 Permanent Redirect`
-  - `Location`: `/listings/3-bedroom-fully-furnished-penthouse-corner-unit-for-sale-kasa-luntian-tagaytay-by-alveo-64f8zt`
-- Canonical URL direct request:
-  - Response: `200`
-  - Redirects: `0`
-- Chain test from legacy with follow:
-  - Final response: `200`
-  - Redirects: `1` (one-hop only)
-- Canonical mismatch still preserved:
-  - `/listings/wrong-slug-64f8zt` returns `308` to canonical URL
-- Type-check:
-  - `node .\\node_modules\\typescript\\bin\\tsc --noEmit` passed
+Closed in Phase 4.5 live verification:
+- Facebook Debugger on custom-domain listing URL now returns `200` with working preview.
+- Netlify support escalation is no longer active; reopen only if custom domain regresses to `403` while Netlify URL remains `200`.
+- `fb:app_id` warning is tracked as non-urgent follow-up and is not a release blocker.
 
-Notes:
-- Unpublished runtime scenario could not be re-exercised in this re-check because no unpublished fixture was available in the active local dataset. Code path remains unchanged and still enforces `notFound()` for unauthorized users and `noindex, nofollow` metadata for authorized unpublished views.
+### Phase 4.6 Status: Implemented in code and locally verified (non-blog)
+Completed in this phase:
+- Added explicit self-canonical metadata coverage for core non-blog static pages:
+  - `/`
+  - `/listings`
+  - `/how-we-work`
+  - `/developer-selling`
+  - `/investor-relations`
+  - `/contact`
+- Expanded `sitemap.xml` coverage to include intended canonical core static pages plus canonical listing URLs (non-blog only).
+- Completed non-blog title suffix consistency pass to the standard `The Specialist Realty Solutions`.
+- Preserved Phase 2/3 behavior and constraints:
+  - Canonical listing routing unchanged.
+  - One-hop legacy redirect behavior unchanged (`permanentRedirect` / `308`).
+  - Unpublished access/indexability policy unchanged.
+- Preserved Global Blog Freeze (no blog SEO/code/metadata/rendering/caching changes).
 
-### Next Target: Phase 4
-- Switch internal listing links from ID URLs to canonical slug URLs.
-- Preserve Phase 3 redirect behavior and canonical metadata consistency.
+Files updated in Phase 4.6:
+- `src/app/page.tsx`
+- `src/app/listings/page.tsx`
+- `src/app/how-we-work/page.tsx`
+- `src/app/developer-selling/page.tsx`
+- `src/app/investor-relations/page.tsx`
+- `src/app/contact/page.tsx`
+- `src/app/sitemap.ts`
+- `src/app/listings/[id]/page.tsx`
+- `src/app/listings/listings-page-client.tsx` (new)
+- `src/app/how-we-work/how-we-work-page-client.tsx` (new)
+- `src/app/contact/contact-page-client.tsx` (new)
+
+Verification result (current code):
+- `tsc --noEmit` passes.
+- Core static pages listed above now expose explicit self-canonical metadata.
+- Sitemap now includes canonical core static pages + canonical listing URLs (non-blog only).
+- No mixed non-blog metadata title suffix using `| The Specialist Realty` remains.
+- No blog route files were changed in this phase.
+
+Required before moving to Phase 5 implementation:
+- Close remaining Phase 4.5 live checks:
+  - live `robots.txt` 200 + expected rules
+  - live `sitemap.xml` audited URL presence
 
 ## Full SEO Maturity Roadmap (After MVP)
 
@@ -214,6 +298,7 @@ Notes:
 What we do:
 - Tighten `robots.txt` and crawl rules so search engines prioritize valuable pages.
 - Limit crawl waste on low-value/duplicate URL patterns.
+- Blog scope is deferred by Global Blog Freeze policy.
 
 Why this matters (plain language):
 - If crawlers spend time on the wrong pages, important pages get less attention.
@@ -229,6 +314,7 @@ How to test success:
 What we do:
 - Maintain sitemap quality (canonical-only URLs, freshness, correct status).
 - Add routine validation for sitemap integrity.
+- Blog scope is deferred by Global Blog Freeze policy.
 
 Why this matters (plain language):
 - Sitemap is a roadmap for search engines; if it is noisy or outdated, indexing quality drops.
@@ -244,6 +330,7 @@ How to test success:
 What we do:
 - Expand schema beyond basic listing URL alignment (for example, Breadcrumb and Organization where valid).
 - Ensure schema consistently uses canonical URLs.
+- Blog scope is deferred by Global Blog Freeze policy.
 
 Why this matters (plain language):
 - Structured data helps search engines understand your content and site relationships better.
@@ -259,6 +346,7 @@ How to test success:
 What we do:
 - Improve speed/stability metrics on high-value templates (home, listing index, listing detail).
 - Address slow-render and layout-shift issues.
+- Blog scope is deferred by Global Blog Freeze policy.
 
 Why this matters (plain language):
 - Faster pages improve rankings and user experience, especially on mobile.
@@ -274,6 +362,7 @@ How to test success:
 What we do:
 - Standardize title tags, meta descriptions, and content quality rules.
 - Reduce thin or duplicate listing copy and metadata.
+- Blog scope is deferred by Global Blog Freeze policy.
 
 Why this matters (plain language):
 - Clean, relevant page text improves ranking relevance and click-through.
@@ -289,6 +378,7 @@ How to test success:
 What we do:
 - Strengthen internal links (breadcrumbs, related listings, contextual links).
 - Improve image SEO (alt text quality, optimized image delivery).
+- Blog scope is deferred by Global Blog Freeze policy.
 
 Why this matters (plain language):
 - Better linking helps search engines and users discover important pages.
@@ -306,6 +396,7 @@ What we do:
 - Build off-page authority (quality backlinks and citations).
 - Strengthen local SEO signals.
 - Add international/multilingual SEO only if business expands there.
+- Blog scope is deferred by Global Blog Freeze policy.
 
 Why this matters (plain language):
 - Technical SEO gets pages ready; authority and local signals help them outrank competitors.
@@ -322,6 +413,9 @@ How to test success:
 4. Canonical metadata/OG URL and structured data align with canonical URL.
 5. Sitemap lists only canonical listing URLs.
 6. Unpublished/private listing pages are not indexable.
+7. Sampled non-blog static pages emit explicit self-canonical URLs.
+8. Sitemap includes intended canonical static + listing URLs only (non-blog scope).
+9. No mixed non-blog brand suffixes; standard is `The Specialist Realty Solutions`.
 
 ## Acceptance Criteria for Full SEO Maturity
 1. Crawl control is intentional and validated (no major crawl waste patterns).
@@ -337,3 +431,13 @@ How to test success:
 - Check canonical consistency on sample listing pages.
 - Validate sitemap indexing behavior in Search Console.
 - Watch for duplicate URL indexing issues.
+
+## Important SEO Coverage Checklist (Non-Blog, Must-Track)
+- Single canonical host enforcement (`www` only) and non-www -> www verification.
+- `robots.txt` availability and correctness.
+- Sitemap freshness and canonical-only URL inclusion (non-blog scope).
+- Canonical consistency across listing + core static templates.
+- Metadata quality consistency (title suffix and clean descriptions).
+- Structured data URL alignment with canonical URLs.
+- Search Console monitoring for crawl/index coverage.
+- Redirect health and 404 trend monitoring.
