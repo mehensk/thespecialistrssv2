@@ -13,6 +13,7 @@ import {
   buildCanonicalListingSegment,
   parseCanonicalListingSegment,
 } from '@/lib/listing-slug';
+import { getSiteUrl } from '@/lib/site-url';
 
 const listingSelect = {
   id: true,
@@ -46,11 +47,68 @@ const listingSelect = {
 
 type ListingRecord = Prisma.ListingGetPayload<{ select: typeof listingSelect }>;
 
-const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.URL ||
-  'http://localhost:3000'
-).replace(/\/$/, '');
+const siteUrl = getSiteUrl();
+
+function cleanSeoText(value: string | null | undefined): string {
+  if (!value) return '';
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function buildListingSeoTitle(listingTitle: string): string {
+  const cleanedTitle = cleanSeoText(listingTitle);
+  if (cleanedTitle.length <= 65) {
+    return cleanedTitle;
+  }
+
+  const shortened = cleanedTitle.slice(0, 62).replace(/\s+\S*$/, '');
+  return `${shortened.trim()}...`;
+}
+
+function buildListingSeoDescription(listing: ListingRecord): string {
+  const cleanDescription = cleanSeoText(listing.description);
+  const location = cleanSeoText(listing.city || listing.location) || 'Metro Manila';
+  const listingTypeText = listing.listingType?.toLowerCase() === 'rent' ? 'for rent' : 'for sale';
+  const typeText = cleanSeoText(listing.propertyType) || 'property';
+  const bedroomsText =
+    listing.bedrooms !== null && listing.bedrooms !== undefined
+      ? listing.bedrooms === 0 && listing.propertyType?.toLowerCase() === 'condominium'
+        ? 'Studio'
+        : `${listing.bedrooms}BR`
+      : '';
+  const bathroomsText =
+    listing.bathrooms !== null && listing.bathrooms !== undefined
+      ? `${listing.bathrooms} bath`
+      : '';
+  const sizeText =
+    listing.size !== null && listing.size !== undefined && listing.size > 0
+      ? `${listing.size} sqm`
+      : '';
+  const priceText =
+    listing.price && listing.price > 0
+      ? `PHP ${listing.price.toLocaleString()}`
+      : 'Price on request';
+
+  const structuredSnippet = [
+    bedroomsText,
+    typeText,
+    listingTypeText,
+    `in ${location}`,
+    bathroomsText,
+    sizeText,
+    priceText,
+    'Book a viewing today.',
+  ]
+    .filter(Boolean)
+    .join(', ')
+    .replace(/,\s+in\s+/i, ' in ');
+
+  const candidate = cleanDescription || structuredSnippet;
+  if (candidate.length <= 160) {
+    return candidate;
+  }
+
+  return `${candidate.slice(0, 157).replace(/\s+\S*$/, '').trim()}...`;
+}
 
 async function canAccessListing(listing: { isPublished: boolean; userId: string }) {
   if (listing.isPublished) {
@@ -172,19 +230,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       };
     }
 
-    const title = `${listing.title} | The Specialist Realty Solutions`;
-    // Only show bedrooms in metadata if it's > 0 or it's a condominium with 0 (Studio)
-    const bedroomsText = listing.bedrooms !== null && listing.bedrooms !== undefined
-      ? (listing.bedrooms === 0 && listing.propertyType?.toLowerCase() === 'condominium'
-          ? 'Studio unit'
-          : listing.bedrooms > 0
-            ? `${listing.bedrooms} bedrooms`
-            : '')
-      : '';
-
-    const description = listing.description
-      ? listing.description.substring(0, 160) + (listing.description.length > 160 ? '...' : '')
-      : `View ${listing.title} in ${listing.city || listing.location}. ${bedroomsText ? `${bedroomsText} ` : ''}${listing.bathrooms ? `${listing.bathrooms} bathrooms ` : ''}${listing.price ? `PHP ${listing.price.toLocaleString()}` : 'Price on request'}.`;
+    const title = buildListingSeoTitle(listing.title);
+    const description = buildListingSeoDescription(listing);
 
     const image = listing.images && listing.images.length > 0 ? listing.images[0] : undefined;
     const canonicalPath = resolved.canonicalPath ?? buildCanonicalListingPath(listing.slug, listing.id);

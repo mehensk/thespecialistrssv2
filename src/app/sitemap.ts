@@ -1,9 +1,10 @@
 import { MetadataRoute } from 'next';
 import { prisma } from '@/lib/prisma';
 import { buildCanonicalListingPath } from '@/lib/listing-slug';
+import { getSiteUrl } from '@/lib/site-url';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://thespecialistrealty.com').replace(/\/$/, '');
+  const siteUrl = getSiteUrl();
 
   const listings = await prisma.listing.findMany({
     where: { isPublished: true },

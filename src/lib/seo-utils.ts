@@ -1,13 +1,14 @@
 /**
  * SEO utility functions for generating absolute URLs and metadata
  */
+import { getSiteUrl } from '@/lib/site-url';
 
 /**
  * Get absolute URL from a relative path
  * Uses NEXTAUTH_URL or falls back to localhost in development
  */
 export function getAbsoluteUrl(path: string): string {
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const baseUrl = getSiteUrl();
   // Remove trailing slash from baseUrl and leading slash from path
   const cleanBaseUrl = baseUrl.replace(/\/$/, '');
   const cleanPath = path.startsWith('/') ? path : `/${path}`;

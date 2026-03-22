@@ -6,12 +6,9 @@ import { ConditionalFooter } from '@/components/ui/conditional-footer';
 import { SessionProvider } from '@/components/providers/SessionProvider';
 import { LogoutSync } from '@/components/providers/LogoutSync';
 import { ToastProvider } from '@/components/ui/toast';
+import { getSiteUrl } from '@/lib/site-url';
 
-const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.URL ||
-  'http://localhost:3000'
-).replace(/\/$/, '');
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: {
