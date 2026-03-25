@@ -14,6 +14,11 @@ interface EnvConfig {
   cloudinaryCloudName?: string;
   cloudinaryApiKey?: string;
   cloudinaryApiSecret?: string;
+  cloudinaryDeleteOnListingUpdate?: string;
+  cloudinaryDeleteStrict?: string;
+  cloudinaryDeleteRetryMaxAttempts?: string;
+  cloudinaryDeleteRetryBatchSize?: string;
+  cloudinaryCleanupCronSecret?: string;
   emailjsPublicKey?: string;
   emailjsServiceId?: string;
   emailjsTemplateId?: string;
@@ -42,6 +47,11 @@ export function validateEnv(): EnvConfig {
     cloudinaryCloudName: getOptionalEnv('CLOUDINARY_CLOUD_NAME'),
     cloudinaryApiKey: getOptionalEnv('CLOUDINARY_API_KEY'),
     cloudinaryApiSecret: getOptionalEnv('CLOUDINARY_API_SECRET'),
+    cloudinaryDeleteOnListingUpdate: getOptionalEnv('CLOUDINARY_DELETE_ON_LISTING_UPDATE'),
+    cloudinaryDeleteStrict: getOptionalEnv('CLOUDINARY_DELETE_STRICT'),
+    cloudinaryDeleteRetryMaxAttempts: getOptionalEnv('CLOUDINARY_DELETE_RETRY_MAX_ATTEMPTS'),
+    cloudinaryDeleteRetryBatchSize: getOptionalEnv('CLOUDINARY_DELETE_RETRY_BATCH_SIZE'),
+    cloudinaryCleanupCronSecret: getOptionalEnv('CLOUDINARY_CLEANUP_CRON_SECRET'),
     emailjsPublicKey: getOptionalEnv('NEXT_PUBLIC_EMAILJS_PUBLIC_KEY'),
     emailjsServiceId: getOptionalEnv('NEXT_PUBLIC_EMAILJS_SERVICE_ID'),
     emailjsTemplateId: getOptionalEnv('NEXT_PUBLIC_EMAILJS_TEMPLATE_ID'),

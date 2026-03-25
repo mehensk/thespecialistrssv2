@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { UserRole } from '@prisma/client';
-import { prisma, dbQuery } from '@/lib/prisma';
 import { getAuthenticatedUser, hasRequiredRole } from '@/lib/auth-helpers';
 import sharp from 'sharp';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
-import { uploadToCloudinary, isCloudinaryConfigured, sanitizeFolderName } from '@/lib/cloudinary';
+import {
+  uploadToCloudinary,
+  isCloudinaryConfigured,
+  sanitizeFolderName,
+  sanitizeImageBaseName,
+} from '@/lib/cloudinary';
 import { logger } from '@/lib/logger';
 
 // Industry standard: 2000 x 1500 pixels (4:3 aspect ratio)
@@ -59,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     // Get image metadata
     const metadata = await sharp(buffer).metadata();
-    const { width, height, format } = metadata;
+    const { width, height } = metadata;
 
     // Calculate target dimensions maintaining aspect ratio
     // Fit image within 2000x1500 bounds while maintaining aspect ratio
@@ -127,7 +131,9 @@ export async function POST(request: NextRequest) {
       // Upload to Cloudinary (production/serverless)
       // Image is already processed locally with Sharp - no Cloudinary transformations needed
       // This minimizes credit consumption (only storage, no processing)
-      publicUrl = await uploadToCloudinary(processedImage, folderName);
+      publicUrl = await uploadToCloudinary(processedImage, folderName, {
+        originalFilename: file.name,
+      });
     } else if (isServerless || isProduction) {
       // In serverless/production environments, Cloudinary is required
       logger.error('Cloudinary not configured in serverless/production environment', {
@@ -147,14 +153,19 @@ export async function POST(request: NextRequest) {
     } else {
       // Save locally (development only - when not in serverless)
       try {
-        const timestamp = Date.now();
-        const randomString = Math.random().toString(36).substring(2, 15);
-        const filename = `listing-${timestamp}-${randomString}.jpg`;
+        const baseName = sanitizeImageBaseName(file.name);
+        let filename = `${baseName}.jpg`;
 
         // Ensure uploads directory exists
         const uploadsDir = join(process.cwd(), 'public', 'uploads', 'listings');
         if (!existsSync(uploadsDir)) {
           await mkdir(uploadsDir, { recursive: true });
+        }
+
+        let counter = 1;
+        while (existsSync(join(uploadsDir, filename))) {
+          filename = `${baseName}-${counter}.jpg`;
+          counter += 1;
         }
 
         // Save file

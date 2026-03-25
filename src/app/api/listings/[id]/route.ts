@@ -9,6 +9,16 @@ import { getCachedListing } from '@/lib/cache';
 import { revalidateListingCaches } from '@/lib/listing-revalidation';
 import { canonicalizeListingType, canonicalizePropertyType } from '@/lib/search-contract';
 import { canonicalizeMetroManilaCity } from '@/lib/location-utils';
+import {
+  deleteCloudinaryResourcesByPublicIds,
+  extractPublicIdFromCloudinaryUrl,
+  isCloudinaryConfigured,
+} from '@/lib/cloudinary';
+import {
+  enqueueCloudinaryDeleteFailures,
+  isCloudinaryDeleteOnListingUpdateEnabled,
+  isCloudinaryDeleteStrictModeEnabled,
+} from '@/lib/cloudinary-delete-queue';
 
 function normalizePersistedCity(city: unknown): string | null {
   if (typeof city !== 'string') return null;
@@ -190,6 +200,14 @@ export async function PUT(
       }
     }
 
+    const shouldUpdateImages = images !== undefined;
+    const normalizedImages = shouldUpdateImages
+      ? (Array.isArray(images) ? images.filter((image): image is string => typeof image === 'string') : [])
+      : listing.images;
+    const removedImageUrls = shouldUpdateImages
+      ? listing.images.filter((existingUrl) => !normalizedImages.includes(existingUrl))
+      : [];
+
     const updated = await prisma.listing.update({
       where: { id },
       data: {
@@ -203,7 +221,7 @@ export async function PUT(
         size: size !== undefined ? safeParseFloat(size, 0, 1000000) : listing.size,
         propertyType: normalizedPropertyType,
         listingType: normalizedListingType,
-        images: images !== undefined ? (Array.isArray(images) ? images : []) : listing.images,
+        images: normalizedImages,
         address: address !== undefined ? (address ? address.trim() : null) : listing.address,
         yearBuilt: yearBuilt !== undefined ? safeParseInt(yearBuilt, 1800, new Date().getFullYear() + 10) : listing.yearBuilt,
         parking: parking !== undefined ? safeParseInt(parking, 0, 100) : listing.parking,
@@ -220,6 +238,73 @@ export async function PUT(
         }),
       },
     });
+
+    if (
+      removedImageUrls.length > 0 &&
+      isCloudinaryDeleteOnListingUpdateEnabled() &&
+      isCloudinaryConfigured()
+    ) {
+      const deleteCandidates = removedImageUrls
+        .map((imageUrl) => ({
+          imageUrl,
+          publicId: extractPublicIdFromCloudinaryUrl(imageUrl),
+        }))
+        .filter((item): item is { imageUrl: string; publicId: string } => !!item.publicId);
+
+      if (deleteCandidates.length > 0) {
+        try {
+          const deletionResults = await deleteCloudinaryResourcesByPublicIds(
+            deleteCandidates.map((item) => item.publicId)
+          );
+
+          const failures = deletionResults
+            .filter((result) => result.status === 'failed')
+            .map((result) => {
+              const candidate = deleteCandidates.find((item) => item.publicId === result.publicId);
+              return {
+                listingId: id,
+                imageUrl: candidate?.imageUrl ?? '',
+                publicId: result.publicId,
+                error: result.error || 'Cloudinary delete failed',
+              };
+            })
+            .filter((item) => item.imageUrl.length > 0);
+
+          if (failures.length > 0) {
+            await enqueueCloudinaryDeleteFailures(failures);
+            logger.error('Cloudinary delete failures queued after listing update', {
+              listingId: id,
+              failedCount: failures.length,
+            });
+
+            if (isCloudinaryDeleteStrictModeEnabled()) {
+              logger.error(
+                'CLOUDINARY_DELETE_STRICT is enabled and cleanup failed; listing was already updated and failures were queued',
+                { listingId: id }
+              );
+            }
+          }
+        } catch (deleteError) {
+          const errorMessage =
+            deleteError instanceof Error ? deleteError.message : 'Unexpected Cloudinary delete batch error';
+
+          await enqueueCloudinaryDeleteFailures(
+            deleteCandidates.map((item) => ({
+              listingId: id,
+              imageUrl: item.imageUrl,
+              publicId: item.publicId,
+              error: errorMessage,
+            }))
+          );
+
+          logger.error('Cloudinary delete batch failed; all items queued', {
+            listingId: id,
+            count: deleteCandidates.length,
+            error: errorMessage,
+          });
+        }
+      }
+    }
 
     // Log activity - don't let this break the response
     try {

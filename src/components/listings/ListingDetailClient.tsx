@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Share2, Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import useEmblaCarousel from 'embla-carousel-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { ConfirmationModal } from '@/components/ui/confirmation-modal';
 import { ListingDetailContent } from './ListingDetailContent';
 import { buildCanonicalListingPath } from '@/lib/listing-slug';
@@ -28,7 +29,7 @@ interface Listing {
   parking: number | null;
   floor: number | null;
   totalFloors: number | null;
-  amenities: any;
+  amenities: unknown;
   propertyId: string | null;
   available: boolean;
   createdAt: string;
@@ -44,73 +45,187 @@ interface ListingDetailClientProps {
 
 export function ListingDetailClient({ listing }: ListingDetailClientProps) {
   const router = useRouter();
+  const imageCount = listing.images?.length ?? 0;
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomImageIndex, setZoomImageIndex] = useState(0);
   const [showRequestInfoModal, setShowRequestInfoModal] = useState(false);
+  const [canScrollMainPrev, setCanScrollMainPrev] = useState(imageCount > 1);
+  const [canScrollMainNext, setCanScrollMainNext] = useState(imageCount > 1);
+  const [canScrollZoomPrev, setCanScrollZoomPrev] = useState(imageCount > 1);
+  const [canScrollZoomNext, setCanScrollZoomNext] = useState(imageCount > 1);
+  const zoomOpenIndexRef = useRef(0);
+  const canUsePortal = typeof window !== 'undefined' && typeof document !== 'undefined';
 
-  // Keyboard navigation for zoom modal
+  const [mainViewportRef, mainEmblaApi] = useEmblaCarousel({
+    loop: imageCount > 1,
+    align: 'start',
+    dragFree: false,
+  });
+
+  const [zoomViewportRef, zoomEmblaApi] = useEmblaCarousel({
+    loop: false,
+    align: 'start',
+    dragFree: false,
+  });
+
+  const prefetchImage = useCallback((url: string | undefined) => {
+    if (!url || typeof window === 'undefined') return;
+    const img = new window.Image();
+    img.decoding = 'async';
+    img.src = url;
+  }, []);
+
   useEffect(() => {
-    if (!isZoomed || !listing?.images) return;
+    if (!mainEmblaApi || imageCount <= 0) return;
+
+    const updateMainState = () => {
+      const index = mainEmblaApi.selectedScrollSnap();
+      setCurrentImageIndex(index);
+      setCanScrollMainPrev(imageCount > 1 && mainEmblaApi.canScrollPrev());
+      setCanScrollMainNext(imageCount > 1 && mainEmblaApi.canScrollNext());
+    };
+
+    mainEmblaApi.on('select', updateMainState);
+    mainEmblaApi.on('reInit', updateMainState);
+    updateMainState();
+
+    return () => {
+      mainEmblaApi.off('select', updateMainState);
+      mainEmblaApi.off('reInit', updateMainState);
+    };
+  }, [imageCount, mainEmblaApi]);
+
+  useEffect(() => {
+    if (!zoomEmblaApi || imageCount <= 0 || !isZoomed) return;
+
+    const updateZoomState = () => {
+      const index = zoomEmblaApi.selectedScrollSnap();
+      setZoomImageIndex(index);
+      setCanScrollZoomPrev(imageCount > 1 && zoomEmblaApi.canScrollPrev());
+      setCanScrollZoomNext(imageCount > 1 && zoomEmblaApi.canScrollNext());
+    };
+
+    zoomEmblaApi.on('select', updateZoomState);
+    zoomEmblaApi.on('reInit', updateZoomState);
+    updateZoomState();
+
+    return () => {
+      zoomEmblaApi.off('select', updateZoomState);
+      zoomEmblaApi.off('reInit', updateZoomState);
+    };
+  }, [imageCount, isZoomed, zoomEmblaApi]);
+
+  useEffect(() => {
+    if (!mainEmblaApi || mainEmblaApi.selectedScrollSnap() === currentImageIndex) return;
+    mainEmblaApi.scrollTo(currentImageIndex, false);
+  }, [currentImageIndex, mainEmblaApi]);
+
+  useEffect(() => {
+    if (!isZoomed || !zoomEmblaApi || imageCount === 0) return;
+
+    const raf = window.requestAnimationFrame(() => {
+      zoomEmblaApi.reInit();
+      zoomEmblaApi.scrollTo(zoomOpenIndexRef.current, true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(raf);
+    };
+  }, [imageCount, isZoomed, zoomEmblaApi]);
+
+  useEffect(() => {
+    if (imageCount <= 1) return;
+    const nextIndex = (currentImageIndex + 1) % imageCount;
+    const prevIndex = (currentImageIndex - 1 + imageCount) % imageCount;
+    prefetchImage(listing.images[nextIndex]);
+    prefetchImage(listing.images[prevIndex]);
+  }, [currentImageIndex, imageCount, listing.images, prefetchImage]);
+
+  useEffect(() => {
+    if (!isZoomed || imageCount <= 1) return;
+    const nextIndex = (zoomImageIndex + 1) % imageCount;
+    const prevIndex = (zoomImageIndex - 1 + imageCount) % imageCount;
+    prefetchImage(listing.images[nextIndex]);
+    prefetchImage(listing.images[prevIndex]);
+  }, [imageCount, isZoomed, listing.images, prefetchImage, zoomImageIndex]);
+
+  useEffect(() => {
+    if (!isZoomed) return;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isZoomed]);
+
+  useEffect(() => {
+    if (!isZoomed || imageCount === 0) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsZoomed(false);
-        document.body.style.overflow = 'unset';
-      } else if (e.key === 'ArrowLeft' && listing.images && listing.images.length > 0) {
-        setZoomImageIndex((prev) => (prev - 1 + listing.images.length) % listing.images.length);
-      } else if (e.key === 'ArrowRight' && listing.images && listing.images.length > 0) {
-        setZoomImageIndex((prev) => (prev + 1) % listing.images.length);
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        zoomEmblaApi?.scrollPrev();
+      }
+
+      if (e.key === 'ArrowRight') {
+        zoomEmblaApi?.scrollNext();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isZoomed, listing?.images]);
+  }, [imageCount, isZoomed, zoomEmblaApi]);
 
-  const nextImage = () => {
-    if (listing.images && listing.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev + 1) % listing.images.length);
-    }
-  };
+  const nextMainImage = useCallback(() => {
+    mainEmblaApi?.scrollNext();
+  }, [mainEmblaApi]);
 
-  const prevImage = () => {
-    if (listing.images && listing.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev - 1 + listing.images.length) % listing.images.length);
-    }
-  };
+  const prevMainImage = useCallback(() => {
+    mainEmblaApi?.scrollPrev();
+  }, [mainEmblaApi]);
 
-  const goToImage = (index: number) => {
-    setCurrentImageIndex(index);
-  };
+  const goToMainImage = useCallback(
+    (index: number) => {
+      setCurrentImageIndex(index);
+      mainEmblaApi?.scrollTo(index, false);
+    },
+    [mainEmblaApi]
+  );
 
-  const openZoom = (index: number) => {
-    setZoomImageIndex(index);
-    setIsZoomed(true);
-    document.body.style.overflow = 'hidden';
-  };
+  const openZoom = useCallback(
+    (index: number) => {
+      zoomOpenIndexRef.current = index;
+      setZoomImageIndex(index);
+      setIsZoomed(true);
+    },
+    []
+  );
 
-  const closeZoom = () => {
+  const closeZoom = useCallback(() => {
     setIsZoomed(false);
-    document.body.style.overflow = 'unset';
-  };
+  }, []);
 
-  const nextZoomImage = () => {
-    if (listing.images && listing.images.length > 0) {
-      setZoomImageIndex((prev) => (prev + 1) % listing.images.length);
-    }
-  };
+  const nextZoomImage = useCallback(() => {
+    zoomEmblaApi?.scrollNext();
+  }, [zoomEmblaApi]);
 
-  const prevZoomImage = () => {
-    if (listing.images && listing.images.length > 0) {
-      setZoomImageIndex((prev) => (prev - 1 + listing.images.length) % listing.images.length);
-    }
-  };
+  const prevZoomImage = useCallback(() => {
+    zoomEmblaApi?.scrollPrev();
+  }, [zoomEmblaApi]);
 
-  const goToZoomImage = (index: number) => {
-    setZoomImageIndex(index);
-  };
+  const goToZoomImage = useCallback(
+    (index: number) => {
+      setZoomImageIndex(index);
+      zoomEmblaApi?.scrollTo(index, false);
+    },
+    [zoomEmblaApi]
+  );
 
   const handleRequestInfoClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -120,28 +235,18 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
   const handleConfirmRequestInfo = () => {
     if (!listing) return;
     const listingPath = listing.slug ? buildCanonicalListingPath(listing.slug, listing.id) : `/listings/${listing.id}`;
-    
-    // Build the property link
-    const propertyLink = typeof window !== 'undefined' 
-      ? `${window.location.origin}${listingPath}`
-      : listingPath;
-    
-    // Build the message according to user's format
+    const propertyLink = typeof window !== 'undefined' ? `${window.location.origin}${listingPath}` : listingPath;
     const propertyTitle = listing.title || 'Property';
     const propertyId = listing.propertyId || listing.id;
     const inquiryText = `Inquiry: ${propertyTitle}, Property ID ${propertyId} Property Link ${propertyLink}`;
     const messageText = 'I am interested in learning more about your property. Please contact me about it';
     const fullMessage = `${inquiryText}\n\nMessage: ${messageText}`;
-    
-    // Determine interest value based on listing type
     const interestValue = listing.listingType === 'rent' ? 'renting' : 'buying';
-    
-    // Build URL with query parameters
+
     const params = new URLSearchParams();
     params.set('interest', interestValue);
     params.set('message', fullMessage);
-    
-    // Navigate to contact page
+
     router.push(`/contact?${params.toString()}`);
     setShowRequestInfoModal(false);
   };
@@ -152,107 +257,121 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
         listing={listing}
         currentImageIndex={currentImageIndex}
         isSaved={isSaved}
-        onImageChange={setCurrentImageIndex}
         onSaveToggle={() => setIsSaved(!isSaved)}
-        onImageNavigation={{ next: nextImage, prev: prevImage, goTo: goToImage }}
+        mainViewportRef={mainViewportRef}
+        canScrollMainPrev={canScrollMainPrev}
+        canScrollMainNext={canScrollMainNext}
+        onMainPrev={prevMainImage}
+        onMainNext={nextMainImage}
+        onMainGoTo={goToMainImage}
+        onMainImageLoaded={(index) => {
+          if (index !== currentImageIndex) return;
+          const nextIndex = (index + 1) % imageCount;
+          const prevIndex = (index - 1 + imageCount) % imageCount;
+          prefetchImage(listing.images[nextIndex]);
+          prefetchImage(listing.images[prevIndex]);
+        }}
         onZoom={openZoom}
         onRequestInfo={handleRequestInfoClick}
       />
 
-      {/* Zoom Modal with Carousel */}
-      {isZoomed && listing.images && listing.images.length > 0 && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
-          onClick={closeZoom}
-        >
-          {/* Close Button */}
-          <button
-            onClick={closeZoom}
-            className="absolute top-4 right-4 z-60 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all backdrop-blur-sm"
-            aria-label="Close zoom"
-          >
-            <X size={24} />
-          </button>
+      {isZoomed && imageCount > 0 && canUsePortal
+        ? createPortal(
+            <div className="fixed inset-0 z-[120] bg-black/95" onClick={closeZoom}>
+              <div className="h-[100svh] w-full px-0 py-4 md:h-[100dvh] md:p-6" onClick={(e) => e.stopPropagation()}>
+                <div className="relative flex h-full w-full min-h-0 min-w-0 flex-col gap-4">
+                  <button
+                    onClick={closeZoom}
+                    className="absolute right-4 top-4 z-[70] rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                    aria-label="Close zoom"
+                  >
+                    <X size={24} />
+                  </button>
 
-          {/* Main Zoomed Image Container */}
-          <div 
-            className="relative w-full h-full flex items-center justify-center p-4 md:p-8"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Previous Button */}
-            {listing.images.length > 1 && (
-              <button
-                onClick={prevZoomImage}
-                className="absolute left-4 md:left-8 z-60 bg-white/10 hover:bg-white/20 text-white p-4 rounded-full transition-all backdrop-blur-sm"
-                aria-label="Previous image"
-              >
-                <ChevronLeft size={32} />
-              </button>
-            )}
+                  <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-lg bg-black/60">
+                    <div ref={zoomViewportRef} className="h-full w-full min-w-0 overflow-hidden">
+                      <div className="flex h-full w-full">
+                        {listing.images.map((image, index) => (
+                          <div key={image + index} className="relative h-full min-w-0 shrink-0 grow-0 basis-full">
+                            <div className="relative h-full w-full">
+                              <div className="flex h-full w-full items-center justify-center">
+                                <img
+                                  src={image}
+                                  alt={`${listing.title || 'Property Image'} - Image ${index + 1}`}
+                                  className="block h-full w-full select-none object-contain object-center"
+                                  loading={index === zoomImageIndex ? 'eager' : 'lazy'}
+                                  draggable={false}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-            {/* Zoomed Image */}
-            <div className="relative w-full h-full max-w-7xl mx-auto flex items-center justify-center">
-              <Image
-                src={listing.images[zoomImageIndex]}
-                alt={`${listing.title || 'Property Image'} - Image ${zoomImageIndex + 1}`}
-                fill
-                className="object-contain"
-                sizes="100vw"
-                priority
-              />
-            </div>
+                    {imageCount > 1 && (
+                      <>
+                        <button
+                          onClick={prevZoomImage}
+                          disabled={!canScrollZoomPrev}
+                          className="absolute left-3 top-1/2 z-[65] -translate-y-1/2 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition-all hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label="Previous image"
+                        >
+                          <ChevronLeft size={28} />
+                        </button>
+                        <button
+                          onClick={nextZoomImage}
+                          disabled={!canScrollZoomNext}
+                          className="absolute right-3 top-1/2 z-[65] -translate-y-1/2 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition-all hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label="Next image"
+                        >
+                          <ChevronRight size={28} />
+                        </button>
+                      </>
+                    )}
 
-            {/* Next Button */}
-            {listing.images.length > 1 && (
-              <button
-                onClick={nextZoomImage}
-                className="absolute right-4 md:right-8 z-60 bg-white/10 hover:bg-white/20 text-white p-4 rounded-full transition-all backdrop-blur-sm"
-                aria-label="Next image"
-              >
-                <ChevronRight size={32} />
-              </button>
-            )}
-
-            {/* Image Counter */}
-            {listing.images.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-6 py-3 rounded-full text-lg z-60 backdrop-blur-sm">
-                {zoomImageIndex + 1} / {listing.images.length}
-              </div>
-            )}
-
-            {/* Thumbnail Carousel at Bottom */}
-            {listing.images.length > 1 && (
-              <div className="absolute bottom-20 left-0 right-0 z-60 px-4 md:px-8">
-                <div className="max-w-7xl mx-auto overflow-x-auto pb-4">
-                  <div className="flex gap-3 justify-center">
-                    {listing.images.map((image: string, index: number) => (
-                      <button
-                        key={index}
-                        onClick={() => goToZoomImage(index)}
-                        className={`relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
-                          zoomImageIndex === index
-                            ? 'border-white shadow-lg scale-110'
-                            : 'border-white/30 hover:border-white/60'
-                        }`}
-                      >
-                        <Image
-                          src={image}
-                          alt={`Thumbnail ${index + 1}`}
-                          fill
-                          className="object-cover"
-                          sizes="96px"
-                        />
-                      </button>
-                    ))}
+                    {imageCount > 1 && (
+                      <div className="absolute bottom-4 left-1/2 z-[65] -translate-x-1/2 rounded-full bg-black/70 px-5 py-2 text-base text-white backdrop-blur-sm">
+                        {zoomImageIndex + 1} / {imageCount}
+                      </div>
+                    )}
                   </div>
+
+                  {imageCount > 1 && (
+                    <div className="h-28 min-w-0 rounded-xl bg-white/5 px-2 py-2 backdrop-blur-sm md:h-32 md:px-3">
+                      <div className="h-full w-full min-w-0 overflow-x-auto overflow-y-hidden">
+                        <div className="inline-flex h-full flex-nowrap items-center gap-2 md:gap-3">
+                          {listing.images.map((image, index) => (
+                            <button
+                              key={image + index}
+                              onClick={() => goToZoomImage(index)}
+                              className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all md:h-24 md:w-24 ${
+                                zoomImageIndex === index
+                                  ? 'scale-105 border-white shadow-lg'
+                                  : 'border-white/30 hover:border-white/60'
+                              }`}
+                            >
+                              <Image
+                                src={image}
+                                alt={`Thumbnail ${index + 1}`}
+                                fill
+                                className="object-cover"
+                                sizes="96px"
+                                loading="lazy"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
-        </div>
-      )}
+            </div>,
+            document.body
+          )
+        : null}
 
-      {/* Request Information Confirmation Modal */}
       <ConfirmationModal
         isOpen={showRequestInfoModal}
         onClose={() => setShowRequestInfoModal(false)}
@@ -263,4 +382,3 @@ export function ListingDetailClient({ listing }: ListingDetailClientProps) {
     </>
   );
 }
-

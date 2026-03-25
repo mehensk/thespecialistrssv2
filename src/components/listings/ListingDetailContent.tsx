@@ -3,7 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
-  Heart, Share2, Calendar, MapPin, Bed, Bath, Square, Car, Layers, Phone, Mail,
+  type LucideIcon,
+  Heart, Share2, MapPin, Bed, Bath, Square, Car, Phone, Mail,
   Wind, Sofa, Wifi, Waves, Dumbbell, Shield, ArrowUpDown, Home, ChefHat, Droplets,
   Shirt, Package, Sparkles, ShoppingBag, GraduationCap, Bus, Building2, Waves as WaterWaves,
   Camera, Flame, ConciergeBell, TreePine, Briefcase, Tv, Wrench, AlertCircle, Building
@@ -30,7 +31,7 @@ interface Listing {
   parking: number | null;
   floor: number | null;
   totalFloors: number | null;
-  amenities: any;
+  amenities: unknown;
   propertyId: string | null;
   available: boolean;
   user: {
@@ -43,13 +44,14 @@ interface ListingDetailContentProps {
   listing: Listing;
   currentImageIndex: number;
   isSaved: boolean;
-  onImageChange: (index: number) => void;
   onSaveToggle: () => void;
-  onImageNavigation: {
-    next: () => void;
-    prev: () => void;
-    goTo: (index: number) => void;
-  };
+  mainViewportRef: (node: HTMLDivElement | null) => void;
+  canScrollMainPrev: boolean;
+  canScrollMainNext: boolean;
+  onMainPrev: () => void;
+  onMainNext: () => void;
+  onMainGoTo: (index: number) => void;
+  onMainImageLoaded: (index: number) => void;
   onZoom: (index: number) => void;
   onRequestInfo: (e: React.MouseEvent) => void;
 }
@@ -73,7 +75,7 @@ const getOrdinal = (n: number): string => {
 };
 
 // Amenities mapping with icons (uniform styling, no category colors)
-const amenitiesMap: { [key: string]: { icon: any } } = {
+const amenitiesMap: { [key: string]: { icon: LucideIcon } } = {
   'Air Conditioning': { icon: Wind },
   'Fully Furnished': { icon: Sofa },
   'Wi-Fi Included': { icon: Wifi },
@@ -110,9 +112,14 @@ export function ListingDetailContent({
   listing,
   currentImageIndex,
   isSaved,
-  onImageChange,
   onSaveToggle,
-  onImageNavigation,
+  mainViewportRef,
+  canScrollMainPrev,
+  canScrollMainNext,
+  onMainPrev,
+  onMainNext,
+  onMainGoTo,
+  onMainImageLoaded,
   onZoom,
   onRequestInfo,
 }: ListingDetailContentProps) {
@@ -150,23 +157,34 @@ export function ListingDetailContent({
         {/* Image Gallery */}
         {listing.images && listing.images.length > 0 && (
           <div className="relative">
-            <div className="relative w-full h-[500px] md:h-[600px] rounded-lg overflow-hidden bg-gray-100">
-              <Image
-                src={listing.images[currentImageIndex]}
-                alt={listing.title || 'Property Image'}
-                fill
-                className="object-cover cursor-pointer"
-                sizes="(max-width: 768px) 100vw, 66vw"
-                priority
-                onClick={() => onZoom(currentImageIndex)}
-              />
-              
+            <div className="relative h-[500px] md:h-[600px] rounded-lg overflow-hidden bg-gray-100">
+              <div className="h-full overflow-hidden" ref={mainViewportRef}>
+                <div className="flex h-full">
+                  {listing.images.map((image, index) => (
+                    <div key={image + index} className="relative h-full min-w-0 flex-[0_0_100%]">
+                      <Image
+                        src={image}
+                        alt={`${listing.title || 'Property Image'} - Image ${index + 1}`}
+                        fill
+                        className="object-cover cursor-pointer"
+                        sizes="(max-width: 768px) 100vw, 66vw"
+                        priority={index === 0}
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        onClick={() => onZoom(index)}
+                        onLoad={() => onMainImageLoaded(index)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Navigation Arrows */}
               {listing.images.length > 1 && (
                 <>
                   <button
-                    onClick={onImageNavigation.prev}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all"
+                    onClick={onMainPrev}
+                    disabled={!canScrollMainPrev}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 p-3 rounded-full shadow-lg transition-all"
                     aria-label="Previous image"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,8 +192,9 @@ export function ListingDetailContent({
                     </svg>
                   </button>
                   <button
-                    onClick={onImageNavigation.next}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all"
+                    onClick={onMainNext}
+                    disabled={!canScrollMainNext}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed text-gray-800 p-3 rounded-full shadow-lg transition-all"
                     aria-label="Next image"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,7 +218,7 @@ export function ListingDetailContent({
                 {listing.images.map((image, index) => (
                   <button
                     key={index}
-                    onClick={() => onImageNavigation.goTo(index)}
+                    onClick={() => onMainGoTo(index)}
                     className={`relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all ${
                       currentImageIndex === index
                         ? 'border-[#111111] ring-2 ring-[#111111]'
@@ -212,6 +231,7 @@ export function ListingDetailContent({
                       fill
                       className="object-cover"
                       sizes="96px"
+                      loading="lazy"
                     />
                   </button>
                 ))}
@@ -347,7 +367,7 @@ export function ListingDetailContent({
           )}
 
           {/* Amenities */}
-          {listing.amenities && typeof listing.amenities === 'object' && (
+          {listing.amenities !== null && typeof listing.amenities === 'object' && (
             <div>
               <h2 className="text-xl font-semibold text-[#111111] mb-3">Amenities</h2>
               <div className="flex flex-wrap gap-2">

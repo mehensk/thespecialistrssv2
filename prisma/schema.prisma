@@ -105,6 +105,24 @@ model Activity {
   @@index([itemType, itemId])
 }
 
+model CloudinaryDeleteQueue {
+  id         String                @id @default(cuid())
+  listingId  String?
+  imageUrl   String
+  publicId   String
+  status     CloudinaryDeleteStatus @default(PENDING)
+  attempts   Int                   @default(0)
+  lastError  String?
+  nextRetryAt DateTime             @default(now())
+  processedAt DateTime?
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+
+  @@index([status, nextRetryAt])
+  @@index([listingId])
+  @@index([publicId])
+}
+
 enum UserRole {
   ADMIN
   AGENT
@@ -126,4 +144,11 @@ enum ActivityItemType {
   BLOG
   USER
   AUTH
+}
+
+enum CloudinaryDeleteStatus {
+  PENDING
+  PROCESSING
+  FAILED
+  COMPLETED
 }

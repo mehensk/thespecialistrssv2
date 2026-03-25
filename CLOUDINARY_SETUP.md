@@ -47,6 +47,28 @@ CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 ```
 
+### 5. Deletion Sync and Retry (Optional but Recommended)
+
+To keep Cloudinary in sync when listing images are removed during edit:
+
+```env
+# Safe rollout toggle (start false, then set true after validation)
+CLOUDINARY_DELETE_ON_LISTING_UPDATE=false
+
+# Keep false for best-effort cleanup behavior
+CLOUDINARY_DELETE_STRICT=false
+
+# Retry worker tuning
+CLOUDINARY_DELETE_RETRY_MAX_ATTEMPTS=5
+CLOUDINARY_DELETE_RETRY_BATCH_SIZE=25
+
+# Protect cron endpoint: POST /api/cron/cloudinary-cleanup
+CLOUDINARY_CLEANUP_CRON_SECRET=your_cron_secret
+```
+
+When enabled, image removals from listing edits are deleted from Cloudinary after successful listing save.
+Failed deletes are queued and retried by the cron endpoint.
+
 ## How It Works
 
 - **Production (Cloudinary configured)**: New image uploads go directly to Cloudinary
